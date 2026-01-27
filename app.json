@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "eJoi",
+    "slug": "ejoi",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./public/logos/eJoi_logos-01.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./public/logos/eJoi_logos-01.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1DA1F2"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ejoi.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./public/logos/eJoi_logos-01.png",
+        "backgroundColor": "#1DA1F2"
+      },
+      "package": "com.ejoi.app"
+    },
+    "web": {
+      "favicon": "./public/logos/eJoi_logos-01.png",
+      "bundler": "metro",
+      "output": "static"
+    },
+    "scheme": "ejoi",
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}
