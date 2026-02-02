@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Image, Dimensions } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,6 +11,8 @@ import { styles } from './CreateCompanionScreen.styles';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type CreateCompanionScreenRouteProp = RouteProp<RootStackParamList, 'CreateCompanion'>;
 type CreateCompanionScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CreateCompanion'>;
@@ -70,6 +72,11 @@ export const CreateCompanionScreen: React.FC = () => {
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
+        <Image
+          source={require('../../../../public/IMG/eJoi_INTERFAZ-14.png')}
+          style={styles.decorativeHand}
+          resizeMode="contain"
+        />
         <ScrollView 
           style={styles.scrollView}
           contentContainerStyle={styles.contentContainer}
@@ -83,6 +90,13 @@ export const CreateCompanionScreen: React.FC = () => {
           </View>
 
           <View style={styles.summary}>
+            {onboardingData.companionName && (
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Nombre:</Text>
+                <Text style={styles.summaryValue}>{onboardingData.companionName}</Text>
+              </View>
+            )}
+
             <View style={styles.summaryItem}>
               <Text style={styles.summaryLabel}>Personalidad:</Text>
               <Text style={styles.summaryValue}>{onboardingData.persona}</Text>

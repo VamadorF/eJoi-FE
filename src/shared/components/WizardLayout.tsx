@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { View, StyleSheet, SafeAreaView, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ProgressBar } from './ProgressBar';
 import { Button } from './Button';
@@ -39,23 +39,38 @@ export const WizardLayout: React.FC<WizardLayoutProps> = ({
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
-        
-        <View style={styles.content}>
-          {children}
-        </View>
+        <ImageBackground
+          source={require('../../../public/IMG/eJoi_INTERFAZ-12.png')}
+          style={styles.decorativeBackground}
+          imageStyle={styles.decorativeBackgroundImage}
+          resizeMode="cover"
+        >
+          <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
+          
+          <View style={styles.content}>
+            {children}
+          </View>
 
-        <View style={styles.footer}>
-          {footerContent || (
-            <>
-              {showBack && onBack ? (
-                <>
-                  <Button
-                    title={backLabel}
-                    onPress={onBack}
-                    variant="outline"
-                    style={styles.backButton}
-                  />
+          <View style={styles.footer}>
+            {footerContent || (
+              <>
+                {showBack && onBack ? (
+                  <>
+                    <Button
+                      title={backLabel}
+                      onPress={onBack}
+                      variant="outline"
+                      style={styles.backButton}
+                    />
+                    <Button
+                      title={nextLabel}
+                      onPress={onNext}
+                      variant="primary"
+                      disabled={nextDisabled}
+                      style={styles.nextButton}
+                    />
+                  </>
+                ) : (
                   <Button
                     title={nextLabel}
                     onPress={onNext}
@@ -63,19 +78,11 @@ export const WizardLayout: React.FC<WizardLayoutProps> = ({
                     disabled={nextDisabled}
                     style={styles.nextButton}
                   />
-                </>
-              ) : (
-                <Button
-                  title={nextLabel}
-                  onPress={onNext}
-                  variant="primary"
-                  disabled={nextDisabled}
-                  style={styles.nextButton}
-                />
-              )}
-            </>
-          )}
-        </View>
+                )}
+              </>
+            )}
+          </View>
+        </ImageBackground>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -87,6 +94,12 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
+  },
+  decorativeBackground: {
+    flex: 1,
+  },
+  decorativeBackgroundImage: {
+    opacity: 0.15,
   },
   content: {
     flex: 1,

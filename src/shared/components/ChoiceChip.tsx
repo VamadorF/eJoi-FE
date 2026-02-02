@@ -80,6 +80,15 @@ const styles = StyleSheet.create({
   chipSelected: {
     borderColor: Colors.base.secondary,
     backgroundColor: Colors.auxiliary.secondary,
+    borderWidth: 2,
+    shadowColor: Colors.base.secondary,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 3,
   },
   chipDisabled: {
     opacity: 0.5,

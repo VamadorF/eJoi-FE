@@ -1,14 +1,26 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { Colors } from '@/shared/theme/colors';
 import { Spacing } from '@/shared/theme/spacing';
 import { Typography } from '@/shared/theme/typography';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
+  decorativeHand: {
+    position: 'absolute',
+    width: SCREEN_WIDTH * 0.5,
+    height: SCREEN_HEIGHT * 0.3,
+    left: -SCREEN_WIDTH * 0.1,
+    bottom: SCREEN_HEIGHT * 0.1,
+    opacity: 0.2,
+    zIndex: 0,
+  },
   scrollView: {
     flex: 1,
+    zIndex: 1,
   },
   contentContainer: {
     flexGrow: 1,

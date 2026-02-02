@@ -83,7 +83,7 @@ const BOUNDARY_OPTIONS = [
   'No discusiones religiosas',
 ];
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 export const OnboardingScreen: React.FC = () => {
   const navigation = useNavigation<OnboardingScreenNavigationProp>();
@@ -95,16 +95,25 @@ export const OnboardingScreen: React.FC = () => {
     conversationDepth: '',
     interests: [],
     boundaries: [],
+    companionName: '',
     avatar: undefined,
   });
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleNext = () => {
+    setErrorMessage('');
+    
+    if (!canProceed()) {
+      setErrorMessage('Por favor completa este paso antes de continuar');
+      return;
+    }
+
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
     } else {
       // Validar que los campos requeridos estén llenos
-      if (!onboardingData.persona || !onboardingData.tone) {
-        // TODO: Mostrar error
+      if (!onboardingData.persona || !onboardingData.tone || !onboardingData.companionName) {
+        setErrorMessage('Por favor completa todos los campos requeridos');
         return;
       }
       // Navegar a la pantalla de crear compañera
@@ -150,6 +159,11 @@ export const OnboardingScreen: React.FC = () => {
     setOnboardingData({ ...onboardingData, boundaries });
   };
 
+  const handleCompanionNameChange = (text: string) => {
+    setOnboardingData({ ...onboardingData, companionName: text });
+    setErrorMessage('');
+  };
+
   const canProceed = () => {
     switch (currentStep) {
       case 1:
@@ -164,6 +178,8 @@ export const OnboardingScreen: React.FC = () => {
         return onboardingData.interests.length > 0; // Al menos un interés
       case 6:
         return true; // Los límites son opcionales
+      case 7:
+        return !!onboardingData.companionName && onboardingData.companionName.trim().length >= 2;
       default:
         return false;
     }
@@ -295,6 +311,31 @@ export const OnboardingScreen: React.FC = () => {
           </View>
         );
 
+      case 7:
+        return (
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepTitle}>Elige un nombre</Text>
+            <Text style={styles.stepSubtitle}>
+              ¿Cómo quieres llamar a tu compañera?
+            </Text>
+            <View style={styles.inputContainer}>
+              <Input
+                placeholder="Ej: Luna, Alex, Maya..."
+                value={onboardingData.companionName || ''}
+                onChangeText={handleCompanionNameChange}
+                containerStyle={styles.nameInputContainer}
+                style={styles.nameInput}
+                maxLength={20}
+              />
+              {errorMessage && onboardingData.companionName && onboardingData.companionName.trim().length < 2 && (
+                <Text style={styles.errorText}>
+                  El nombre debe tener al menos 2 caracteres
+                </Text>
+              )}
+            </View>
+          </View>
+        );
+
       default:
         return null;
     }
@@ -314,8 +355,12 @@ export const OnboardingScreen: React.FC = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {renderStepContent()}
+        {errorMessage && (
+          <Text style={styles.errorMessage}>{errorMessage}</Text>
+        )}
       </ScrollView>
     </WizardLayout>
   );
@@ -357,5 +402,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: Spacing.lg,
+  },
+  inputContainer: {
+    width: '100%',
+    marginTop: Spacing.lg,
+  },
+  nameInputContainer: {
+    marginBottom: Spacing.md,
+  },
+  nameInput: {
+    backgroundColor: Colors.background.white,
+    opacity: 0.95,
+  },
+  errorMessage: {
+    ...Typography.styles.bodySmall,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.error,
+    textAlign: 'center',
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.md,
+  },
+  errorText: {
+    ...Typography.styles.caption,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.error,
+    marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.md,
   },
 });

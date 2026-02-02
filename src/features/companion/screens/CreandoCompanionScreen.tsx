@@ -61,7 +61,7 @@ export const CreandoCompanionScreen: React.FC = () => {
         // Por ahora, crear compañera mock
         const newCompanion: Companion = {
           id: `companion-${Date.now()}`,
-          name: 'Tu Compañera', // TODO: Permitir al usuario elegir nombre
+          name: onboardingData.companionName || 'Tu Compañera',
           personality: onboardingData.persona,
           tone: onboardingData.tone,
           interactionStyle: onboardingData.interactionStyle,
@@ -103,8 +103,11 @@ export const CreandoCompanionScreen: React.FC = () => {
     >
       <View style={styles.content}>
         <Animated.View style={[styles.spiralContainer, animatedSpiralStyle]}>
-          {/* Usar imagen de estatua/espiral si está disponible, sino usar un círculo animado */}
-          <View style={styles.spiralPlaceholder} />
+          <Image
+            source={require('../../../../public/IMG/eJoi_INTERFAZ-13.png')}
+            style={styles.statueImage}
+            resizeMode="contain"
+          />
         </Animated.View>
         
         <Text style={styles.title}>Creando a tu compañera</Text>
@@ -127,20 +130,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screen.paddingHorizontal,
   },
   spiralContainer: {
-    width: 200,
-    height: 200,
+    width: 300,
+    height: 300,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing['2xl'],
   },
-  spiralPlaceholder: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: Colors.auxiliary.primary,
-    opacity: 0.3,
-    borderWidth: 4,
-    borderColor: Colors.text.white,
+  statueImage: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     ...Typography.styles.h2,

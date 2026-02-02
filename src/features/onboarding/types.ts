@@ -9,6 +9,7 @@ export interface OnboardingData {
   conversationDepth: string;
   interests: string[];
   boundaries: string[];
+  companionName?: string;
   avatar?: string;
 }
 
