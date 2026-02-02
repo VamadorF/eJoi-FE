@@ -5,32 +5,39 @@ import { Typography } from '@/shared/theme/typography';
 
 export const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.md,
+    marginBottom: 0, // El espaciado se maneja en el componente padre
+    width: '100%',
   },
   label: {
     ...Typography.styles.bodySmall,
+    fontFamily: Typography.fontFamily.medium,
     color: Colors.text.primary,
-    marginBottom: Spacing.xs,
-    fontWeight: Typography.fontWeight.medium,
+    marginBottom: Spacing.md,
+    lineHeight: Typography.styles.bodySmall.fontSize * Typography.lineHeight.normal,
   },
   input: {
     ...Typography.styles.body,
+    fontFamily: Typography.fontFamily.regular,
     borderWidth: 1,
     borderColor: Colors.border.light,
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     backgroundColor: Colors.background.white,
     color: Colors.text.primary,
-    minHeight: 44,
+    minHeight: 48,
+    lineHeight: Typography.styles.body.fontSize * Typography.lineHeight.normal,
+    textAlignVertical: 'top', // Para multiline inputs
   },
   inputError: {
     borderColor: Colors.error,
   },
   error: {
     ...Typography.styles.caption,
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.error,
-    marginTop: Spacing.xs,
+    marginTop: Spacing.sm,
+    lineHeight: Typography.styles.caption.fontSize * Typography.lineHeight.normal,
   },
 });
 

@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.background.white,
     borderWidth: 1,
     borderColor: Colors.border.light,
-    borderRadius: 8,
+    borderRadius: 12,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     marginHorizontal: Spacing.buttonMargin.horizontal,
@@ -26,8 +26,8 @@ export const styles = StyleSheet.create({
   },
   text: {
     ...Typography.styles.body,
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.text.primary,
-    fontWeight: Typography.fontWeight.regular,
   },
   loader: {
     marginRight: Spacing.sm,
