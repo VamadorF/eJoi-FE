@@ -1,15 +1,24 @@
 import React, { useEffect } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, Linking, Alert, Animated } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GoogleButton } from '../components/GoogleButton';
 import { AppleButton } from '../components/AppleButton';
 import { Button } from '@/shared/components/Button';
 import { useAuth } from '../hooks/useAuth';
+import { useCompanionStore } from '@/features/companion/store/companion.store';
+import { RootStackParamList } from '@/shared/types/navigation';
 import { styles } from './LoginScreen.styles';
 import { Colors } from '@/shared/theme/colors';
+import { Typography } from '@/shared/theme/typography';
+
+type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC = () => {
+  const navigation = useNavigation<LoginScreenNavigationProp>();
   const { loginWithGoogle, loginWithApple, isLoading } = useAuth();
+  const { checkCompanion } = useCompanionStore();
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
   const [isAppleLoading, setIsAppleLoading] = React.useState(false);
   
@@ -94,9 +103,27 @@ export const LoginScreen: React.FC = () => {
     Linking.openURL(url).catch((err) => console.error('Error opening URL:', err));
   };
 
+  const handleSkip = async () => {
+    // Verificar si tiene compañera
+    await checkCompanion();
+    
+    // Obtener el estado actualizado después de checkCompanion
+    const companionState = useCompanionStore.getState();
+    
+    // Navegar según el estado de la compañera
+    if (companionState.hasCompanion) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Chat' }],
+      });
+    } else {
+      navigation.navigate('Onboarding');
+    }
+  };
+
   return (
     <LinearGradient
-      colors={['#4A90E2', '#5B9BD5', '#6BA3D6']}
+      colors={Colors.background.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -143,6 +170,13 @@ export const LoginScreen: React.FC = () => {
               disabled={isLoading || isAppleLoading}
               loading={isAppleLoading}
             />
+          </Animated.View>
+
+          {/* Botón Skip */}
+          <Animated.View style={[styles.skipContainer, { opacity: fadeAnim }]}>
+            <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+              <Text style={styles.skipText}>Continuar sin login</Text>
+            </TouchableOpacity>
           </Animated.View>
 
           {/* Separador */}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import { Colors } from '@/shared/theme/colors';
 import { styles } from './Button.styles';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline';
@@ -46,7 +47,7 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? '#FFFFFF' : '#1DA1F2'}
+          color={variant === 'primary' ? '#FFFFFF' : Colors.base.primary}
           size="small"
         />
       ) : (

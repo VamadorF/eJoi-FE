@@ -1,5 +1,6 @@
 import React from 'react';
 import { TextInput, TextInputProps, View, Text, ViewStyle } from 'react-native';
+import { Colors } from '@/shared/theme/colors';
 import { styles } from './Input.styles';
 
 export interface InputProps extends TextInputProps {
@@ -20,7 +21,7 @@ export const Input: React.FC<InputProps> = ({
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
         style={[styles.input, error && styles.inputError, style]}
-        placeholderTextColor="#AAB8C2"
+        placeholderTextColor={Colors.text.light}
         {...props}
       />
       {error && <Text style={styles.error}>{error}</Text>}

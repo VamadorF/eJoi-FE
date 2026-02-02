@@ -2,7 +2,6 @@ import { StyleSheet, Platform } from 'react-native';
 import { Colors } from '@/shared/theme/colors';
 import { Spacing } from '@/shared/theme/spacing';
 import { Typography } from '@/shared/theme/typography';
-import { getTexturedBackground } from '@/shared/theme/textures';
 
 export const styles = StyleSheet.create({
   container: {
@@ -20,10 +19,11 @@ export const styles = StyleSheet.create({
   },
   loginCard: {
     backgroundColor: Colors.background.white,
-    borderRadius: 16,
-    padding: Spacing.xl,
+    borderRadius: 20,
+    padding: Spacing.lg,
     width: '100%',
     maxWidth: 400,
+    marginHorizontal: Spacing.md, // Mobile-first: márgenes laterales
     // Para web usar boxShadow, para mobile usar shadow*
     ...(Platform.OS === 'web' ? {
       boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
@@ -43,8 +43,9 @@ export const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
   },
   logo: {
-    width: 180,
-    height: 180,
+    width: 160,
+    height: 160,
+    maxWidth: '80%', // Mobile-first: responsive
   },
   separator: {
     flexDirection: 'row',
@@ -72,13 +73,15 @@ export const styles = StyleSheet.create({
   },
   termsText: {
     ...Typography.styles.caption,
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: Typography.styles.caption.fontSize * Typography.lineHeight.normal,
   },
   link: {
     color: Colors.text.link,
     textDecorationLine: 'underline',
+    fontFamily: Typography.fontFamily.regular,
   },
   loginLinkContainer: {
     marginTop: Spacing.xl,
@@ -86,7 +89,23 @@ export const styles = StyleSheet.create({
   },
   loginLinkText: {
     ...Typography.styles.body,
+    fontFamily: Typography.fontFamily.regular,
     color: Colors.text.secondary,
+  },
+  skipContainer: {
+    marginTop: Spacing.lg,
+    alignItems: 'center',
+  },
+  skipButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    minHeight: 44, // Touch target mínimo para mobile
+  },
+  skipText: {
+    ...Typography.styles.body,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.text.secondary,
+    textDecorationLine: 'underline',
   },
 });
 

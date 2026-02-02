@@ -30,6 +30,7 @@ export const styles = StyleSheet.create({
   },
   text: {
     ...Typography.styles.button,
+    fontFamily: Typography.fontFamily.bold,
     textAlign: 'center',
   },
   primaryText: {

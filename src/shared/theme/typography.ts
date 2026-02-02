@@ -1,16 +1,22 @@
 /**
  * Sistema de tipografía
- * Incluye referencia a la fuente Amblas.ttf disponible en public/fonts/
+ * Usa la fuente Apis disponible en public/Tipografia/
+ * Fuentes disponibles: Light, Regular, Medium, Bold, ExtraBold, Black
  */
 
 export const Typography = {
-  // Familias de fuente
+  // Familias de fuente Apis
   fontFamily: {
-    // TODO: Cargar fuente Amblas cuando esté disponible
-    // Para web, usar: fontFamily: 'Amblas' después de cargar la fuente
-    regular: 'System', // Fallback para iOS/Android
-    regularWeb: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    // amblas: 'Amblas', // Descomentar cuando se cargue la fuente
+    // Fuente Apis - nombres basados en los archivos TTF
+    light: 'Copia de Apis-Light',
+    regular: 'Copia de Apis-Regular',
+    medium: 'Copia de Apis-Medium',
+    bold: 'Copia de Apis-Bold',
+    extraBold: 'Copia de Apis-ExtraBold',
+    black: 'Copia de Apis-Black',
+    // Fallbacks
+    system: 'System', // Fallback para iOS/Android antes de cargar
+    systemWeb: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
   
   // Tamaños de fuente
@@ -42,51 +48,51 @@ export const Typography = {
     loose: 2,
   },
   
-  // Estilos predefinidos
+  // Estilos predefinidos con fuente Apis
   styles: {
     h1: {
       fontSize: 36,
-      fontWeight: '700' as const,
+      fontFamily: 'Copia de Apis-Bold',
       lineHeight: 1.2,
     },
     h2: {
       fontSize: 30,
-      fontWeight: '700' as const,
+      fontFamily: 'Copia de Apis-Bold',
       lineHeight: 1.2,
     },
     h3: {
       fontSize: 24,
-      fontWeight: '600' as const,
+      fontFamily: 'Copia de Apis-Bold',
       lineHeight: 1.3,
     },
     h4: {
       fontSize: 20,
-      fontWeight: '600' as const,
+      fontFamily: 'Copia de Apis-Medium',
       lineHeight: 1.4,
     },
     body: {
       fontSize: 16,
-      fontWeight: '400' as const,
+      fontFamily: 'Copia de Apis-Regular',
       lineHeight: 1.5,
     },
     bodySmall: {
       fontSize: 14,
-      fontWeight: '400' as const,
+      fontFamily: 'Copia de Apis-Regular',
       lineHeight: 1.5,
     },
     caption: {
       fontSize: 12,
-      fontWeight: '400' as const,
+      fontFamily: 'Copia de Apis-Regular',
       lineHeight: 1.4,
     },
     button: {
       fontSize: 16,
-      fontWeight: '600' as const,
+      fontFamily: 'Copia de Apis-Bold',
       lineHeight: 1.5,
     },
     link: {
       fontSize: 14,
-      fontWeight: '400' as const,
+      fontFamily: 'Copia de Apis-Regular',
       lineHeight: 1.5,
     },
   },

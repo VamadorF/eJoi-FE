@@ -9,8 +9,22 @@
     "splash": {
       "image": "./public/logos/eJoi_logos-01.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1DA1F2"
+      "backgroundColor": "#f20a64"
     },
+    "fonts": [
+      "./public/Tipografia/Copia de Apis-Black.ttf",
+      "./public/Tipografia/Copia de Apis-BlackItalic.ttf",
+      "./public/Tipografia/Copia de Apis-Bold.ttf",
+      "./public/Tipografia/Copia de Apis-BoldItalic.ttf",
+      "./public/Tipografia/Copia de Apis-ExtraBold.ttf",
+      "./public/Tipografia/Copia de Apis-ExtraBoldItalic.ttf",
+      "./public/Tipografia/Copia de Apis-Italic.ttf",
+      "./public/Tipografia/Copia de Apis-Light.ttf",
+      "./public/Tipografia/Copia de Apis-LightItalic.ttf",
+      "./public/Tipografia/Copia de Apis-Medium.ttf",
+      "./public/Tipografia/Copia de Apis-MediumItalic.ttf",
+      "./public/Tipografia/Copia de Apis-Regular.ttf"
+    ],
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -21,7 +35,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./public/logos/eJoi_logos-01.png",
-        "backgroundColor": "#1DA1F2"
+        "backgroundColor": "#f20a64"
       },
       "package": "com.ejoi.app"
     },
