@@ -146,27 +146,10 @@ export const LoginScreen: React.FC = () => {
           </Animated.View>
 
           {/* Separador */}
-          <Animated.View 
-            style={[
-              styles.separator,
-              { opacity: fadeAnim },
-            ]}
-          >
-            <View style={styles.separatorLine} />
-            <Text style={styles.separatorText}>Or</Text>
-            <View style={styles.separatorLine} />
-          </Animated.View>
+          
 
           {/* Botón Create Account */}
-          <Animated.View style={{ opacity: fadeAnim }}>
-            <Button
-              title="Create account"
-              onPress={handleCreateAccount}
-              variant="primary"
-              disabled={isLoading}
-              style={styles.createAccountButton}
-            />
-          </Animated.View>
+          
 
           {/* Links de términos */}
           <Animated.View 
@@ -208,12 +191,7 @@ export const LoginScreen: React.FC = () => {
               { opacity: fadeAnim },
             ]}
           >
-            <Text style={styles.loginLinkText}>
-              Have an account already?{' '}
-              <Text style={styles.link} onPress={handleLogin}>
-                Log in
-              </Text>
-            </Text>
+            
           </Animated.View>
         </Animated.View>
       </ScrollView>
