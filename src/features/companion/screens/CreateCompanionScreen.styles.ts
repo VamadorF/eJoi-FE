@@ -4,6 +4,9 @@ import { Spacing } from '@/shared/theme/spacing';
 import { Typography } from '@/shared/theme/typography';
 
 export const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
   },
@@ -20,7 +23,7 @@ export const styles = StyleSheet.create({
   title: {
     ...Typography.styles.h2,
     fontFamily: Typography.fontFamily.bold,
-    color: Colors.text.primary,
+    color: Colors.text.white,
     marginBottom: Spacing.md,
     textAlign: 'left',
     lineHeight: Typography.styles.h2.fontSize * Typography.lineHeight.tight,
@@ -28,16 +31,18 @@ export const styles = StyleSheet.create({
   subtitle: {
     ...Typography.styles.body,
     fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.secondary,
+    color: Colors.text.white,
+    opacity: 0.9,
     textAlign: 'left',
     lineHeight: Typography.styles.body.fontSize * Typography.lineHeight.normal,
   },
   summary: {
-    backgroundColor: Colors.background.light,
-    borderRadius: 12,
+    backgroundColor: Colors.auxiliary.primary,
+    borderRadius: 16,
     padding: Spacing.lg,
     marginBottom: Spacing.xl,
     width: '100%',
+    opacity: 0.9,
   },
   summaryItem: {
     marginBottom: Spacing.lg,
@@ -45,7 +50,7 @@ export const styles = StyleSheet.create({
   summaryLabel: {
     ...Typography.styles.bodySmall,
     fontFamily: Typography.fontFamily.medium,
-    color: Colors.text.secondary,
+    color: Colors.base.primary,
     marginBottom: Spacing.sm,
     lineHeight: Typography.styles.bodySmall.fontSize * Typography.lineHeight.normal,
   },
@@ -69,7 +74,7 @@ export const styles = StyleSheet.create({
   errorText: {
     ...Typography.styles.body,
     fontFamily: Typography.fontFamily.regular,
-    color: Colors.error,
+    color: Colors.text.white,
     marginBottom: Spacing.lg,
     textAlign: 'center',
     lineHeight: Typography.styles.body.fontSize * Typography.lineHeight.normal,

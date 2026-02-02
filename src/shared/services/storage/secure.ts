@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user_data';
+const COMPANION_KEY = 'companion_data';
 
 /**
  * Almacena un valor de forma segura
@@ -117,5 +118,26 @@ export const clearAuthData = async (): Promise<void> => {
     removeRefreshToken(),
     removeItem(USER_KEY),
   ]);
+};
+
+/**
+ * Almacena los datos de la compañera
+ */
+export const setCompanionData = async (companion: string): Promise<void> => {
+  return setItem(COMPANION_KEY, companion);
+};
+
+/**
+ * Obtiene los datos de la compañera
+ */
+export const getCompanionData = async (): Promise<string | null> => {
+  return getItem(COMPANION_KEY);
+};
+
+/**
+ * Elimina los datos de la compañera
+ */
+export const removeCompanionData = async (): Promise<void> => {
+  return removeItem(COMPANION_KEY);
 };
 

@@ -1,6 +1,5 @@
 /**
  * Tipos para feature Companion
- * TODO: Implementar cuando la feature esté disponible
  */
 
 export interface Companion {
@@ -8,6 +7,10 @@ export interface Companion {
   name: string;
   avatar?: string;
   personality: string;
+  tone: string;
+  interactionStyle?: string;
+  conversationDepth?: string;
+  interests: string[];
   traits: string[];
 }
 

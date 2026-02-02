@@ -13,15 +13,21 @@ export const styles = StyleSheet.create({
   iconContainer: {
     marginBottom: Spacing.lg,
   },
+  iconText: {
+    fontSize: 64,
+  },
   title: {
     ...Typography.styles.h3,
-    color: Colors.text.primary,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.text.white,
     textAlign: 'center',
     marginBottom: Spacing.sm,
   },
   message: {
     ...Typography.styles.body,
-    color: Colors.text.secondary,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.text.white,
+    opacity: 0.9,
     textAlign: 'center',
   },
 });

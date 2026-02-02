@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LoginScreen } from '@/features/auth/screens/LoginScreen';
 import { OnboardingScreen } from '@/features/onboarding/screens/OnboardingScreen';
 import { CreateCompanionScreen } from '@/features/companion/screens/CreateCompanionScreen';
+import { CreandoCompanionScreen } from '@/features/companion/screens/CreandoCompanionScreen';
+import { CompanionReadyScreen } from '@/features/companion/screens/CompanionReadyScreen';
 import { ChatScreen } from '@/features/chat/screens/ChatScreen';
 import { RootStackParamList } from '@/shared/types/navigation';
 
@@ -23,6 +25,8 @@ export const AuthNavigator: React.FC = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="CreateCompanion" component={CreateCompanionScreen} />
+      <Stack.Screen name="CreandoCompanion" component={CreandoCompanionScreen} />
+      <Stack.Screen name="CompanionReady" component={CompanionReadyScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />
     </Stack.Navigator>
   );

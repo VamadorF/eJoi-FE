@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { Companion } from '../types';
-import { getAuthToken } from '@/shared/services/storage/secure';
+import { getAuthToken, getCompanionData, setCompanionData, removeCompanionData } from '@/shared/services/storage/secure';
 
 interface CompanionStore {
   // State
@@ -15,9 +15,9 @@ interface CompanionStore {
   hasCompanion: boolean;
 
   // Actions
-  setCompanion: (companion: Companion | null) => void;
+  setCompanion: (companion: Companion | null) => Promise<void>;
   checkCompanion: () => Promise<void>;
-  clearCompanion: () => void;
+  clearCompanion: () => Promise<void>;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
 }
@@ -30,11 +30,26 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
   hasCompanion: false,
 
   // Actions
-  setCompanion: (companion) => {
+  setCompanion: async (companion) => {
     set({
       companion,
       hasCompanion: !!companion,
     });
+    
+    // Persistir en almacenamiento local
+    if (companion) {
+      try {
+        await setCompanionData(JSON.stringify(companion));
+      } catch (error) {
+        console.error('Error saving companion to storage:', error);
+      }
+    } else {
+      try {
+        await removeCompanionData();
+      } catch (error) {
+        console.error('Error removing companion from storage:', error);
+      }
+    }
   },
 
   checkCompanion: async () => {
@@ -53,34 +68,40 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
         return;
       }
 
-      // TODO: Llamar a API para verificar si tiene compañera
-      // Por ahora, usar estado local/mock
-      // const companion = await getCompanionFromAPI();
-      
-      // Mock: verificar en AsyncStorage si hay compañera guardada
-      // Por ahora, asumimos que no tiene compañera si no hay token o no está en el store
-      const currentCompanion = get().companion;
-      
-      if (currentCompanion) {
-        set({
-          hasCompanion: true,
-          isLoading: false,
-        });
-      } else {
-        // TODO: Hacer llamada real a la API
-        // const response = await fetch(`${API_URL}/companion`, {
-        //   headers: { Authorization: `Bearer ${token}` }
-        // });
-        // if (response.ok) {
-        //   const companion = await response.json();
-        //   get().setCompanion(companion);
-        // }
-        
-        set({
-          hasCompanion: false,
-          isLoading: false,
-        });
+      // Primero verificar en almacenamiento local
+      const storedCompanionData = await getCompanionData();
+      if (storedCompanionData) {
+        try {
+          const companion: Companion = JSON.parse(storedCompanionData);
+          set({
+            companion,
+            hasCompanion: true,
+            isLoading: false,
+          });
+          return;
+        } catch (parseError) {
+          console.error('Error parsing stored companion:', parseError);
+          // Continuar para intentar obtener desde API
+        }
       }
+
+      // TODO: Llamar a API para verificar si tiene compañera
+      // const response = await fetch(`${API_URL}/companion`, {
+      //   headers: { Authorization: `Bearer ${token}` }
+      // });
+      // if (response.ok) {
+      //   const companion = await response.json();
+      //   get().setCompanion(companion);
+      //   set({ hasCompanion: true, isLoading: false });
+      //   return;
+      // }
+      
+      // Si no hay compañera en almacenamiento ni en API
+      set({
+        companion: null,
+        hasCompanion: false,
+        isLoading: false,
+      });
     } catch (error) {
       console.error('Error checking companion:', error);
       set({
@@ -91,12 +112,17 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
     }
   },
 
-  clearCompanion: () => {
+  clearCompanion: async () => {
     set({
       companion: null,
       hasCompanion: false,
       error: null,
     });
+    try {
+      await removeCompanionData();
+    } catch (error) {
+      console.error('Error clearing companion from storage:', error);
+    }
   },
 
   setLoading: (isLoading) => {

@@ -1,72 +1,87 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/shared/theme/colors';
-import { Spacing } from '@/shared/theme/spacing';
 import { Typography } from '@/shared/theme/typography';
+import { Spacing } from '@/shared/theme/spacing';
 
 export const styles = StyleSheet.create({
-  container: {
+  gradient: {
     flex: 1,
   },
+  container: {
+    flex: 1,
+    paddingTop: Spacing.xl,
+  },
   header: {
-    padding: Spacing.lg,
-    backgroundColor: Colors.background.white,
+    paddingHorizontal: Spacing.screen.paddingHorizontal,
+    paddingBottom: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.light,
+    borderBottomColor: Colors.auxiliary.primary,
   },
   title: {
-    ...Typography.styles.h3,
+    ...Typography.styles.h2,
     fontFamily: Typography.fontFamily.bold,
-    color: Colors.text.primary,
+    color: Colors.text.white,
     marginBottom: Spacing.xs,
   },
   subtitle: {
-    ...Typography.styles.bodySmall,
+    ...Typography.styles.body,
     fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.secondary,
+    color: Colors.text.white,
+    opacity: 0.9,
   },
   messagesContainer: {
     flex: 1,
-    backgroundColor: Colors.background.light,
   },
   messagesContent: {
-    padding: Spacing.lg,
-    flexGrow: 1,
+    padding: Spacing.screen.paddingHorizontal,
+    paddingTop: Spacing.lg,
   },
   welcomeMessage: {
-    backgroundColor: Colors.background.white,
-    borderRadius: 12,
+    backgroundColor: Colors.auxiliary.primary,
+    borderRadius: 16,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
   },
   welcomeText: {
-    ...Typography.styles.body,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.primary,
+    ...Typography.styles.h4,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.base.primary,
     marginBottom: Spacing.sm,
   },
   welcomeSubtext: {
+    ...Typography.styles.body,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.text.primary,
+    marginBottom: Spacing.xs,
+    lineHeight: Typography.styles.body.fontSize * Typography.lineHeight.relaxed,
+  },
+  inputContainer: {
+    paddingHorizontal: Spacing.screen.paddingHorizontal,
+    paddingVertical: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.auxiliary.primary,
+    backgroundColor: Colors.background.white,
+    opacity: 0.1,
+  },
+  inputPlaceholder: {
     ...Typography.styles.bodySmall,
     fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.secondary,
+    color: Colors.text.white,
+    opacity: 0.7,
+    textAlign: 'center',
+    paddingVertical: Spacing.md,
   },
-  emptyState: {
+  emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Spacing.xl,
+    paddingHorizontal: Spacing.screen.paddingHorizontal,
   },
-  emptyText: {
-    ...Typography.styles.h4,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.text.primary,
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
+  emptyActions: {
+    width: '100%',
+    marginTop: Spacing.xl,
   },
-  emptySubtext: {
-    ...Typography.styles.body,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.secondary,
-    textAlign: 'center',
+  emptyButton: {
+    width: '100%',
   },
 });
-

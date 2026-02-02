@@ -5,7 +5,7 @@ import { styles } from './EmptyState.styles';
 export interface EmptyStateProps {
   title: string;
   message?: string;
-  icon?: React.ReactNode;
+  icon?: string | React.ReactNode;
   containerStyle?: ViewStyle;
   titleStyle?: TextStyle;
   messageStyle?: TextStyle;
@@ -21,7 +21,15 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <View style={[styles.container, containerStyle]}>
-      {icon && <View style={styles.iconContainer}>{icon}</View>}
+      {icon && (
+        <View style={styles.iconContainer}>
+          {typeof icon === 'string' ? (
+            <Text style={styles.iconText}>{icon}</Text>
+          ) : (
+            icon
+          )}
+        </View>
+      )}
       <Text style={[styles.title, titleStyle]}>{title}</Text>
       {message && (
         <Text style={[styles.message, messageStyle]}>{message}</Text>
