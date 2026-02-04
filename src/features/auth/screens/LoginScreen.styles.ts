@@ -97,5 +97,82 @@ export const styles = StyleSheet.create({
     opacity: 0.9,
     textDecorationLine: 'underline',
   },
+  // Modal / Bottom Sheet Styles
+  sheetBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  sheetSafeArea: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  sheetContainer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    height: '88%',
+    overflow: 'hidden',
+    flexDirection: 'column',
+  },
+  sheetHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0,0,0,0.12)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  sheetTitle: {
+    ...Typography.styles.h3,
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text.primary,
+  },
+  sheetCloseBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+  },
+  sheetCloseText: {
+    ...Typography.styles.body,
+  },
+  sheetContent: {
+    flex: 1, // Crucial for the scroll area to fill the space
+  },
+  sheetScrollContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  sheetParagraph: {
+    ...Typography.styles.body,
+    textAlign: 'left',
+    lineHeight: 22,
+    marginBottom: 14,
+  },
+  sheetBulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginBottom: 8,
+    paddingRight: 10,
+  },
+  sheetBulletSymbol: {
+    ...Typography.styles.body,
+    lineHeight: 22,
+    marginTop: 1,
+  },
+  sheetBulletText: {
+    ...Typography.styles.body,
+    flex: 1,
+    lineHeight: 22,
+  },
+  sheetFooter: {
+    padding: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0,0,0,0.12)',
+  },
 });
-
