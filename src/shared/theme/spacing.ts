@@ -42,6 +42,11 @@ export const Spacing = {
   separator: {
     marginVertical: 16,
   },
+  
+  // Gaps semánticos para espaciado sistemático
+  gapSm: 8,   // Entre título/subtítulo, chips/botones
+  gapMd: 16,  // Entre elementos relacionados
+  gapLg: 24,  // Entre secciones
 } as const;
 
 export type SpacingKey = keyof typeof Spacing;

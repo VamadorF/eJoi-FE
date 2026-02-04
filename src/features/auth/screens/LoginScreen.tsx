@@ -2,16 +2,16 @@ import React, { useEffect } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, Alert, Animated, Modal, Pressable, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { LinearGradient } from 'expo-linear-gradient';
 import { GoogleButton } from '../components/GoogleButton';
 import { AppleButton } from '../components/AppleButton';
-import { Button } from '@/shared/components/Button';
+import { Button, GradientBackground, ContentContainer, CardSurface } from '@/shared/components';
 import { useAuth } from '../hooks/useAuth';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
 import { RootStackParamList } from '@/shared/types/navigation';
 import { styles } from './LoginScreen.styles';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
+import { Spacing } from '@/shared/theme/spacing';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -264,62 +264,53 @@ El tratamiento de los datos personales se basa en:
   };
 
   return (
-    <LinearGradient
-      colors={Colors.background.gradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <GradientBackground variant="auth" safeArea>
+      <Image
+        source={require('../../../../public/IMG/eJoi_INTERFAZ-11.png')}
+        style={styles.heroImage}
+        resizeMode="contain"
+      />
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View
-          style={[
-            styles.loginCard,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
-          {/* Logo eJoi con animación */}
+        <ContentContainer>
           <Animated.View
             style={[
-              styles.logoContainer,
               {
-                transform: [{ scale: logoScale }],
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
               },
             ]}
           >
-            <Image
-              source={require('../../../../public/logos/eJoi_logos-01.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </Animated.View>
+            {/* Hero Image ya está fuera del ContentContainer */}
+            
+            {/* Botones de autenticación social */}
+            <Animated.View style={[{ opacity: fadeAnim }, styles.buttonsContainer]}>
+              <CardSurface variant="glass" padding="md" radius={16}>
+                <GoogleButton 
+                  onPress={handleGoogleLogin} 
+                  disabled={isLoading || isGoogleLoading}
+                  loading={isGoogleLoading}
+                />
+              </CardSurface>
+              <View style={{ height: Spacing.gapSm }} />
+              <CardSurface variant="glass" padding="md" radius={16}>
+                <AppleButton 
+                  onPress={handleAppleLogin} 
+                  disabled={isLoading || isAppleLoading}
+                  loading={isAppleLoading}
+                />
+              </CardSurface>
+            </Animated.View>
 
-          {/* Botones de autenticación social */}
-          <Animated.View style={{ opacity: fadeAnim }}>
-            <GoogleButton 
-              onPress={handleGoogleLogin} 
-              disabled={isLoading || isGoogleLoading}
-              loading={isGoogleLoading}
-            />
-            <AppleButton 
-              onPress={handleAppleLogin} 
-              disabled={isLoading || isAppleLoading}
-              loading={isAppleLoading}
-            />
-          </Animated.View>
-
-          {/* Botón Skip */}
-          <Animated.View style={[styles.skipContainer, { opacity: fadeAnim }]}>
-            <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
-              <Text style={styles.skipText}>Continuar sin login</Text>
-            </TouchableOpacity>
-          </Animated.View>
+            {/* Botón Skip */}
+            <Animated.View style={[styles.skipContainer, { opacity: fadeAnim }]}>
+              <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+                <Text style={styles.skipText}>Explorar sin cuenta</Text>
+              </TouchableOpacity>
+            </Animated.View>
 
           {/* Separador */}
           
@@ -363,6 +354,7 @@ El tratamiento de los datos personales se basa en:
             
           </Animated.View>
         </Animated.View>
+        </ContentContainer>
       </ScrollView>
 
       {/* Modal para Términos y Privacidad */}
