@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   GradientBackground,
@@ -20,6 +20,7 @@ import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
 
 type OnboardingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
+type OnboardingScreenRouteProp = RouteProp<RootStackParamList, 'Onboarding'>;
 
 // Opciones predefinidas
 const PERSONALITY_OPTIONS = [
@@ -94,7 +95,15 @@ const TOTAL_STEPS = 7;
 
 export const OnboardingScreen: React.FC = () => {
   const navigation = useNavigation<OnboardingScreenNavigationProp>();
-  const [currentStep, setCurrentStep] = useState(1);
+  const route = useRoute<OnboardingScreenRouteProp>();
+  const initialStep = route.params?.initialStep || 1;
+  const [currentStep, setCurrentStep] = useState(initialStep);
+  
+  useEffect(() => {
+    if (route.params?.initialStep) {
+      setCurrentStep(route.params.initialStep);
+    }
+  }, [route.params?.initialStep]);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     persona: '',
     tone: '',
@@ -237,10 +246,10 @@ export const OnboardingScreen: React.FC = () => {
               {PERSONALITY_OPTIONS.map((option) => (
                 <OptionButton
                   key={option}
-                  label={option}
+                  title={option}
                   onPress={() => handlePersonalitySelect(option)}
                   selected={onboardingData.persona === option}
-                  leftIcon={<Ionicons name="person" size={20} color={onboardingData.persona === option ? Colors.base.primary : Colors.text.secondary} />}
+                  leftIcon={<Ionicons name="person" size={20} color={onboardingData.persona === option ? Colors.text.white : Colors.text.secondary} />}
                   rightIcon="check"
                 />
               ))}
@@ -261,10 +270,10 @@ export const OnboardingScreen: React.FC = () => {
               {TONE_OPTIONS.map((option) => (
                 <OptionButton
                   key={option}
-                  label={option}
+                  title={option}
                   onPress={() => handleToneSelect(option)}
                   selected={onboardingData.tone === option}
-                  leftIcon={<Ionicons name="chatbubbles" size={20} color={onboardingData.tone === option ? Colors.base.primary : Colors.text.secondary} />}
+                  leftIcon={<Ionicons name="chatbubbles" size={20} color={onboardingData.tone === option ? Colors.text.white : Colors.text.secondary} />}
                   rightIcon="check"
                 />
               ))}
@@ -285,10 +294,10 @@ export const OnboardingScreen: React.FC = () => {
               {INTERACTION_STYLE_OPTIONS.map((option) => (
                 <OptionButton
                   key={option}
-                  label={option}
+                  title={option}
                   onPress={() => handleInteractionStyleSelect(option)}
                   selected={onboardingData.interactionStyle === option}
-                  leftIcon={<Ionicons name="people" size={20} color={onboardingData.interactionStyle === option ? Colors.base.primary : Colors.text.secondary} />}
+                  leftIcon={<Ionicons name="people" size={20} color={onboardingData.interactionStyle === option ? Colors.text.white : Colors.text.secondary} />}
                   rightIcon="check"
                 />
               ))}
@@ -309,10 +318,10 @@ export const OnboardingScreen: React.FC = () => {
               {CONVERSATION_DEPTH_OPTIONS.map((option) => (
                 <OptionButton
                   key={option}
-                  label={option}
+                  title={option}
                   onPress={() => handleConversationDepthSelect(option)}
                   selected={onboardingData.conversationDepth === option}
-                  leftIcon={<Ionicons name="layers" size={20} color={onboardingData.conversationDepth === option ? Colors.base.primary : Colors.text.secondary} />}
+                  leftIcon={<Ionicons name="layers" size={20} color={onboardingData.conversationDepth === option ? Colors.text.white : Colors.text.secondary} />}
                   rightIcon="check"
                 />
               ))}
@@ -400,7 +409,7 @@ export const OnboardingScreen: React.FC = () => {
       <GradientBackground
         variant="wizard"
         overlayImage={require('../../../../public/IMG/eJoi_INTERFAZ-12.png')}
-        overlayOpacity={0.12}
+        overlayOpacity={0.08}
       >
       <WizardHeader
         step={currentStep}
@@ -414,7 +423,7 @@ export const OnboardingScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         <ContentContainer>
-          <CardSurface variant="glass" padding="lg">
+          <CardSurface variant="glass" padding="lg" textColor={Colors.text.primary}>
             {renderStepContent()}
             {errorMessage && (
               <Text style={styles.errorMessage}>{errorMessage}</Text>
@@ -439,37 +448,36 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   stepContainer: {
-    flex: 1,
+    flexGrow: 1,
+    justifyContent: 'space-between',
     paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl,
   },
   stepIndicator: {
     ...Typography.styles.caption,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.white,
-    opacity: 0.6,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.base.secondary,
     marginBottom: Spacing.gapSm,
     textAlign: 'center',
   },
   stepTitle: {
     ...Typography.styles.h2,
     fontFamily: Typography.fontFamily.bold,
-    color: Colors.text.white,
+    color: Colors.text.primary,
     marginBottom: Spacing.gapSm,
     textAlign: 'center',
   },
   stepContext: {
     ...Typography.styles.body,
     fontFamily: Typography.fontFamily.medium,
-    color: Colors.text.white,
-    opacity: 0.85,
+    color: Colors.text.primary,
     marginBottom: Spacing.gapSm,
     textAlign: 'center',
   },
   stepSubtitle: {
     ...Typography.styles.body,
     fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.white,
-    opacity: 0.9,
+    color: Colors.text.secondary,
     marginBottom: Spacing.gapLg,
     textAlign: 'center',
   },

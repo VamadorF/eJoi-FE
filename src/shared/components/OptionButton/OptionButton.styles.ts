@@ -18,14 +18,14 @@ export const styles = StyleSheet.create({
   },
   buttonSelected: {
     borderColor: Colors.base.primary,
-    backgroundColor: Colors.auxiliary.primary,
+    backgroundColor: Colors.base.primary,
     borderWidth: 3,
     shadowColor: Colors.base.primary,
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 6,
   },
@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   labelSelected: {
-    color: Colors.base.primary,
+    color: Colors.text.white,
     fontFamily: Typography.fontFamily.bold,
   },
   labelDisabled: {
@@ -68,7 +68,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitleSelected: {
-    color: Colors.base.primary,
+    color: Colors.text.white,
   },
   subtitleDisabled: {
     color: Colors.text.light,

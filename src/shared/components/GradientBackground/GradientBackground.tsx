@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, ImageBackground, Platform, StyleSheet } from 'react-native';
+import { View, Image, ImageBackground, Platform, StyleSheet, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/shared/theme/colors';
 import { GradientBackgroundProps, GradientVariant } from './GradientBackground.types';
 import { styles } from './GradientBackground.styles';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const getGradientColors = (variant: GradientVariant): string[] => {
   switch (variant) {
@@ -29,6 +31,14 @@ export const GradientBackground: React.FC<GradientBackgroundProps> = ({
   const gradientColors = getGradientColors(variant);
   const Wrapper = safeArea ? SafeAreaView : View;
 
+  const getOverlayImageStyle = () => {
+    return [
+      styles.overlayImage,
+      { opacity: overlayOpacity },
+      blur && Platform.OS !== 'web' && { opacity: overlayOpacity * 0.7 },
+    ];
+  };
+
   const content = (
     <LinearGradient
       colors={gradientColors}
@@ -36,15 +46,28 @@ export const GradientBackground: React.FC<GradientBackgroundProps> = ({
       end={{ x: 1, y: 1 }}
       style={styles.gradient}
     >
-      {overlayImage ? (
+      {overlayImage && variant === 'wizard' ? (
+        <>
+          <Image
+            source={overlayImage}
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              width: SCREEN_WIDTH * 0.4,
+              height: SCREEN_HEIGHT * 0.3,
+              opacity: overlayOpacity,
+              zIndex: 0,
+            }}
+            resizeMode="contain"
+          />
+          <View style={styles.content}>{children}</View>
+        </>
+      ) : overlayImage ? (
         <ImageBackground
           source={overlayImage}
           style={styles.overlay}
-          imageStyle={[
-            styles.overlayImage,
-            { opacity: overlayOpacity },
-            blur && Platform.OS !== 'web' && { opacity: overlayOpacity * 0.7 },
-          ]}
+          imageStyle={getOverlayImageStyle()}
           resizeMode="cover"
         >
           {blur && Platform.OS === 'web' && (

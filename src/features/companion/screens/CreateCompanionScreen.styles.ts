@@ -14,8 +14,8 @@ export const styles = StyleSheet.create({
     width: SCREEN_WIDTH * 0.5,
     height: SCREEN_HEIGHT * 0.3,
     left: -SCREEN_WIDTH * 0.1,
-    bottom: SCREEN_HEIGHT * 0.1,
-    opacity: 0.2,
+    bottom: 0,
+    opacity: 0.05,
     zIndex: 0,
   },
   scrollView: {
@@ -31,6 +31,7 @@ export const styles = StyleSheet.create({
     marginBottom: Spacing.gapLg,
     alignItems: 'flex-start',
     width: '100%',
+    gap: Spacing.gapSm,
   },
   title: {
     ...Typography.styles.h1,
@@ -64,23 +65,36 @@ export const styles = StyleSheet.create({
   },
   identityContent: {
     alignItems: 'center',
+    justifyContent: 'center',
     gap: Spacing.gapSm,
+    minHeight: 120,
+  },
+  avatarWrapper: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
   },
   companionName: {
     ...Typography.styles.h3,
     fontFamily: Typography.fontFamily.bold,
     color: Colors.text.primary,
   },
+  personalitySection: {
+    gap: Spacing.gapSm,
+  },
   personalityRow: {
     flexDirection: 'row',
-    marginBottom: Spacing.gapSm,
     alignItems: 'flex-start',
   },
   personalityLabel: {
     ...Typography.styles.caption,
     fontFamily: Typography.fontFamily.medium,
     color: Colors.text.secondary,
-    width: 120,
   },
   personalityValue: {
     ...Typography.styles.body,

@@ -43,7 +43,8 @@ export const styles = StyleSheet.create({
   },
   progressContainer: {
     paddingHorizontal: Spacing.screen.paddingHorizontal,
-    paddingBottom: Spacing.md,
+    paddingTop: Spacing.gapSm,
+    paddingBottom: Spacing.gapSm,
   },
 });
 

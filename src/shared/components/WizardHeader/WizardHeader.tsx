@@ -52,7 +52,7 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
       </View>
 
       <View style={styles.progressContainer}>
-        <ProgressBar value={progress} />
+        <ProgressBar value={progress} height={4} trackOpacity={0.2} />
       </View>
     </SafeAreaView>
   );

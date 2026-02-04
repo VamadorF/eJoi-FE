@@ -15,7 +15,7 @@ const renderRightIcon = (rightIcon: RightIconType, selected: boolean) => {
         <Ionicons
           name={selected ? 'checkmark-circle' : 'checkmark-circle-outline'}
           size={24}
-          color={selected ? Colors.base.primary : Colors.text.secondary}
+          color={selected ? Colors.text.white : Colors.text.secondary}
         />
       );
     }
@@ -24,7 +24,7 @@ const renderRightIcon = (rightIcon: RightIconType, selected: boolean) => {
         <Ionicons
           name="chevron-forward"
           size={20}
-          color={selected ? Colors.base.primary : Colors.text.secondary}
+          color={selected ? Colors.text.white : Colors.text.secondary}
         />
       );
     }
@@ -33,6 +33,7 @@ const renderRightIcon = (rightIcon: RightIconType, selected: boolean) => {
 };
 
 export const OptionButton: React.FC<OptionButtonProps> = ({
+  title,
   label,
   subtitle,
   selected = false,
@@ -41,6 +42,12 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
   leftIcon,
   rightIcon,
 }) => {
+  // Handle deprecated 'label' prop
+  const displayTitle = title || label;
+  if (label && !title) {
+    console.warn('OptionButton: The "label" prop is deprecated. Please use "title" instead.');
+  }
+
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -83,7 +90,7 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
             disabled && styles.labelDisabled,
           ]}
         >
-          {label}
+          {displayTitle}
         </Text>
         {subtitle && (
           <Text

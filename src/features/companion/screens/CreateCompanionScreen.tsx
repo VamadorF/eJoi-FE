@@ -70,7 +70,7 @@ export const CreateCompanionScreen: React.FC = () => {
     <GradientBackground
       variant="wizard"
       overlayImage={require('../../../../public/IMG/eJoi_INTERFAZ-14.png')}
-      overlayOpacity={0.12}
+      overlayOpacity={0.05}
     >
       <ScrollView
         style={styles.scrollView}
@@ -97,13 +97,17 @@ export const CreateCompanionScreen: React.FC = () => {
               />
             </View>
             <View style={styles.identityContent}>
-              {onboardingData.avatar && (
-                <CompanionAvatar
-                  name={onboardingData.companionName || 'Compañera'}
-                  uri={onboardingData.avatar}
-                  size={80}
-                />
-              )}
+              <View style={styles.avatarWrapper}>
+                {onboardingData.avatar ? (
+                  <CompanionAvatar
+                    name={onboardingData.companionName || 'Compañera'}
+                    uri={onboardingData.avatar}
+                    size={80}
+                  />
+                ) : (
+                  <View style={styles.avatarPlaceholder} />
+                )}
+              </View>
               <Text style={styles.companionName}>
                 {onboardingData.companionName || 'Sin nombre'}
               </Text>
@@ -123,26 +127,43 @@ export const CreateCompanionScreen: React.FC = () => {
                 style={styles.editButton}
               />
             </View>
-            <View style={styles.personalityRow}>
-              <Text style={styles.personalityLabel}>Personalidad:</Text>
-              <Text style={styles.personalityValue}>{onboardingData.persona}</Text>
-            </View>
-            <View style={styles.personalityRow}>
-              <Text style={styles.personalityLabel}>Tono:</Text>
-              <Text style={styles.personalityValue}>{onboardingData.tone}</Text>
-            </View>
-            {onboardingData.interactionStyle && (
+            <View style={styles.personalitySection}>
               <View style={styles.personalityRow}>
-                <Text style={styles.personalityLabel}>Estilo:</Text>
-                <Text style={styles.personalityValue}>{onboardingData.interactionStyle}</Text>
+                <Text style={styles.personalityLabel}>Personalidad:</Text>
               </View>
-            )}
-            {onboardingData.conversationDepth && (
               <View style={styles.personalityRow}>
-                <Text style={styles.personalityLabel}>Profundidad:</Text>
-                <Text style={styles.personalityValue}>{onboardingData.conversationDepth}</Text>
+                <Text style={styles.personalityValue}>{onboardingData.persona}</Text>
               </View>
-            )}
+              <View style={{ height: Spacing.gapSm }} />
+              <View style={styles.personalityRow}>
+                <Text style={styles.personalityLabel}>Tono:</Text>
+              </View>
+              <View style={styles.personalityRow}>
+                <Text style={styles.personalityValue}>{onboardingData.tone}</Text>
+              </View>
+              {onboardingData.interactionStyle && (
+                <>
+                  <View style={{ height: Spacing.gapSm }} />
+                  <View style={styles.personalityRow}>
+                    <Text style={styles.personalityLabel}>Estilo:</Text>
+                  </View>
+                  <View style={styles.personalityRow}>
+                    <Text style={styles.personalityValue}>{onboardingData.interactionStyle}</Text>
+                  </View>
+                </>
+              )}
+              {onboardingData.conversationDepth && (
+                <>
+                  <View style={{ height: Spacing.gapSm }} />
+                  <View style={styles.personalityRow}>
+                    <Text style={styles.personalityLabel}>Profundidad:</Text>
+                  </View>
+                  <View style={styles.personalityRow}>
+                    <Text style={styles.personalityValue}>{onboardingData.conversationDepth}</Text>
+                  </View>
+                </>
+              )}
+            </View>
           </CardSurface>
 
           <View style={{ height: Spacing.gapLg }} />
@@ -160,7 +181,7 @@ export const CreateCompanionScreen: React.FC = () => {
             </View>
             {onboardingData.interests.length > 0 ? (
               <View style={styles.chipsContainer}>
-                {onboardingData.interests.map((interest) => (
+                {onboardingData.interests.slice(0, 5).map((interest) => (
                   <ChoiceChip
                     key={interest}
                     label={interest}
@@ -169,6 +190,14 @@ export const CreateCompanionScreen: React.FC = () => {
                     size="sm"
                   />
                 ))}
+                {onboardingData.interests.length > 5 && (
+                  <ChoiceChip
+                    label={`+${onboardingData.interests.length - 5}`}
+                    selected={false}
+                    onPress={() => {}}
+                    size="sm"
+                  />
+                )}
               </View>
             ) : (
               <Text style={styles.emptyText}>Sin intereses seleccionados</Text>

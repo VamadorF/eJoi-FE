@@ -3,7 +3,8 @@ import { ReactNode } from 'react';
 export type RightIconType = 'check' | 'arrow' | ReactNode;
 
 export interface OptionButtonProps {
-  label: string;
+  title: string;
+  label?: string; // Deprecated: use 'title' instead
   subtitle?: string;
   selected?: boolean;
   disabled?: boolean;

@@ -8,5 +8,6 @@ export interface CardSurfaceProps {
   variant?: CardVariant;
   padding?: keyof typeof Spacing;
   radius?: number;
+  textColor?: string;
 }
 

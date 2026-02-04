@@ -13,7 +13,7 @@ import { getProgressBarStyles } from './ProgressBar.styles';
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   value,
   height = 4,
-  trackOpacity = 1,
+  trackOpacity = 0.2,
 }) => {
   const progress = useSharedValue(0);
   const styles = getProgressBarStyles(height, trackOpacity);

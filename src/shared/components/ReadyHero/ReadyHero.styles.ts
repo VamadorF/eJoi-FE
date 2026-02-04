@@ -11,10 +11,10 @@ export const styles = StyleSheet.create({
   },
   backgroundImage: {
     position: 'absolute',
-    width: SCREEN_WIDTH * 0.6,
-    height: SCREEN_HEIGHT * 0.4,
-    right: -SCREEN_WIDTH * 0.15,
-    top: SCREEN_HEIGHT * 0.1,
+    width: SCREEN_WIDTH * 0.5,
+    height: SCREEN_HEIGHT * 0.5,
+    right: -SCREEN_WIDTH * 0.2,
+    bottom: -SCREEN_HEIGHT * 0.1,
     opacity: 0.12,
     zIndex: 0,
   },
@@ -61,7 +61,7 @@ export const styles = StyleSheet.create({
   sectionTitle: {
     ...Typography.styles.h4,
     fontFamily: Typography.fontFamily.bold,
-    color: Colors.text.white,
+    color: Colors.text.primary,
     marginBottom: Spacing.gapSm,
   },
   chipsContainer: {
@@ -75,14 +75,13 @@ export const styles = StyleSheet.create({
   boundaryItem: {
     ...Typography.styles.bodySmall,
     fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.white,
+    color: Colors.text.primary,
     opacity: 0.9,
   },
   emptyText: {
     ...Typography.styles.caption,
     fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.white,
-    opacity: 0.6,
+    color: Colors.text.secondary,
     fontStyle: 'italic',
     textAlign: 'center',
   },

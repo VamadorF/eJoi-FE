@@ -55,7 +55,7 @@ export const ReadyHero: React.FC<ReadyHeroProps> = ({
             {interests.length > 0 && (
               <>
                 <View style={{ height: Spacing.gapLg }} />
-                <CardSurface variant="glass" padding="md" radius={16}>
+                <CardSurface variant="glass" padding="md" radius={16} textColor={Colors.text.primary}>
                   <Text style={styles.sectionTitle}>Intereses</Text>
                   <View style={styles.chipsContainer}>
                     {visibleInterests.map((interest) => (
@@ -83,7 +83,7 @@ export const ReadyHero: React.FC<ReadyHeroProps> = ({
             {boundaries.length > 0 && (
               <>
                 <View style={{ height: Spacing.gapLg }} />
-                <CardSurface variant="glass" padding="md" radius={16}>
+                <CardSurface variant="glass" padding="md" radius={16} textColor={Colors.text.primary}>
                   <Text style={styles.sectionTitle}>Límites</Text>
                   <View style={styles.boundariesList}>
                     {boundaries.map((boundary, index) => (
@@ -99,7 +99,9 @@ export const ReadyHero: React.FC<ReadyHeroProps> = ({
             {boundaries.length === 0 && (
               <>
                 <View style={{ height: Spacing.gapLg }} />
-                <Text style={styles.emptyText}>Sin límites definidos</Text>
+                <CardSurface variant="glass" padding="md" radius={16} textColor={Colors.text.primary}>
+                  <Text style={styles.emptyText}>Sin límites definidos</Text>
+                </CardSurface>
               </>
             )}
           </View>
