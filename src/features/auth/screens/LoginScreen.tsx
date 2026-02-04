@@ -11,6 +11,8 @@ import { RootStackParamList } from '@/shared/types/navigation';
 import { styles } from './LoginScreen.styles';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
+import terminosContenido from '../assets/terminos.json';
+import privacidadContenido from '../assets/privacidad.json';
 import { Spacing } from '@/shared/theme/spacing';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -101,102 +103,8 @@ export const LoginScreen: React.FC = () => {
   };
 
   const legalContent = {
-    terms: {
-      title: 'Términos de Servicio',
-      content:
-        `1. Aceptación y vigencia
-Al registrarse, acceder o usar eJoi (el “Servicio”), el usuario (“Usuario”) acepta estos Términos. Si no está de acuerdo, debe abstenerse de usar el Servicio.
-
-2. Requisito de edad
-El Servicio está destinado exclusivamente a personas mayores de 18 años. Al registrarse, el Usuario declara y garantiza que cumple este requisito. eJoi podrá solicitar verificación razonable y suspender o cerrar cuentas ante indicios de incumplimiento.
-
-3. Descripción del Servicio y naturaleza de la IA
-3.1. eJoi ofrece interacciones generadas mediante sistemas de Inteligencia Artificial (“IA”), incluyendo funcionalidades de memoria contextual para continuidad y personalización.
-3.2. El Usuario reconoce que las respuestas, comportamientos y “recuerdos” de la IA no corresponden a una persona real y que el Servicio no sustituye relaciones humanas.
-
-4. No prestación de servicios profesionales (salud/mental/legal/financiero)
-4.1. eJoi no proporciona servicios médicos, psicológicos, psiquiátricos, legales ni financieros.
-4.2. Las interacciones tienen fines recreativos, de acompañamiento y exploración personal.
-4.3. Ante crisis emocional, salud mental, ideación suicida o emergencias, el Usuario debe acudir a un profesional calificado o a servicios de emergencia.
-
-5. Uso responsable y seguridad del Usuario
-5.1. El Usuario se obliga a usar el Servicio de forma responsable y a no utilizarlo como única fuente de apoyo emocional.
-5.2. eJoi podrá limitar, pausar o interrumpir interacciones y/o cuentas cuando detecte (o existan indicios razonables de) conductas que promuevan dependencia extrema, autolesiones, violencia o daño a terceros.
-
-6. Conductas prohibidas
-Se prohíbe, entre otros:
-  • Usar el Servicio para fines ilegales, fraudulentos o abusivos.
-  • Amenazar, acosar, incitar a la violencia o a la autolesión.
-  • Suplantar identidad.
-  • Intentar vulnerar la seguridad del Servicio (hacking, scraping, ingeniería inversa, explotación de fallas).
-  • Publicar o transmitir contenido que infrinja derechos de terceros.
-
-7. Cuenta, credenciales y responsabilidad
-El Usuario es responsable de mantener la confidencialidad de sus credenciales y de toda actividad realizada desde su cuenta. Debe notificar a eJoi ante accesos no autorizados.
-
-8. Contenido del Usuario y licencia para operar el Servicio
-8.1. El Usuario conserva la propiedad del contenido que proporcione al Servicio.
-8.2. Para operar el Servicio, el Usuario otorga a eJoi una licencia limitada, no exclusiva, revocable y mundial para alojar, procesar, reproducir técnicamente y usar dicho contenido solo con el fin de operar, mantener y mejorar la plataforma (incluyendo personalización y continuidad), conforme a la Política de Privacidad.
-
-9. Disponibilidad, mantenimiento y cambios
-eJoi no garantiza que el Servicio esté disponible de forma continua o libre de errores. Podrán existir mantenimientos, actualizaciones o interrupciones. eJoi podrá modificar el Servicio (incluyendo funcionalidades) por motivos técnicos, de seguridad, legales o de mejora.
-
-10. Suspensión y término
-eJoi podrá suspender o cancelar cuentas que incumplan estos Términos, especialmente ante conductas abusivas, ilegales o que comprometan la seguridad del sistema o de otros usuarios. Cuando sea posible, eJoi podrá notificar el motivo y habilitar un canal de apelación interna (si aplica).
-
-11. Limitación de responsabilidad
-En la medida permitida por la ley, eJoi no será responsable por daños indirectos, lucro cesante o pérdida de datos derivada del uso del Servicio. Nada de lo anterior limita responsabilidad por dolo o culpa grave cuando corresponda.
-
-12. Comunicaciones
-eJoi podrá enviar comunicaciones operacionales (por ejemplo: seguridad, cambios relevantes, soporte) al correo registrado y/o mediante notificaciones dentro del Servicio.
-
-13. Ley aplicable y jurisdicción
-Estos Términos se rigen por las leyes de la República de Chile. Cualquier controversia será sometida a los tribunales competentes de Chile.`,
-    },
-    privacy: {
-      title: 'Política de Privacidad',
-      content:
-        `1. Contenido de conversaciones y datos sensibles
-Las conversaciones con la IA pueden contener información personal o sensible, incluyendo emociones, experiencias personales y preferencias.
-El Usuario acepta proporcionar esta información de forma voluntaria y reconoce que será utilizada únicamente para la operación, mejora y personalización del Servicio.
-
-2. Procesamiento automatizado e Inteligencia Artificial
-eJoi utiliza sistemas automatizados e inteligencia artificial para procesar la información, incluyendo el contenido de las conversaciones.
-Estos procesos pueden involucrar proveedores tecnológicos externos que actúan como encargados del tratamiento, siempre bajo acuerdos de confidencialidad y medidas de seguridad.
-
-3. Uso de datos para entrenamiento de modelos
-eJoi no utiliza las conversaciones personales de los usuarios para entrenar modelos de inteligencia artificial de uso general.
-Las interacciones pueden ser analizadas de forma agregada y anonimizada con fines estadísticos y de mejora del Servicio.
-
-4. Memoria contextual y gestión de “recuerdos”
-El Servicio puede utilizar mecanismos de memoria contextual para mantener continuidad en las interacciones.
-El Usuario puede gestionar, modificar o eliminar ciertos recuerdos desde la configuración de su cuenta, cuando dicha funcionalidad esté disponible.
-
-5. Decisiones automatizadas
-El Servicio utiliza procesos automatizados para personalización y funcionamiento, sin que ello implique decisiones con efectos legales significativos sobre el Usuario.
-
-6. Cookies y tecnologías similares
-Utilizamos cookies y tecnologías similares para mejorar la experiencia, analizar el uso del Servicio y garantizar su correcto funcionamiento.
-El Usuario puede gestionar sus preferencias desde su dispositivo o navegador.
-
-7. Transferencias internacionales de datos
-La información puede ser almacenada y procesada en servidores ubicados fuera del país de residencia del Usuario.
-En dichos casos, eJoi adopta medidas para garantizar un nivel adecuado de protección de datos conforme a la legislación aplicable.
-
-8. Menores de edad
-eJoi no recopila intencionalmente información de menores de 18 años.
-Si detectamos que se ha recopilado información de un menor, procederemos a su eliminación inmediata.
-
-9. Cambios a esta Política
-Nos reservamos el derecho de modificar esta Política de Privacidad en cualquier momento.
-En caso de cambios sustanciales, notificaremos a los usuarios a través del Servicio o por correo electrónico.
-
-10. Bases del tratamiento
-El tratamiento de los datos personales se basa en:
-  • el consentimiento del Usuario, cuando corresponda;
-  • la ejecución del contrato (prestación del Servicio); y
-  • el interés legítimo de eJoi para operar y mejorar el Servicio.`,
-    },
+    terms: terminosContenido,
+    privacy: privacidadContenido,
   };
 
   const openModal = (type: keyof typeof legalContent) => {
