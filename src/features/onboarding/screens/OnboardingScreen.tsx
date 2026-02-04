@@ -18,6 +18,7 @@ import { OnboardingData } from '../types';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
+import { styles } from './OnboardingScreen.styles';
 
 type OnboardingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
 type OnboardingScreenRouteProp = RouteProp<RootStackParamList, 'Onboarding'>;
@@ -418,7 +419,7 @@ export const OnboardingScreen: React.FC = () => {
       />
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -426,7 +427,7 @@ export const OnboardingScreen: React.FC = () => {
           <CardSurface variant="glass" padding="lg" textColor={Colors.text.primary}>
             {renderStepContent()}
             {errorMessage && (
-              <Text style={styles.errorMessage}>{errorMessage}</Text>
+              <Text>{errorMessage}</Text>
             )}
           </CardSurface>
         </ContentContainer>
@@ -439,73 +440,3 @@ export const OnboardingScreen: React.FC = () => {
     </GradientBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  stepContainer: {
-    flexGrow: 1,
-    justifyContent: 'space-between',
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.xl,
-  },
-  stepIndicator: {
-    ...Typography.styles.caption,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.base.secondary,
-    marginBottom: Spacing.gapSm,
-    textAlign: 'center',
-  },
-  stepTitle: {
-    ...Typography.styles.h2,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.text.primary,
-    marginBottom: Spacing.gapSm,
-    textAlign: 'center',
-  },
-  stepContext: {
-    ...Typography.styles.body,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.text.primary,
-    marginBottom: Spacing.gapSm,
-    textAlign: 'center',
-  },
-  stepSubtitle: {
-    ...Typography.styles.body,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.secondary,
-    marginBottom: Spacing.gapLg,
-    textAlign: 'center',
-  },
-  optionsContainer: {
-    gap: Spacing.gapSm,
-  },
-  chipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: Spacing.lg,
-  },
-  inputContainer: {
-    width: '100%',
-    marginTop: Spacing.lg,
-  },
-  errorMessage: {
-    ...Typography.styles.caption,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.error,
-    textAlign: 'center',
-    marginTop: Spacing.gapMd,
-    paddingHorizontal: Spacing.md,
-  },
-  errorText: {
-    ...Typography.styles.caption,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.error,
-    marginTop: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-  },
-});

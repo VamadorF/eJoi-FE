@@ -9,8 +9,6 @@ import { useAuth } from '../hooks/useAuth';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
 import { RootStackParamList } from '@/shared/types/navigation';
 import { styles } from './LoginScreen.styles';
-import { Colors } from '@/shared/theme/colors';
-import { Typography } from '@/shared/theme/typography';
 import terminosContenido from '../assets/terminos.json';
 import privacidadContenido from '../assets/privacidad.json';
 import { Spacing } from '@/shared/theme/spacing';
@@ -310,6 +308,6 @@ export const LoginScreen: React.FC = () => {
           </View>
         </SafeAreaView>
       </Modal>
-    </LinearGradient>
+    </GradientBackground>
   );
 };
