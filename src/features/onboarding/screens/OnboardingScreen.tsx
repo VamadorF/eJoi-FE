@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { WizardLayout } from '@/shared/components/WizardLayout';
-import { OptionButton } from '@/shared/components/OptionButton';
-import { ChoiceChip } from '@/shared/components/ChoiceChip';
-import { Input } from '@/shared/components/Input';
+import {
+  GradientBackground,
+  WizardHeader,
+  CardSurface,
+  ContentContainer,
+  OptionButton,
+  ChoiceChip,
+  TextField,
+  PrimaryCTA,
+} from '@/shared/components';
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '@/shared/types/navigation';
 import { OnboardingData } from '../types';
 import { Colors } from '@/shared/theme/colors';
@@ -13,6 +20,7 @@ import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
 
 type OnboardingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
+type OnboardingScreenRouteProp = RouteProp<RootStackParamList, 'Onboarding'>;
 
 // Opciones predefinidas
 const PERSONALITY_OPTIONS = [
@@ -87,7 +95,15 @@ const TOTAL_STEPS = 7;
 
 export const OnboardingScreen: React.FC = () => {
   const navigation = useNavigation<OnboardingScreenNavigationProp>();
-  const [currentStep, setCurrentStep] = useState(1);
+  const route = useRoute<OnboardingScreenRouteProp>();
+  const initialStep = route.params?.initialStep || 1;
+  const [currentStep, setCurrentStep] = useState(initialStep);
+  
+  useEffect(() => {
+    if (route.params?.initialStep) {
+      setCurrentStep(route.params.initialStep);
+    }
+  }, [route.params?.initialStep]);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     persona: '',
     tone: '',
@@ -185,12 +201,44 @@ export const OnboardingScreen: React.FC = () => {
     }
   };
 
+  const getStepContext = (step: number): string => {
+    switch (step) {
+      case 1:
+        return 'Define cómo quieres que sea tu compañera';
+      case 2:
+        return 'Define cómo te habla';
+      case 3:
+        return 'Elige el tipo de relación';
+      case 4:
+        return 'Define la profundidad';
+      case 5:
+        return 'Elige intereses';
+      case 6:
+        return 'Establece límites';
+      case 7:
+        return 'Elige un nombre';
+      default:
+        return '';
+    }
+  };
+
+  const getCTALabel = (step: number): string => {
+    switch (step) {
+      case 7:
+        return 'Crear';
+      default:
+        return 'Siguiente';
+    }
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
           <View style={styles.stepContainer}>
+            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
             <Text style={styles.stepTitle}>Elige la personalidad</Text>
+            <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               Selecciona cómo quieres que sea tu compañera
             </Text>
@@ -201,7 +249,8 @@ export const OnboardingScreen: React.FC = () => {
                   title={option}
                   onPress={() => handlePersonalitySelect(option)}
                   selected={onboardingData.persona === option}
-                  style={styles.optionButton}
+                  leftIcon={<Ionicons name="person" size={20} color={onboardingData.persona === option ? Colors.text.white : Colors.text.secondary} />}
+                  rightIcon="check"
                 />
               ))}
             </View>
@@ -211,7 +260,9 @@ export const OnboardingScreen: React.FC = () => {
       case 2:
         return (
           <View style={styles.stepContainer}>
+            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
             <Text style={styles.stepTitle}>Elige el tono</Text>
+            <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               ¿Cómo quieres que hable contigo?
             </Text>
@@ -222,7 +273,8 @@ export const OnboardingScreen: React.FC = () => {
                   title={option}
                   onPress={() => handleToneSelect(option)}
                   selected={onboardingData.tone === option}
-                  style={styles.optionButton}
+                  leftIcon={<Ionicons name="chatbubbles" size={20} color={onboardingData.tone === option ? Colors.text.white : Colors.text.secondary} />}
+                  rightIcon="check"
                 />
               ))}
             </View>
@@ -232,7 +284,9 @@ export const OnboardingScreen: React.FC = () => {
       case 3:
         return (
           <View style={styles.stepContainer}>
+            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
             <Text style={styles.stepTitle}>Estilo de interacción</Text>
+            <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               ¿Qué tipo de relación buscas con tu compañera?
             </Text>
@@ -243,7 +297,8 @@ export const OnboardingScreen: React.FC = () => {
                   title={option}
                   onPress={() => handleInteractionStyleSelect(option)}
                   selected={onboardingData.interactionStyle === option}
-                  style={styles.optionButton}
+                  leftIcon={<Ionicons name="people" size={20} color={onboardingData.interactionStyle === option ? Colors.text.white : Colors.text.secondary} />}
+                  rightIcon="check"
                 />
               ))}
             </View>
@@ -253,7 +308,9 @@ export const OnboardingScreen: React.FC = () => {
       case 4:
         return (
           <View style={styles.stepContainer}>
+            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
             <Text style={styles.stepTitle}>Profundidad de conversación</Text>
+            <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               ¿Qué tan profundas quieres que sean las conversaciones?
             </Text>
@@ -264,7 +321,8 @@ export const OnboardingScreen: React.FC = () => {
                   title={option}
                   onPress={() => handleConversationDepthSelect(option)}
                   selected={onboardingData.conversationDepth === option}
-                  style={styles.optionButton}
+                  leftIcon={<Ionicons name="layers" size={20} color={onboardingData.conversationDepth === option ? Colors.text.white : Colors.text.secondary} />}
+                  rightIcon="check"
                 />
               ))}
             </View>
@@ -274,7 +332,9 @@ export const OnboardingScreen: React.FC = () => {
       case 5:
         return (
           <View style={styles.stepContainer}>
+            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
             <Text style={styles.stepTitle}>Tus intereses</Text>
+            <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               Selecciona los temas que te interesan (puedes elegir varios)
             </Text>
@@ -294,7 +354,9 @@ export const OnboardingScreen: React.FC = () => {
       case 6:
         return (
           <View style={styles.stepContainer}>
+            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
             <Text style={styles.stepTitle}>Define los límites</Text>
+            <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               Establece qué temas prefieres evitar (opcional)
             </Text>
@@ -314,24 +376,26 @@ export const OnboardingScreen: React.FC = () => {
       case 7:
         return (
           <View style={styles.stepContainer}>
+            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
             <Text style={styles.stepTitle}>Elige un nombre</Text>
+            <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               ¿Cómo quieres llamar a tu compañera?
             </Text>
             <View style={styles.inputContainer}>
-              <Input
+              <TextField
+                label="Nombre de tu compañera"
                 placeholder="Ej: Luna, Alex, Maya..."
                 value={onboardingData.companionName || ''}
                 onChangeText={handleCompanionNameChange}
-                containerStyle={styles.nameInputContainer}
-                style={styles.nameInput}
                 maxLength={20}
+                error={
+                  errorMessage && onboardingData.companionName && onboardingData.companionName.trim().length < 2
+                    ? 'El nombre debe tener al menos 2 caracteres'
+                    : undefined
+                }
+                helperText="Máximo 20 caracteres"
               />
-              {errorMessage && onboardingData.companionName && onboardingData.companionName.trim().length < 2 && (
-                <Text style={styles.errorText}>
-                  El nombre debe tener al menos 2 caracteres
-                </Text>
-              )}
             </View>
           </View>
         );
@@ -342,27 +406,37 @@ export const OnboardingScreen: React.FC = () => {
   };
 
   return (
-    <WizardLayout
-      currentStep={currentStep}
-      totalSteps={TOTAL_STEPS}
-      onNext={handleNext}
-      onBack={handleBack}
-      nextLabel={currentStep === TOTAL_STEPS ? 'Continuar' : 'Siguiente'}
-      nextDisabled={!canProceed()}
-      showBack={currentStep > 1}
-    >
+      <GradientBackground
+        variant="wizard"
+        overlayImage={require('../../../../public/IMG/eJoi_INTERFAZ-12.png')}
+        overlayOpacity={0.08}
+      >
+      <WizardHeader
+        step={currentStep}
+        total={TOTAL_STEPS}
+        onBack={currentStep > 1 ? handleBack : undefined}
+      />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {renderStepContent()}
-        {errorMessage && (
-          <Text style={styles.errorMessage}>{errorMessage}</Text>
-        )}
+        <ContentContainer>
+          <CardSurface variant="glass" padding="lg" textColor={Colors.text.primary}>
+            {renderStepContent()}
+            {errorMessage && (
+              <Text style={styles.errorMessage}>{errorMessage}</Text>
+            )}
+          </CardSurface>
+        </ContentContainer>
       </ScrollView>
-    </WizardLayout>
+      <PrimaryCTA
+        label={getCTALabel(currentStep)}
+        onPress={handleNext}
+        disabled={!canProceed()}
+      />
+    </GradientBackground>
   );
 };
 
@@ -374,29 +448,41 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   stepContainer: {
-    flex: 1,
+    flexGrow: 1,
+    justifyContent: 'space-between',
     paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl,
+  },
+  stepIndicator: {
+    ...Typography.styles.caption,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.base.secondary,
+    marginBottom: Spacing.gapSm,
+    textAlign: 'center',
   },
   stepTitle: {
     ...Typography.styles.h2,
     fontFamily: Typography.fontFamily.bold,
-    color: Colors.text.white,
-    marginBottom: Spacing.md,
+    color: Colors.text.primary,
+    marginBottom: Spacing.gapSm,
+    textAlign: 'center',
+  },
+  stepContext: {
+    ...Typography.styles.body,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.text.primary,
+    marginBottom: Spacing.gapSm,
     textAlign: 'center',
   },
   stepSubtitle: {
     ...Typography.styles.body,
     fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.white,
-    opacity: 0.9,
-    marginBottom: Spacing['2xl'],
+    color: Colors.text.secondary,
+    marginBottom: Spacing.gapLg,
     textAlign: 'center',
   },
   optionsContainer: {
-    gap: Spacing.md,
-  },
-  optionButton: {
-    width: '100%',
+    gap: Spacing.gapSm,
   },
   chipsContainer: {
     flexDirection: 'row',
@@ -407,19 +493,12 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: Spacing.lg,
   },
-  nameInputContainer: {
-    marginBottom: Spacing.md,
-  },
-  nameInput: {
-    backgroundColor: Colors.background.white,
-    opacity: 0.95,
-  },
   errorMessage: {
-    ...Typography.styles.bodySmall,
+    ...Typography.styles.caption,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.error,
     textAlign: 'center',
-    marginTop: Spacing.md,
+    marginTop: Spacing.gapMd,
     paddingHorizontal: Spacing.md,
   },
   errorText: {

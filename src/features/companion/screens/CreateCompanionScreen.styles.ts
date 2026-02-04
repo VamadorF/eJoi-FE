@@ -14,8 +14,8 @@ export const styles = StyleSheet.create({
     width: SCREEN_WIDTH * 0.5,
     height: SCREEN_HEIGHT * 0.3,
     left: -SCREEN_WIDTH * 0.1,
-    bottom: SCREEN_HEIGHT * 0.1,
-    opacity: 0.2,
+    bottom: 0,
+    opacity: 0.05,
     zIndex: 0,
   },
   scrollView: {
@@ -28,17 +28,17 @@ export const styles = StyleSheet.create({
     paddingBottom: Spacing['2xl'],
   },
   header: {
-    marginBottom: Spacing['2xl'],
+    marginBottom: Spacing.gapLg,
     alignItems: 'flex-start',
     width: '100%',
+    gap: Spacing.gapSm,
   },
   title: {
-    ...Typography.styles.h2,
+    ...Typography.styles.h1,
     fontFamily: Typography.fontFamily.bold,
     color: Colors.text.white,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.gapSm,
     textAlign: 'left',
-    lineHeight: Typography.styles.h2.fontSize * Typography.lineHeight.tight,
   },
   subtitle: {
     ...Typography.styles.body,
@@ -46,31 +46,80 @@ export const styles = StyleSheet.create({
     color: Colors.text.white,
     opacity: 0.9,
     textAlign: 'left',
-    lineHeight: Typography.styles.body.fontSize * Typography.lineHeight.normal,
   },
-  summary: {
-    backgroundColor: Colors.auxiliary.primary,
-    borderRadius: 16,
-    padding: Spacing.lg,
-    marginBottom: Spacing.xl,
-    width: '100%',
-    opacity: 0.9,
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.gapMd,
   },
-  summaryItem: {
-    marginBottom: Spacing.lg,
+  cardTitle: {
+    ...Typography.styles.h4,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.text.primary,
   },
-  summaryLabel: {
-    ...Typography.styles.bodySmall,
+  editButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    minHeight: 32,
+  },
+  identityContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.gapSm,
+    minHeight: 120,
+  },
+  avatarWrapper: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+  },
+  companionName: {
+    ...Typography.styles.h3,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.text.primary,
+  },
+  personalitySection: {
+    gap: Spacing.gapSm,
+  },
+  personalityRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  personalityLabel: {
+    ...Typography.styles.caption,
     fontFamily: Typography.fontFamily.medium,
-    color: Colors.base.primary,
-    marginBottom: Spacing.sm,
-    lineHeight: Typography.styles.bodySmall.fontSize * Typography.lineHeight.normal,
+    color: Colors.text.secondary,
   },
-  summaryValue: {
+  personalityValue: {
     ...Typography.styles.body,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.text.primary,
-    lineHeight: Typography.styles.body.fontSize * Typography.lineHeight.normal,
+    flex: 1,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.gapSm,
+  },
+  boundariesList: {
+    gap: Spacing.gapSm,
+  },
+  boundaryItem: {
+    ...Typography.styles.bodySmall,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.text.primary,
+  },
+  emptyText: {
+    ...Typography.styles.caption,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.text.secondary,
+    fontStyle: 'italic',
   },
   footer: {
     paddingTop: Spacing.lg,

@@ -7,7 +7,7 @@ export type RootStackParamList = {
   Login: undefined;
   
   // Onboarding
-  Onboarding: undefined;
+  Onboarding: { initialStep?: number; onboardingData?: import('@/features/onboarding/types').OnboardingData } | undefined;
   
   // Companion
   CreateCompanion: { onboardingData?: import('@/features/onboarding/types').OnboardingData };

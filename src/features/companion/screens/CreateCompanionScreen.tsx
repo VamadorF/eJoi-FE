@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Image, Dimensions } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Screen } from '@/shared/components/Screen';
-import { Button } from '@/shared/components/Button';
 import { RootStackParamList } from '@/shared/types/navigation';
 import { OnboardingData } from '@/features/onboarding/types';
-import { styles } from './CreateCompanionScreen.styles';
+import {
+  GradientBackground,
+  SummaryList,
+  PrimaryCTA,
+  CardSurface,
+  ContentContainer,
+  Button,
+  CompanionAvatar,
+  ChoiceChip,
+} from '@/shared/components';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+import { styles } from './CreateCompanionScreen.styles';
 
 type CreateCompanionScreenRouteProp = RouteProp<RootStackParamList, 'CreateCompanion'>;
 type CreateCompanionScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CreateCompanion'>;
@@ -44,44 +49,35 @@ export const CreateCompanionScreen: React.FC = () => {
 
   if (!onboardingData) {
     return (
-      <Screen>
-        <LinearGradient
-          colors={[Colors.base.primary, Colors.base.secondary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradient}
-        >
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>No se encontraron datos de onboarding</Text>
-            <Button
-              title="Volver"
-              onPress={() => navigation.goBack()}
-              variant="outline"
-            />
-          </View>
-        </LinearGradient>
-      </Screen>
+      <GradientBackground variant="wizard">
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>No se encontraron datos de onboarding</Text>
+          <Button
+            title="Volver"
+            onPress={() => navigation.goBack()}
+            variant="outline"
+          />
+        </View>
+      </GradientBackground>
     );
   }
 
+  const handleEdit = (step: number) => {
+    navigation.navigate('Onboarding', { initialStep: step });
+  };
+
   return (
-    <Screen>
-      <LinearGradient
-        colors={[Colors.base.primary, Colors.base.secondary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
+    <GradientBackground
+      variant="wizard"
+      overlayImage={require('../../../../public/IMG/eJoi_INTERFAZ-14.png')}
+      overlayOpacity={0.05}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
       >
-        <Image
-          source={require('../../../../public/IMG/eJoi_INTERFAZ-14.png')}
-          style={styles.decorativeHand}
-          resizeMode="contain"
-        />
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-        >
+        <ContentContainer>
           <View style={styles.header}>
             <Text style={styles.title}>Crea tu compañera</Text>
             <Text style={styles.subtitle}>
@@ -89,69 +85,157 @@ export const CreateCompanionScreen: React.FC = () => {
             </Text>
           </View>
 
-          <View style={styles.summary}>
-            {onboardingData.companionName && (
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Nombre:</Text>
-                <Text style={styles.summaryValue}>{onboardingData.companionName}</Text>
-              </View>
-            )}
-
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Personalidad:</Text>
-              <Text style={styles.summaryValue}>{onboardingData.persona}</Text>
+          {/* Card 1: Identidad */}
+          <CardSurface variant="glass" padding="lg" radius={16}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Identidad</Text>
+              <Button
+                title="Editar"
+                onPress={() => handleEdit(7)}
+                variant="outline"
+                style={styles.editButton}
+              />
             </View>
-
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Tono:</Text>
-              <Text style={styles.summaryValue}>{onboardingData.tone}</Text>
+            <View style={styles.identityContent}>
+              <View style={styles.avatarWrapper}>
+                {onboardingData.avatar ? (
+                  <CompanionAvatar
+                    name={onboardingData.companionName || 'Compañera'}
+                    uri={onboardingData.avatar}
+                    size={80}
+                  />
+                ) : (
+                  <View style={styles.avatarPlaceholder} />
+                )}
+              </View>
+              <Text style={styles.companionName}>
+                {onboardingData.companionName || 'Sin nombre'}
+              </Text>
             </View>
+          </CardSurface>
 
-            {onboardingData.interactionStyle && (
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Estilo de interacción:</Text>
-                <Text style={styles.summaryValue}>{onboardingData.interactionStyle}</Text>
+          <View style={{ height: Spacing.gapLg }} />
+
+          {/* Card 2: Personalidad/Tono/Estilo */}
+          <CardSurface variant="glass" padding="lg" radius={16}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Personalidad</Text>
+              <Button
+                title="Editar"
+                onPress={() => handleEdit(1)}
+                variant="outline"
+                style={styles.editButton}
+              />
+            </View>
+            <View style={styles.personalitySection}>
+              <View style={styles.personalityRow}>
+                <Text style={styles.personalityLabel}>Personalidad:</Text>
               </View>
+              <View style={styles.personalityRow}>
+                <Text style={styles.personalityValue}>{onboardingData.persona}</Text>
+              </View>
+              <View style={{ height: Spacing.gapSm }} />
+              <View style={styles.personalityRow}>
+                <Text style={styles.personalityLabel}>Tono:</Text>
+              </View>
+              <View style={styles.personalityRow}>
+                <Text style={styles.personalityValue}>{onboardingData.tone}</Text>
+              </View>
+              {onboardingData.interactionStyle && (
+                <>
+                  <View style={{ height: Spacing.gapSm }} />
+                  <View style={styles.personalityRow}>
+                    <Text style={styles.personalityLabel}>Estilo:</Text>
+                  </View>
+                  <View style={styles.personalityRow}>
+                    <Text style={styles.personalityValue}>{onboardingData.interactionStyle}</Text>
+                  </View>
+                </>
+              )}
+              {onboardingData.conversationDepth && (
+                <>
+                  <View style={{ height: Spacing.gapSm }} />
+                  <View style={styles.personalityRow}>
+                    <Text style={styles.personalityLabel}>Profundidad:</Text>
+                  </View>
+                  <View style={styles.personalityRow}>
+                    <Text style={styles.personalityValue}>{onboardingData.conversationDepth}</Text>
+                  </View>
+                </>
+              )}
+            </View>
+          </CardSurface>
+
+          <View style={{ height: Spacing.gapLg }} />
+
+          {/* Card 3: Intereses + Límites */}
+          <CardSurface variant="glass" padding="lg" radius={16}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Intereses</Text>
+              <Button
+                title="Editar"
+                onPress={() => handleEdit(5)}
+                variant="outline"
+                style={styles.editButton}
+              />
+            </View>
+            {onboardingData.interests.length > 0 ? (
+              <View style={styles.chipsContainer}>
+                {onboardingData.interests.slice(0, 5).map((interest) => (
+                  <ChoiceChip
+                    key={interest}
+                    label={interest}
+                    selected={true}
+                    onPress={() => {}}
+                    size="sm"
+                  />
+                ))}
+                {onboardingData.interests.length > 5 && (
+                  <ChoiceChip
+                    label={`+${onboardingData.interests.length - 5}`}
+                    selected={false}
+                    onPress={() => {}}
+                    size="sm"
+                  />
+                )}
+              </View>
+            ) : (
+              <Text style={styles.emptyText}>Sin intereses seleccionados</Text>
             )}
 
-            {onboardingData.conversationDepth && (
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Profundidad:</Text>
-                <Text style={styles.summaryValue}>{onboardingData.conversationDepth}</Text>
-              </View>
-            )}
+            <View style={{ height: Spacing.gapLg }} />
 
-            {onboardingData.interests.length > 0 && (
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Intereses:</Text>
-                <Text style={styles.summaryValue}>
-                  {onboardingData.interests.join(', ')}
-                </Text>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Límites</Text>
+              <Button
+                title="Editar"
+                onPress={() => handleEdit(6)}
+                variant="outline"
+                style={styles.editButton}
+              />
+            </View>
+            {onboardingData.boundaries.length > 0 ? (
+              <View style={styles.boundariesList}>
+                {onboardingData.boundaries.map((boundary, index) => (
+                  <Text key={index} style={styles.boundaryItem}>
+                    • {boundary}
+                  </Text>
+                ))}
               </View>
+            ) : (
+              <Text style={styles.emptyText}>Sin límites definidos</Text>
             )}
+          </CardSurface>
+        </ContentContainer>
+      </ScrollView>
 
-            {onboardingData.boundaries.length > 0 && (
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Límites:</Text>
-                <Text style={styles.summaryValue}>
-                  {onboardingData.boundaries.join(', ')}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.footer}>
-            <Button
-              title={isCreating ? "Creando..." : "Crear Compañera"}
-              onPress={handleCreateCompanion}
-              variant="primary"
-              loading={isCreating}
-              disabled={isCreating}
-            />
-          </View>
-        </ScrollView>
-      </LinearGradient>
-    </Screen>
+      <PrimaryCTA
+        label={isCreating ? 'Creando...' : 'Crear Compañera'}
+        onPress={handleCreateCompanion}
+        loading={isCreating}
+        disabled={isCreating}
+      />
+    </GradientBackground>
   );
 };
 

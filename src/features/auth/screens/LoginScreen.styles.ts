@@ -4,9 +4,6 @@ import { Spacing } from '@/shared/theme/spacing';
 import { Typography } from '@/shared/theme/typography';
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollView: {
     flex: 1,
   },
@@ -14,29 +11,20 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Spacing.lg,
+    paddingVertical: Spacing.xl,
     minHeight: '100%',
   },
-  loginCard: {
-    backgroundColor: Colors.background.white,
-    borderRadius: 20,
-    padding: Spacing.lg,
+  heroImage: {
+    position: 'absolute',
     width: '100%',
-    maxWidth: 400,
-    marginHorizontal: Spacing.md, // Mobile-first: márgenes laterales
-    // Para web usar boxShadow, para mobile usar shadow*
-    ...(Platform.OS === 'web' ? {
-      boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
-    } : {
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
-    }),
+    height: 300,
+    top: 80,
+    opacity: 0.15,
+    zIndex: 0,
+  },
+  buttonsContainer: {
+    width: '100%',
+    zIndex: 1,
   },
   logoContainer: {
     alignItems: 'center',
@@ -93,18 +81,20 @@ export const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   skipContainer: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.gapLg,
     alignItems: 'center',
+    width: '100%',
   },
   skipButton: {
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    minHeight: 44, // Touch target mínimo para mobile
+    minHeight: 44,
   },
   skipText: {
     ...Typography.styles.body,
     fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.secondary,
+    color: Colors.text.white,
+    opacity: 0.9,
     textDecorationLine: 'underline',
   },
   // Modal / Bottom Sheet Styles
