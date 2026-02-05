@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -21,6 +21,7 @@ import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
 import { styles } from './OnboardingScreen.styles';
+import { getRandomCompanionName } from '../data/getRandomCompanionName';
 
 // Imágenes para los selectores de estilo visual
 // Usando imágenes reales de las carpetas anime/ y arquetipos/
@@ -209,6 +210,16 @@ export const OnboardingScreen: React.FC = () => {
     setErrorMessage('');
   };
 
+  const handleRandomName = () => {
+    const persona = onboardingData.persona;
+    const gender = onboardingData.gender as 'femenino' | 'masculino';
+    if (persona && gender) {
+      const newName = getRandomCompanionName(persona, gender);
+      if (newName) {
+        setOnboardingData({ ...onboardingData, companionName: newName });
+      }
+    }
+  };
   const canProceed = () => {
     switch (currentStep) {
       case 1:
@@ -477,6 +488,19 @@ export const OnboardingScreen: React.FC = () => {
                 }
                 helperText="Máximo 20 caracteres"
               />
+              <View style={localStyles.randomRow}>
+                <Text style={localStyles.randomHint}>¿Sin ideas?</Text>
+                <Pressable
+                  onPress={handleRandomName}
+                  hitSlop={10}
+                  style={({ pressed }) => [
+                    localStyles.randomButton,
+                    pressed && { opacity: 0.6 },
+                  ]}
+                >
+                  <Text style={localStyles.randomButtonText}>🎲 Generar nombre</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
         );
@@ -530,3 +554,27 @@ export const OnboardingScreen: React.FC = () => {
     </GradientBackground>
   );
 };
+
+// TODO: Mover estos estilos a OnboardingScreen.styles.ts
+const localStyles = StyleSheet.create({
+  randomRow: {
+    marginTop: 12,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  randomHint: {
+    color: Colors.text.secondary,
+    fontSize: 13,
+  },
+  randomButton: {
+    // Container for the button text
+  },
+  randomButtonText: {
+    color: Colors.text.primary,
+    fontSize: 13,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+});
