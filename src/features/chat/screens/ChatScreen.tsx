@@ -34,13 +34,13 @@ export const ChatScreen: React.FC = () => {
         >
           <View style={styles.emptyContainer}>
             <EmptyState
-              title="No tienes una compañera aún"
-              message="Completa el onboarding para crear tu compañera virtual y comenzar a chatear."
+              title="No tienes un/a compañer@ aún"
+              message="Completa el onboarding para crear tu compañer@ virtual y comenzar a chatear."
               icon="💬"
             />
             <View style={styles.emptyActions}>
               <Button
-                title="Crear mi compañera"
+                title="Crear mi compañer@"
                 onPress={handleStartOnboarding}
                 variant="primary"
                 style={styles.emptyButton}

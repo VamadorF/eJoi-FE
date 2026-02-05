@@ -121,21 +121,21 @@ export const clearAuthData = async (): Promise<void> => {
 };
 
 /**
- * Almacena los datos de la compañera
+ * Almacena los datos del/la compañer@
  */
 export const setCompanionData = async (companion: string): Promise<void> => {
   return setItem(COMPANION_KEY, companion);
 };
 
 /**
- * Obtiene los datos de la compañera
+ * Obtiene los datos del/la compañer@
  */
 export const getCompanionData = async (): Promise<string | null> => {
   return getItem(COMPANION_KEY);
 };
 
 /**
- * Elimina los datos de la compañera
+ * Elimina los datos del/la compañer@
  */
 export const removeCompanionData = async (): Promise<void> => {
   return removeItem(COMPANION_KEY);

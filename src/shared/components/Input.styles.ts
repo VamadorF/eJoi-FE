@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.medium,
     color: Colors.text.primary,
     marginBottom: Spacing.md,
-    lineHeight: Typography.styles.bodySmall.fontSize * Typography.lineHeight.normal,
+    lineHeight: 21, // 14 * 1.5 - valor absoluto en px
   },
   input: {
     ...Typography.styles.body,
@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.background.white,
     color: Colors.text.primary,
     minHeight: 48,
-    lineHeight: Typography.styles.body.fontSize * Typography.lineHeight.normal,
+    lineHeight: 24, // 16 * 1.5 - valor absoluto en px
     textAlignVertical: 'top', // Para multiline inputs
   },
   inputError: {
@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.regular,
     color: Colors.error,
     marginTop: Spacing.sm,
-    lineHeight: Typography.styles.caption.fontSize * Typography.lineHeight.normal,
+    lineHeight: 17, // 12 * 1.4 - valor absoluto en px
   },
 });
 

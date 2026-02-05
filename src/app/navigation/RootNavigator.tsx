@@ -9,7 +9,7 @@ import { Typography } from '@/shared/theme/typography';
 
 /**
  * Navegador raíz que decide entre AuthNavigator y MainTabs
- * según el estado de autenticación y si tiene compañera
+ * según el estado de autenticación y si tiene compañer@
  */
 export const RootNavigator: React.FC = () => {
   const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
@@ -21,7 +21,7 @@ export const RootNavigator: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Cuando el usuario se autentica, verificar si tiene compañera
+    // Cuando el usuario se autentica, verificar si tiene compañer@
     if (isAuthenticated && !isLoading) {
       console.log('User authenticated, checking companion...');
       checkCompanion();
@@ -32,7 +32,7 @@ export const RootNavigator: React.FC = () => {
     console.log('Auth state changed:', { isAuthenticated, isLoading, hasCompanion, isCompanionLoading });
   }, [isAuthenticated, isLoading, hasCompanion, isCompanionLoading]);
 
-  // Mostrar loading mientras se verifica la autenticación o la compañera
+  // Mostrar loading mientras se verifica la autenticación o el/la compañer@
   if (isLoading || (isAuthenticated && isCompanionLoading)) {
     console.log('Showing loading screen...');
     return (

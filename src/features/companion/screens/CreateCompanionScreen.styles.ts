@@ -25,14 +25,13 @@ export const styles = StyleSheet.create({
 
   scrollView: {
     flex: 1,
-    zIndex: 1,
   },
 
   contentContainer: {
     flexGrow: 1,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.xl,
-    paddingBottom: Spacing['2xl'],
+    paddingBottom: 100, // Espacio para el botón fijo
   },
 
   header: {
@@ -115,6 +114,12 @@ export const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     backgroundColor: Colors.primary.light ?? 'rgba(255,255,255,0.08)',
+  },
+
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
 
   companionName: {

@@ -1,6 +1,6 @@
 /**
  * Store de companion con Zustand
- * Manejo del estado global de la compañera del usuario
+ * Manejo del estado global del/la compañer@ del usuario
  */
 
 import { create } from 'zustand';
@@ -59,7 +59,7 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
       const token = await getAuthToken();
       
       if (!token) {
-        // Si no hay token, no hay compañera
+        // Si no hay token, no hay compañer@
         set({
           companion: null,
           hasCompanion: false,
@@ -85,7 +85,7 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
         }
       }
 
-      // TODO: Llamar a API para verificar si tiene compañera
+      // TODO: Llamar a API para verificar si tiene compañer@
       // const response = await fetch(`${API_URL}/companion`, {
       //   headers: { Authorization: `Bearer ${token}` }
       // });
@@ -96,7 +96,7 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
       //   return;
       // }
       
-      // Si no hay compañera en almacenamiento ni en API
+      // Si no hay compañer@ en almacenamiento ni en API
       set({
         companion: null,
         hasCompanion: false,
@@ -105,7 +105,7 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
     } catch (error) {
       console.error('Error checking companion:', error);
       set({
-        error: error instanceof Error ? error.message : 'Error al verificar compañera',
+        error: error instanceof Error ? error.message : 'Error al verificar compañer@',
         isLoading: false,
         hasCompanion: false,
       });

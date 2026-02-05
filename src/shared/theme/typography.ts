@@ -49,51 +49,53 @@ export const Typography = {
   },
   
   // Estilos predefinidos con fuente Apis
+  // IMPORTANTE: lineHeight debe ser un valor absoluto en píxeles para React Native
+  // Fórmula: fontSize * multiplicador
   styles: {
     h1: {
       fontSize: 36,
       fontFamily: 'Copia de Apis-Bold',
-      lineHeight: 1.2,
+      lineHeight: 43, // 36 * 1.2
     },
     h2: {
       fontSize: 30,
       fontFamily: 'Copia de Apis-Bold',
-      lineHeight: 1.2,
+      lineHeight: 36, // 30 * 1.2
     },
     h3: {
       fontSize: 24,
       fontFamily: 'Copia de Apis-Bold',
-      lineHeight: 1.3,
+      lineHeight: 31, // 24 * 1.3
     },
     h4: {
       fontSize: 20,
       fontFamily: 'Copia de Apis-Medium',
-      lineHeight: 1.4,
+      lineHeight: 28, // 20 * 1.4
     },
     body: {
       fontSize: 16,
       fontFamily: 'Copia de Apis-Regular',
-      lineHeight: 1.5,
+      lineHeight: 24, // 16 * 1.5
     },
     bodySmall: {
       fontSize: 14,
       fontFamily: 'Copia de Apis-Regular',
-      lineHeight: 1.5,
+      lineHeight: 21, // 14 * 1.5
     },
     caption: {
       fontSize: 12,
       fontFamily: 'Copia de Apis-Regular',
-      lineHeight: 1.4,
+      lineHeight: 17, // 12 * 1.4
     },
     button: {
       fontSize: 16,
       fontFamily: 'Copia de Apis-Bold',
-      lineHeight: 1.5,
+      lineHeight: 24, // 16 * 1.5
     },
     link: {
       fontSize: 14,
       fontFamily: 'Copia de Apis-Regular',
-      lineHeight: 1.5,
+      lineHeight: 21, // 14 * 1.5
     },
   },
 } as const;

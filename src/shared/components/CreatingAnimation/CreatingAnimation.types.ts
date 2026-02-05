@@ -5,5 +5,6 @@ export interface CreatingAnimationProps {
   durationMs?: number;
   messages?: string[];
   onDone?: () => void;
+  showMessages?: boolean;
 }
 

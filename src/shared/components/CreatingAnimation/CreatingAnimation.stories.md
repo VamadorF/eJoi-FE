@@ -1,6 +1,6 @@
 # CreatingAnimation
 
-Pantalla/animación "Creando a tu compañera" con imagen animada y mensajes rotativos.
+Pantalla/animación "Creando a tu compañer@" con imagen animada y mensajes rotativos.
 
 ## Props
 

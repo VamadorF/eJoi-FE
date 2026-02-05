@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '@/shared/types/navigation';
-import { OnboardingData } from '@/features/onboarding/types';
 import { useCompanionStore } from '../store/companion.store';
 import { Companion } from '../types';
-import { GradientBackground, CreatingAnimation } from '@/shared/components';
+import { CreatingAnimation } from '@/shared/components';
 
 type CreandoCompanionScreenRouteProp = RouteProp<RootStackParamList, 'CreandoCompanion'>;
 type CreandoCompanionScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CreandoCompanion'>;
@@ -18,13 +19,15 @@ export const CreandoCompanionScreen: React.FC = () => {
 
   const handleDone = async () => {
     if (onboardingData) {
-      // TODO: Llamar a API para crear la compañera
+      // TODO: Llamar a API para crear el/la compañer@
       // const response = await createCompanionAPI(onboardingData);
       
-      // Por ahora, crear compañera mock
+      // Por ahora, crear compañer@ mock
       const newCompanion: Companion = {
         id: `companion-${Date.now()}`,
-        name: onboardingData.companionName || 'Tu Compañera',
+        name: onboardingData.companionName || 'Tu Compañer@',
+        visualStyle: onboardingData.visualStyle || 'realista',
+        gender: onboardingData.gender || 'femenino',
         personality: onboardingData.persona,
         tone: onboardingData.tone,
         interactionStyle: onboardingData.interactionStyle,
@@ -40,24 +43,25 @@ export const CreandoCompanionScreen: React.FC = () => {
       // TODO: Guardar en el backend
       // await saveCompanionToAPI(newCompanion);
 
-      // Navegar a la pantalla de compañera lista
+      // Navegar a la pantalla de compañer@ list@
       navigation.replace('CompanionReady', { companion: newCompanion });
     }
   };
 
   return (
-    <GradientBackground variant="creating" safeArea>
+    <SafeAreaView style={localStyles.container} edges={['top']}>
       <CreatingAnimation
         durationMs={4000}
-        messages={[
-          'Sintetizando personalidad...',
-          'Integrando intereses...',
-          'Aplicando límites...',
-          '¡Casi listo!',
-        ]}
         onDone={handleDone}
       />
-    </GradientBackground>
+    </SafeAreaView>
   );
 };
+
+const localStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+});
 

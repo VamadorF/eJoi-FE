@@ -32,7 +32,7 @@ export const CompanionReadyScreen: React.FC = () => {
     >
       <ReadyHero
         avatar={{ name: companion.name, uri: companion.avatar }}
-        title={`¡${companion.name} está lista!`}
+        title={`¡${companion.name} está list@!`}
         subtitle={companion.personality}
         ctaLabel="Iniciar conversación"
         onCTA={handleStartChat}

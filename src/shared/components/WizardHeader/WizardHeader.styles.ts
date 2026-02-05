@@ -40,6 +40,7 @@ export const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.bold,
     color: Colors.text.white,
     textAlign: 'center',
+    lineHeight: 28, // 20 * 1.4 - valor absoluto en px
   },
   progressContainer: {
     paddingHorizontal: Spacing.screen.paddingHorizontal,

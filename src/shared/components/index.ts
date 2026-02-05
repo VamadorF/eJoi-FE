@@ -22,4 +22,6 @@ export * from './CompanionAvatar';
 export * from './SummaryList';
 export * from './CreatingAnimation';
 export * from './ReadyHero';
+export * from './CircleSelector';
+export * from './CategoryPill';
 
