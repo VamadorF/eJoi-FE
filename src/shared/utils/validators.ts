@@ -28,14 +28,18 @@ export const validators = {
 
   /**
    * Valida que un nombre solo contenga letras (incluyendo acentos y caracteres internacionales)
-   * No permite números ni símbolos especiales
+   * No permite números, símbolos especiales, ni todo mayúsculas
    */
   name: (name: string): boolean => {
     if (!name || name.trim() === '') return false;
     // Permite letras (incluyendo acentos, ñ, ü), espacios, guiones y apóstrofes
     // Caracteres válidos: letras unicode, espacios, guiones (-), apóstrofes (')
     const nameRegex = /^[\p{L}\s'-]+$/u;
-    return nameRegex.test(name.trim());
+    const isValidFormat = nameRegex.test(name.trim());
+    // También verificar que no esté todo en mayúsculas
+    const lettersOnly = name.replace(/[^a-zA-ZÀ-ÿ]/g, '');
+    const isAllUppercase = lettersOnly.length > 0 && lettersOnly === lettersOnly.toUpperCase();
+    return isValidFormat && !isAllUppercase;
   },
 
   /**
@@ -57,6 +61,17 @@ export const validators = {
   },
 
   /**
+   * Verifica si un nombre está todo en mayúsculas
+   */
+  nameIsAllUppercase: (name: string): boolean => {
+    // Obtener solo las letras del nombre
+    const lettersOnly = name.replace(/[^a-zA-ZÀ-ÿ]/g, '');
+    if (lettersOnly.length === 0) return false;
+    // Verificar si todas las letras están en mayúsculas
+    return lettersOnly === lettersOnly.toUpperCase();
+  },
+
+  /**
    * Obtiene un mensaje de error específico para la validación de nombre
    */
   getNameError: (name: string): string | null => {
@@ -74,6 +89,10 @@ export const validators = {
     
     if (validators.nameHasInvalidSymbols(name)) {
       return 'El nombre solo puede contener letras, espacios y guiones';
+    }
+
+    if (validators.nameIsAllUppercase(name)) {
+      return 'El nombre no puede estar todo en mayúsculas';
     }
     
     return null;
