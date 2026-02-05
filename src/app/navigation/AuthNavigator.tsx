@@ -6,12 +6,13 @@ import { CreateCompanionScreen } from '@/features/companion/screens/CreateCompan
 import { CreandoCompanionScreen } from '@/features/companion/screens/CreandoCompanionScreen';
 import { CompanionReadyScreen } from '@/features/companion/screens/CompanionReadyScreen';
 import { ChatScreen } from '@/features/chat/screens/ChatScreen';
+import { HomeScreen } from '@/features/main/screens/HomeScreen';
 import { RootStackParamList } from '@/shared/types/navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /**
- * Navegador para flujos de autenticación, onboarding, creación de compañera y chat
+ * Navegador para flujos de autenticación, onboarding, creación de compañer@ y chat
  * Chat está aquí para permitir acceso desde skip login
  */
 export const AuthNavigator: React.FC = () => {
@@ -58,6 +59,14 @@ export const AuthNavigator: React.FC = () => {
         }}
       />
       <Stack.Screen name="Chat" component={ChatScreen} />
+      <Stack.Screen 
+        name="Home" 
+        component={HomeScreen}
+        options={{
+          animation: 'fade',
+          animationDuration: 400,
+        }}
+      />
     </Stack.Navigator>
   );
 };

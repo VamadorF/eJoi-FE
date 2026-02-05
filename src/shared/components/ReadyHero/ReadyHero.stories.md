@@ -1,6 +1,6 @@
 # ReadyHero
 
-Layout "Tu compañera está lista" sin solapamiento.
+Layout "Tu compañer@ está list@" sin solapamiento.
 
 ## Props
 
@@ -18,7 +18,7 @@ import { ReadyHero } from '@/shared/components';
 
 <ReadyHero
   avatar={{ name: 'Luna', uri: 'https://example.com/avatar.jpg' }}
-  title="¡Tu compañera está lista!"
+  title="¡Tu compañer@ está list@!"
   subtitle="Luna • Amigable y empática"
   ctaLabel="Iniciar conversación"
   onCTA={() => navigation.navigate('Chat')}

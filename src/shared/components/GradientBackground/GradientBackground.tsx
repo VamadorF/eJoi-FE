@@ -10,8 +10,10 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const getGradientColors = (variant: GradientVariant): string[] => {
   switch (variant) {
-    case 'auth':
     case 'wizard':
+      // Onboarding usa colores auxiliares más suaves
+      return [Colors.auxiliary.primary, Colors.auxiliary.secondary];
+    case 'auth':
     case 'creating':
     case 'ready':
     case 'chat':

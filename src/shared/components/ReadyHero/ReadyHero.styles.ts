@@ -42,6 +42,7 @@ export const styles = StyleSheet.create({
     color: Colors.text.white,
     marginBottom: Spacing.gapSm,
     textAlign: 'center',
+    lineHeight: 43, // 36 * 1.2 - valor absoluto en px
   },
   subtitle: {
     ...Typography.styles.body,
@@ -51,6 +52,7 @@ export const styles = StyleSheet.create({
     marginBottom: Spacing.gapLg,
     textAlign: 'center',
     paddingHorizontal: Spacing.lg,
+    lineHeight: 24, // 16 * 1.5 - valor absoluto en px
   },
   ctaContainer: {
     width: '100%',
@@ -63,6 +65,7 @@ export const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.bold,
     color: Colors.text.primary,
     marginBottom: Spacing.gapSm,
+    lineHeight: 28, // 20 * 1.4 - valor absoluto en px
   },
   chipsContainer: {
     flexDirection: 'row',
@@ -77,6 +80,7 @@ export const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.regular,
     color: Colors.text.primary,
     opacity: 0.9,
+    lineHeight: 21, // 14 * 1.5 - valor absoluto en px
   },
   emptyText: {
     ...Typography.styles.caption,
@@ -84,6 +88,7 @@ export const styles = StyleSheet.create({
     color: Colors.text.secondary,
     fontStyle: 'italic',
     textAlign: 'center',
+    lineHeight: 17, // 12 * 1.4 - valor absoluto en px
   },
 });
 

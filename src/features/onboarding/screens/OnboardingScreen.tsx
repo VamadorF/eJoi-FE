@@ -11,6 +11,8 @@ import {
   ChoiceChip,
   TextField,
   PrimaryCTA,
+  CircleSelector,
+  CategoryPill,
 } from '@/shared/components';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '@/shared/types/navigation';
@@ -18,6 +20,12 @@ import { OnboardingData } from '../types';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
+import { styles } from './OnboardingScreen.styles';
+
+// Imágenes para los selectores de estilo visual
+// Usando imágenes reales de las carpetas anime/ y arquetipos/
+const REALISTA_IMAGE = require('../../../../public/IMG/arquetipos/La Musa.jpg');
+const ANIME_IMAGE = require('../../../../public/IMG/anime/Anime_musa.png');
 
 type OnboardingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
 type OnboardingScreenRouteProp = RouteProp<RootStackParamList, 'Onboarding'>;
@@ -91,7 +99,18 @@ const BOUNDARY_OPTIONS = [
   'No discusiones religiosas',
 ];
 
-const TOTAL_STEPS = 7;
+// Opciones de estilo visual y género
+const VISUAL_STYLE_OPTIONS = [
+  { id: 'realista', label: 'Realista', icon: '👤' },
+  { id: 'anime', label: 'Anime', icon: '🎨' },
+] as const;
+
+const GENDER_OPTIONS = [
+  { id: 'femenino', label: 'Femenino', icon: '♀' },
+  { id: 'masculino', label: 'Masculino', icon: '♂' },
+] as const;
+
+const TOTAL_STEPS = 9;
 
 export const OnboardingScreen: React.FC = () => {
   const navigation = useNavigation<OnboardingScreenNavigationProp>();
@@ -105,6 +124,8 @@ export const OnboardingScreen: React.FC = () => {
     }
   }, [route.params?.initialStep]);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
+    visualStyle: '',
+    gender: '',
     persona: '',
     tone: '',
     interactionStyle: '',
@@ -132,7 +153,7 @@ export const OnboardingScreen: React.FC = () => {
         setErrorMessage('Por favor completa todos los campos requeridos');
         return;
       }
-      // Navegar a la pantalla de crear compañera
+      // Navegar a la pantalla de crear compañer@
       navigation.navigate('CreateCompanion', { onboardingData });
     }
   };
@@ -143,6 +164,14 @@ export const OnboardingScreen: React.FC = () => {
     } else {
       navigation.goBack();
     }
+  };
+
+  const handleVisualStyleSelect = (style: 'realista' | 'anime') => {
+    setOnboardingData({ ...onboardingData, visualStyle: style });
+  };
+
+  const handleGenderSelect = (gender: 'femenino' | 'masculino') => {
+    setOnboardingData({ ...onboardingData, gender: gender });
   };
 
   const handlePersonalitySelect = (option: string) => {
@@ -183,18 +212,22 @@ export const OnboardingScreen: React.FC = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return !!onboardingData.persona;
+        return !!onboardingData.visualStyle;
       case 2:
-        return !!onboardingData.tone;
+        return !!onboardingData.gender;
       case 3:
-        return !!onboardingData.interactionStyle;
+        return !!onboardingData.persona;
       case 4:
-        return !!onboardingData.conversationDepth;
+        return !!onboardingData.tone;
       case 5:
-        return onboardingData.interests.length > 0; // Al menos un interés
+        return !!onboardingData.interactionStyle;
       case 6:
-        return true; // Los límites son opcionales
+        return !!onboardingData.conversationDepth;
       case 7:
+        return onboardingData.interests.length > 0; // Al menos un interés
+      case 8:
+        return true; // Los límites son opcionales
+      case 9:
         return !!onboardingData.companionName && onboardingData.companionName.trim().length >= 2;
       default:
         return false;
@@ -204,18 +237,22 @@ export const OnboardingScreen: React.FC = () => {
   const getStepContext = (step: number): string => {
     switch (step) {
       case 1:
-        return 'Define cómo quieres que sea tu compañera';
+        return 'Elige el estilo visual';
       case 2:
-        return 'Define cómo te habla';
+        return 'Elige el género';
       case 3:
-        return 'Elige el tipo de relación';
+        return 'Define cómo quieres que sea tu compañer@';
       case 4:
-        return 'Define la profundidad';
+        return 'Define cómo te habla';
       case 5:
-        return 'Elige intereses';
+        return 'Elige el tipo de relación';
       case 6:
-        return 'Establece límites';
+        return 'Define la profundidad';
       case 7:
+        return 'Elige intereses';
+      case 8:
+        return 'Establece límites';
+      case 9:
         return 'Elige un nombre';
       default:
         return '';
@@ -224,7 +261,7 @@ export const OnboardingScreen: React.FC = () => {
 
   const getCTALabel = (step: number): string => {
     switch (step) {
-      case 7:
+      case 9:
         return 'Crear';
       default:
         return 'Siguiente';
@@ -236,11 +273,55 @@ export const OnboardingScreen: React.FC = () => {
       case 1:
         return (
           <View style={styles.stepContainer}>
+            <View style={styles.visualStepHeader}>
+              <Text style={styles.visualStepTitle}>
+                Elige tu <Text style={styles.highlightText}>compañer@</Text>
+              </Text>
+              <CategoryPill label="Estilo" />
+            </View>
+            <View style={styles.circleSelectorWrapper}>
+              <CircleSelector
+                options={[
+                  { id: 'realista', label: 'Realista', image: REALISTA_IMAGE },
+                  { id: 'anime', label: 'Anime', image: ANIME_IMAGE },
+                ]}
+                selectedId={onboardingData.visualStyle}
+                onSelect={(id) => handleVisualStyleSelect(id as 'realista' | 'anime')}
+              />
+            </View>
+          </View>
+        );
+
+      case 2:
+        return (
+          <View style={styles.stepContainer}>
+            <View style={styles.visualStepHeader}>
+              <Text style={styles.visualStepTitle}>
+                Elige tu <Text style={styles.highlightText}>compañer@</Text>
+              </Text>
+              <CategoryPill label="Físico" />
+            </View>
+            <View style={styles.circleSelectorWrapper}>
+              <CircleSelector
+                options={[
+                  { id: 'femenino', label: 'Femenino', icon: '♀' },
+                  { id: 'masculino', label: 'Masculino', icon: '♂' },
+                ]}
+                selectedId={onboardingData.gender}
+                onSelect={(id) => handleGenderSelect(id as 'femenino' | 'masculino')}
+              />
+            </View>
+          </View>
+        );
+
+      case 3:
+        return (
+          <View style={styles.stepContainer}>
             <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
             <Text style={styles.stepTitle}>Elige la personalidad</Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
-              Selecciona cómo quieres que sea tu compañera
+              Selecciona cómo quieres que sea tu compañer@
             </Text>
             <View style={styles.optionsContainer}>
               {PERSONALITY_OPTIONS.map((option) => (
@@ -257,7 +338,7 @@ export const OnboardingScreen: React.FC = () => {
           </View>
         );
 
-      case 2:
+      case 4:
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
@@ -281,14 +362,14 @@ export const OnboardingScreen: React.FC = () => {
           </View>
         );
 
-      case 3:
+      case 5:
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
             <Text style={styles.stepTitle}>Estilo de interacción</Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
-              ¿Qué tipo de relación buscas con tu compañera?
+              ¿Qué tipo de relación buscas con tu compañer@?
             </Text>
             <View style={styles.optionsContainer}>
               {INTERACTION_STYLE_OPTIONS.map((option) => (
@@ -305,7 +386,7 @@ export const OnboardingScreen: React.FC = () => {
           </View>
         );
 
-      case 4:
+      case 6:
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
@@ -329,7 +410,7 @@ export const OnboardingScreen: React.FC = () => {
           </View>
         );
 
-      case 5:
+      case 7:
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
@@ -351,7 +432,7 @@ export const OnboardingScreen: React.FC = () => {
           </View>
         );
 
-      case 6:
+      case 8:
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
@@ -373,18 +454,18 @@ export const OnboardingScreen: React.FC = () => {
           </View>
         );
 
-      case 7:
+      case 9:
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
             <Text style={styles.stepTitle}>Elige un nombre</Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
-              ¿Cómo quieres llamar a tu compañera?
+              ¿Cómo quieres llamar a tu compañer@?
             </Text>
             <View style={styles.inputContainer}>
               <TextField
-                label="Nombre de tu compañera"
+                label="Nombre de tu compañer@"
                 placeholder="Ej: Luna, Alex, Maya..."
                 value={onboardingData.companionName || ''}
                 onChangeText={handleCompanionNameChange}
@@ -418,17 +499,27 @@ export const OnboardingScreen: React.FC = () => {
       />
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         <ContentContainer>
-          <CardSurface variant="glass" padding="lg" textColor={Colors.text.primary}>
-            {renderStepContent()}
-            {errorMessage && (
-              <Text style={styles.errorMessage}>{errorMessage}</Text>
-            )}
-          </CardSurface>
+          {/* Pasos visuales (1 y 2) sin tarjeta para diseño más abierto */}
+          {currentStep <= 2 ? (
+            <View style={styles.visualStepContainer}>
+              {renderStepContent()}
+              {errorMessage && (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              )}
+            </View>
+          ) : (
+            <CardSurface variant="glass" padding="lg" textColor={Colors.text.primary}>
+              {renderStepContent()}
+              {errorMessage && (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              )}
+            </CardSurface>
+          )}
         </ContentContainer>
       </ScrollView>
       <PrimaryCTA
@@ -439,73 +530,3 @@ export const OnboardingScreen: React.FC = () => {
     </GradientBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  stepContainer: {
-    flexGrow: 1,
-    justifyContent: 'space-between',
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.xl,
-  },
-  stepIndicator: {
-    ...Typography.styles.caption,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.base.secondary,
-    marginBottom: Spacing.gapSm,
-    textAlign: 'center',
-  },
-  stepTitle: {
-    ...Typography.styles.h2,
-    fontFamily: Typography.fontFamily.bold,
-    color: Colors.text.primary,
-    marginBottom: Spacing.gapSm,
-    textAlign: 'center',
-  },
-  stepContext: {
-    ...Typography.styles.body,
-    fontFamily: Typography.fontFamily.medium,
-    color: Colors.text.primary,
-    marginBottom: Spacing.gapSm,
-    textAlign: 'center',
-  },
-  stepSubtitle: {
-    ...Typography.styles.body,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.secondary,
-    marginBottom: Spacing.gapLg,
-    textAlign: 'center',
-  },
-  optionsContainer: {
-    gap: Spacing.gapSm,
-  },
-  chipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: Spacing.lg,
-  },
-  inputContainer: {
-    width: '100%',
-    marginTop: Spacing.lg,
-  },
-  errorMessage: {
-    ...Typography.styles.caption,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.error,
-    textAlign: 'center',
-    marginTop: Spacing.gapMd,
-    paddingHorizontal: Spacing.md,
-  },
-  errorText: {
-    ...Typography.styles.caption,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.error,
-    marginTop: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-  },
-});

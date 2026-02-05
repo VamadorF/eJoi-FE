@@ -22,12 +22,14 @@ export const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.bold,
     color: Colors.text.white,
     marginBottom: Spacing.xs,
+    lineHeight: 36, // 30 * 1.2 - valor absoluto en px
   },
   subtitle: {
     ...Typography.styles.body,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.text.white,
     opacity: 0.9,
+    lineHeight: 24, // 16 * 1.5 - valor absoluto en px
   },
   messagesContainer: {
     flex: 1,
@@ -47,13 +49,14 @@ export const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.bold,
     color: Colors.base.primary,
     marginBottom: Spacing.sm,
+    lineHeight: 28, // 20 * 1.4 - valor absoluto en px
   },
   welcomeSubtext: {
     ...Typography.styles.body,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.text.primary,
     marginBottom: Spacing.xs,
-    lineHeight: Typography.styles.body.fontSize * Typography.lineHeight.relaxed,
+    lineHeight: 28, // 16 * 1.75 - valor absoluto en px (relaxed)
   },
   inputContainer: {
     paddingHorizontal: Spacing.screen.paddingHorizontal,
@@ -70,6 +73,7 @@ export const styles = StyleSheet.create({
     opacity: 0.7,
     textAlign: 'center',
     paddingVertical: Spacing.md,
+    lineHeight: 21, // 14 * 1.5 - valor absoluto en px
   },
   emptyContainer: {
     flex: 1,

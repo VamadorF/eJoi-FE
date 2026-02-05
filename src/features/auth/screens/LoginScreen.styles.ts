@@ -1,102 +1,159 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
 import { Colors } from '@/shared/theme/colors';
 import { Spacing } from '@/shared/theme/spacing';
 import { Typography } from '@/shared/theme/typography';
 
+const { width, height } = Dimensions.get('window');
+
 export const styles = StyleSheet.create({
-  scrollView: {
+  container: {
     flex: 1,
+    backgroundColor: Colors.background.white,
   },
-  contentContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: Spacing.xl,
-    minHeight: '100%',
+  
+  // Sección superior con imagen
+  imageSection: {
+    flex: 1,
+    position: 'relative',
+    minHeight: Platform.OS === 'web' ? '60vh' : height * 0.6,
+    overflow: 'hidden',
   },
-  heroImage: {
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
     position: 'absolute',
-    width: '100%',
-    height: 300,
-    top: 80,
-    opacity: 0.15,
-    zIndex: 0,
-  },
-  buttonsContainer: {
-    width: '100%',
-    zIndex: 1,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   logoContainer: {
+    position: 'absolute',
+    top: '40%',
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    justifyContent: 'center',
+    zIndex: 10,
   },
   logo: {
-    width: 160,
-    height: 160,
-    maxWidth: '80%', // Mobile-first: responsive
+    width: 120,
+    height: 120,
   },
-  separator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: Spacing.lg,
-    marginHorizontal: Spacing.buttonMargin.horizontal,
+  
+  // Sección inferior con botones
+  bottomSection: {
+    backgroundColor: Colors.background.white,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.xl,
+    paddingBottom: Platform.OS === 'web' ? 40 : Spacing['2xl'],
   },
-  separatorLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.border.light,
-  },
-  separatorText: {
-    ...Typography.styles.bodySmall,
-    color: Colors.text.secondary,
-    marginHorizontal: Spacing.md,
-  },
-  createAccountButton: {
-    marginHorizontal: Spacing.buttonMargin.horizontal,
-    marginTop: Spacing.sm,
-  },
-  termsContainer: {
-    marginTop: Spacing.lg,
-    marginHorizontal: Spacing.buttonMargin.horizontal,
-  },
-  termsText: {
-    ...Typography.styles.caption,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.secondary,
+  
+  loginTitle: {
+    fontSize: 22,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.text.primary,
     textAlign: 'center',
-    lineHeight: Typography.styles.caption.fontSize * Typography.lineHeight.normal,
+    marginBottom: Spacing.lg,
+    lineHeight: 28, // 22 * 1.25
   },
-  link: {
-    color: Colors.text.link,
-    textDecorationLine: 'underline',
-    fontFamily: Typography.fontFamily.regular,
-  },
-  loginLinkContainer: {
-    marginTop: Spacing.xl,
-    alignItems: 'center',
-  },
-  loginLinkText: {
-    ...Typography.styles.body,
-    fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.secondary,
-  },
-  skipContainer: {
-    marginTop: Spacing.gapLg,
+  
+  buttonsContainer: {
     alignItems: 'center',
     width: '100%',
+  },
+  
+  buttonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.md,
+    maxWidth: 400,
+    width: '100%',
+  },
+  
+  socialButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 30,
+    borderWidth: 1.5,
+    borderColor: Colors.border.light,
+    backgroundColor: Colors.background.white,
+    maxWidth: 180,
+    gap: Spacing.sm,
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+      },
+    }),
+  },
+  
+  socialButtonIcon: {
+    width: 22,
+    height: 22,
+  },
+  
+  socialButtonText: {
+    fontSize: 16,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.text.primary,
+    lineHeight: 20, // 16 * 1.25
+  },
+  
+  googleButtonText: {
+    color: Colors.base.primary,
+  },
+  
+  // Skip / Explorar sin cuenta
+  skipContainer: {
+    marginTop: Spacing.lg,
+    alignItems: 'center',
   },
   skipButton: {
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    minHeight: 44,
   },
   skipText: {
-    ...Typography.styles.body,
+    fontSize: 14,
     fontFamily: Typography.fontFamily.regular,
-    color: Colors.text.white,
-    opacity: 0.9,
+    color: Colors.text.secondary,
     textDecorationLine: 'underline',
+    lineHeight: 18, // 14 * 1.3
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+      },
+    }),
   },
+  
+  // Términos
+  termsContainer: {
+    marginTop: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    alignItems: 'center',
+  },
+  termsText: {
+    fontSize: 12,
+    fontFamily: Typography.fontFamily.regular,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    maxWidth: 400,
+  },
+  link: {
+    color: Colors.base.primary,
+    textDecorationLine: 'underline',
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+      },
+    }),
+  },
+  
   // Modal / Bottom Sheet Styles
   sheetBackdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -125,11 +182,11 @@ export const styles = StyleSheet.create({
     gap: 12,
   },
   sheetTitle: {
-    ...Typography.styles.h3,
     flex: 1,
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Typography.fontFamily.bold,
     color: Colors.text.primary,
+    lineHeight: 22, // 18 * 1.2
   },
   sheetCloseBtn: {
     paddingVertical: 6,
@@ -138,20 +195,25 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.06)',
   },
   sheetCloseText: {
-    ...Typography.styles.body,
+    fontSize: 14,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.text.primary,
+    lineHeight: 18, // 14 * 1.25
   },
   sheetContent: {
-    flex: 1, // Crucial for the scroll area to fill the space
+    flex: 1,
   },
   sheetScrollContent: {
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
   sheetParagraph: {
-    ...Typography.styles.body,
+    fontSize: 15,
+    fontFamily: Typography.fontFamily.regular,
     textAlign: 'left',
     lineHeight: 22,
     marginBottom: 14,
+    color: Colors.text.primary,
   },
   sheetBulletRow: {
     flexDirection: 'row',
@@ -161,14 +223,17 @@ export const styles = StyleSheet.create({
     paddingRight: 10,
   },
   sheetBulletSymbol: {
-    ...Typography.styles.body,
+    fontSize: 15,
+    fontFamily: Typography.fontFamily.regular,
     lineHeight: 22,
     marginTop: 1,
   },
   sheetBulletText: {
-    ...Typography.styles.body,
+    fontSize: 15,
+    fontFamily: Typography.fontFamily.regular,
     flex: 1,
     lineHeight: 22,
+    color: Colors.text.primary,
   },
   sheetFooter: {
     padding: 16,

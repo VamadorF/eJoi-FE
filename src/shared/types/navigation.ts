@@ -19,8 +19,9 @@ export type RootStackParamList = {
   Chat: undefined;
   ChatRoom: { roomId: string };
   
-  // Main (placeholder)
+  // Main
   Main: undefined;
+  Home: undefined;
 };
 
 declare global {

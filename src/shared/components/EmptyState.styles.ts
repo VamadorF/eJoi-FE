@@ -15,6 +15,7 @@ export const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 64,
+    lineHeight: 72, // 64 * 1.12 para emojis
   },
   title: {
     ...Typography.styles.h3,
@@ -22,6 +23,7 @@ export const styles = StyleSheet.create({
     color: Colors.text.white,
     textAlign: 'center',
     marginBottom: Spacing.sm,
+    lineHeight: Math.round((Typography.styles.h3?.fontSize ?? 24) * 1.15),
   },
   message: {
     ...Typography.styles.body,
@@ -29,6 +31,7 @@ export const styles = StyleSheet.create({
     color: Colors.text.white,
     opacity: 0.9,
     textAlign: 'center',
+    lineHeight: Math.round((Typography.styles.body?.fontSize ?? 16) * 1.25),
   },
 });
 

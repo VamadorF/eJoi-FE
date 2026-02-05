@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Image } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/shared/types/navigation';
@@ -19,6 +19,18 @@ import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
 import { styles } from './CreateCompanionScreen.styles';
 
+// Imágenes placeholder según género y estilo
+const PLACEHOLDER_IMAGES = {
+  realista: {
+    femenino: require('../../../../public/IMG/arquetipos/La Musa.jpg'),
+    masculino: require('../../../../public/IMG/arquetipos/Ejecutivo.png'),
+  },
+  anime: {
+    femenino: require('../../../../public/IMG/anime/Anime_musa.png'),
+    masculino: require('../../../../public/IMG/anime/anime_ejecutivo.png'),
+  },
+};
+
 type CreateCompanionScreenRouteProp = RouteProp<RootStackParamList, 'CreateCompanion'>;
 type CreateCompanionScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CreateCompanion'>;
 
@@ -29,6 +41,13 @@ export const CreateCompanionScreen: React.FC = () => {
 
   const onboardingData = route.params?.onboardingData;
 
+  // Obtener imagen placeholder basada en género y estilo visual
+  const getPlaceholderImage = () => {
+    const style = onboardingData?.visualStyle || 'realista';
+    const gender = onboardingData?.gender || 'femenino';
+    return PLACEHOLDER_IMAGES[style]?.[gender] || PLACEHOLDER_IMAGES.realista.femenino;
+  };
+
   const handleCreateCompanion = async () => {
     if (!onboardingData) {
       return;
@@ -37,8 +56,11 @@ export const CreateCompanionScreen: React.FC = () => {
     setIsCreating(true);
 
     try {
-      // Navegar a la pantalla de creación con animación
-      navigation.navigate('CreandoCompanion', { onboardingData });
+      // Navegar a la pantalla Home (vacía por ahora)
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
     } catch (error) {
       console.error('Error creating companion:', error);
       // TODO: Mostrar error al usuario
@@ -79,34 +101,66 @@ export const CreateCompanionScreen: React.FC = () => {
       >
         <ContentContainer>
           <View style={styles.header}>
-            <Text style={styles.title}>Crea tu compañera</Text>
+            <Text style={styles.title}>Crea tu compañer@</Text>
             <Text style={styles.subtitle}>
-              Revisa la configuración y crea tu compañera virtual
+              Revisa la configuración y crea tu compañer@ virtual
             </Text>
           </View>
 
-          {/* Card 1: Identidad */}
+          {/* Card 1: Apariencia */}
+          <CardSurface variant="glass" padding="lg" radius={16}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Apariencia</Text>
+              <Button
+                title="Editar"
+                onPress={() => handleEdit(1)}
+                variant="outline"
+                style={styles.editButton}
+              />
+            </View>
+            <View style={styles.personalitySection}>
+              <View style={styles.personalityRow}>
+                <Text style={styles.personalityLabel}>Estilo visual:</Text>
+              </View>
+              <View style={styles.personalityRow}>
+                <Text style={styles.personalityValue}>
+                  {onboardingData.visualStyle === 'realista' ? 'Realista' : 
+                   onboardingData.visualStyle === 'anime' ? 'Anime' : 'No seleccionado'}
+                </Text>
+              </View>
+              <View style={{ height: Spacing.gapSm }} />
+              <View style={styles.personalityRow}>
+                <Text style={styles.personalityLabel}>Género:</Text>
+              </View>
+              <View style={styles.personalityRow}>
+                <Text style={styles.personalityValue}>
+                  {onboardingData.gender === 'femenino' ? 'Femenino' : 
+                   onboardingData.gender === 'masculino' ? 'Masculino' : 'No seleccionado'}
+                </Text>
+              </View>
+            </View>
+          </CardSurface>
+
+          <View style={{ height: Spacing.gapLg }} />
+
+          {/* Card 2: Identidad */}
           <CardSurface variant="glass" padding="lg" radius={16}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Identidad</Text>
               <Button
                 title="Editar"
-                onPress={() => handleEdit(7)}
+                onPress={() => handleEdit(9)}
                 variant="outline"
                 style={styles.editButton}
               />
             </View>
             <View style={styles.identityContent}>
               <View style={styles.avatarWrapper}>
-                {onboardingData.avatar ? (
-                  <CompanionAvatar
-                    name={onboardingData.companionName || 'Compañera'}
-                    uri={onboardingData.avatar}
-                    size={80}
-                  />
-                ) : (
-                  <View style={styles.avatarPlaceholder} />
-                )}
+                <Image
+                  source={getPlaceholderImage()}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
               </View>
               <Text style={styles.companionName}>
                 {onboardingData.companionName || 'Sin nombre'}
@@ -116,13 +170,13 @@ export const CreateCompanionScreen: React.FC = () => {
 
           <View style={{ height: Spacing.gapLg }} />
 
-          {/* Card 2: Personalidad/Tono/Estilo */}
+          {/* Card 3: Personalidad/Tono/Estilo */}
           <CardSurface variant="glass" padding="lg" radius={16}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Personalidad</Text>
               <Button
                 title="Editar"
-                onPress={() => handleEdit(1)}
+                onPress={() => handleEdit(3)}
                 variant="outline"
                 style={styles.editButton}
               />
@@ -168,13 +222,13 @@ export const CreateCompanionScreen: React.FC = () => {
 
           <View style={{ height: Spacing.gapLg }} />
 
-          {/* Card 3: Intereses + Límites */}
+          {/* Card 4: Intereses + Límites */}
           <CardSurface variant="glass" padding="lg" radius={16}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Intereses</Text>
               <Button
                 title="Editar"
-                onPress={() => handleEdit(5)}
+                onPress={() => handleEdit(7)}
                 variant="outline"
                 style={styles.editButton}
               />
@@ -209,7 +263,7 @@ export const CreateCompanionScreen: React.FC = () => {
               <Text style={styles.cardTitle}>Límites</Text>
               <Button
                 title="Editar"
-                onPress={() => handleEdit(6)}
+                onPress={() => handleEdit(8)}
                 variant="outline"
                 style={styles.editButton}
               />
@@ -230,7 +284,7 @@ export const CreateCompanionScreen: React.FC = () => {
       </ScrollView>
 
       <PrimaryCTA
-        label={isCreating ? 'Creando...' : 'Crear Compañera'}
+        label={isCreating ? 'Creando...' : 'Crear Compañer@'}
         onPress={handleCreateCompanion}
         loading={isCreating}
         disabled={isCreating}
