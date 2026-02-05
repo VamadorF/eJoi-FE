@@ -21,6 +21,7 @@ import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
 import { styles } from './OnboardingScreen.styles';
+import { validators } from '@/shared/utils/validators';
 import { getRandomCompanionName } from '../data/getRandomCompanionName';
 
 // Imágenes para los selectores de estilo visual
@@ -207,7 +208,17 @@ export const OnboardingScreen: React.FC = () => {
 
   const handleCompanionNameChange = (text: string) => {
     setOnboardingData({ ...onboardingData, companionName: text });
-    setErrorMessage('');
+    // Limpiar error general al escribir
+    if (errorMessage === 'Por favor completa este paso antes de continuar') {
+      setErrorMessage('');
+    }
+  };
+
+  // Obtener el error de validación del nombre
+  const getCompanionNameError = (): string | undefined => {
+    const name = onboardingData.companionName;
+    if (!name || name.trim() === '') return undefined;
+    return validators.getNameError(name) || undefined;
   };
 
   const handleRandomName = () => {
@@ -239,7 +250,10 @@ export const OnboardingScreen: React.FC = () => {
       case 8:
         return true; // Los límites son opcionales
       case 9:
-        return !!onboardingData.companionName && onboardingData.companionName.trim().length >= 2;
+        // Validar que el nombre tenga al menos 2 caracteres y sea un nombre válido
+        return !!onboardingData.companionName && 
+               onboardingData.companionName.trim().length >= 2 && 
+               validators.name(onboardingData.companionName);
       default:
         return false;
     }
@@ -481,12 +495,8 @@ export const OnboardingScreen: React.FC = () => {
                 value={onboardingData.companionName || ''}
                 onChangeText={handleCompanionNameChange}
                 maxLength={20}
-                error={
-                  errorMessage && onboardingData.companionName && onboardingData.companionName.trim().length < 2
-                    ? 'El nombre debe tener al menos 2 caracteres'
-                    : undefined
-                }
-                helperText="Máximo 20 caracteres"
+                error={getCompanionNameError()}
+                helperText="Solo letras, sin números ni símbolos"
               />
               <View style={localStyles.randomRow}>
                 <Text style={localStyles.randomHint}>¿Sin ideas?</Text>
