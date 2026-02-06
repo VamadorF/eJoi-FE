@@ -91,18 +91,9 @@ export const CreateCompanionScreen: React.FC = () => {
       return;
     }
 
-    setIsCreating(true);
-
-    try {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Home' }],
-      });
-    } catch (error) {
-      console.error('Error creating companion:', error);
-    } finally {
-      setIsCreating(false);
-    }
+    navigation.navigate('CreandoCompanion', {
+      onboardingData,
+    });
   };
 
   if (!onboardingData) {
