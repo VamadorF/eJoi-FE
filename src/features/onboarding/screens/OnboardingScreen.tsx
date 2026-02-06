@@ -1,5 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+  FadeOut,
+  SlideInRight,
+  SlideOutLeft,
+  Layout,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  interpolate,
+} from 'react-native-reanimated';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -16,13 +30,14 @@ import {
 } from '@/shared/components';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '@/shared/types/navigation';
-import { OnboardingData } from '../types';
+import { OnboardingData, Gender } from '../types';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
 import { styles } from './OnboardingScreen.styles';
 import { validators } from '@/shared/utils/validators';
 import { getRandomCompanionName } from '../data/getRandomCompanionName';
+import { useGenderedTextWithGender } from '@/shared/hooks/useGenderedText';
 
 // Imágenes para los selectores de estilo visual
 // Usando imágenes reales de las carpetas anime/ y arquetipos/
@@ -114,11 +129,15 @@ const GENDER_OPTIONS = [
 
 const TOTAL_STEPS = 9;
 
+// Componente animado para wraps
+const AnimatedView = Animated.createAnimatedComponent(View);
+
 export const OnboardingScreen: React.FC = () => {
   const navigation = useNavigation<OnboardingScreenNavigationProp>();
   const route = useRoute<OnboardingScreenRouteProp>();
   const initialStep = route.params?.initialStep || 1;
   const [currentStep, setCurrentStep] = useState(initialStep);
+  const [animationKey, setAnimationKey] = useState(0);
   
   useEffect(() => {
     if (route.params?.initialStep) {
@@ -138,6 +157,9 @@ export const OnboardingScreen: React.FC = () => {
     avatar: undefined,
   });
   const [errorMessage, setErrorMessage] = useState<string>('');
+  
+  // Hook para textos con género dinámico
+  const genderedText = useGenderedTextWithGender(onboardingData.gender as Gender | '');
 
   const handleNext = () => {
     setErrorMessage('');
@@ -148,6 +170,7 @@ export const OnboardingScreen: React.FC = () => {
     }
 
     if (currentStep < TOTAL_STEPS) {
+      setAnimationKey(prev => prev + 1);
       setCurrentStep(currentStep + 1);
     } else {
       // Validar que los campos requeridos estén llenos
@@ -162,6 +185,7 @@ export const OnboardingScreen: React.FC = () => {
 
   const handleBack = () => {
     if (currentStep > 1) {
+      setAnimationKey(prev => prev + 1);
       setCurrentStep(currentStep - 1);
     } else {
       navigation.goBack();
@@ -266,7 +290,7 @@ export const OnboardingScreen: React.FC = () => {
       case 2:
         return 'Elige el género';
       case 3:
-        return 'Define cómo quieres que sea tu compañer@';
+        return genderedText.t('Define cómo quieres que sea tu compañer@');
       case 4:
         return 'Define cómo te habla';
       case 5:
@@ -297,14 +321,24 @@ export const OnboardingScreen: React.FC = () => {
     switch (currentStep) {
       case 1:
         return (
-          <View style={styles.stepContainer}>
-            <View style={styles.visualStepHeader}>
+          <Animated.View 
+            key={`step-1-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            <Animated.View 
+              style={styles.visualStepHeader}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
               <Text style={styles.visualStepTitle}>
-                Elige tu <Text style={styles.highlightText}>compañer@</Text>
+                Elige tu <Text style={styles.highlightText}>{genderedText.companion()}</Text>
               </Text>
               <CategoryPill label="Estilo" />
-            </View>
-            <View style={styles.circleSelectorWrapper}>
+            </Animated.View>
+            <Animated.View 
+              style={styles.circleSelectorWrapper}
+              entering={FadeIn.delay(200).duration(400)}
+            >
               <CircleSelector
                 options={[
                   { id: 'realista', label: 'Realista', image: REALISTA_IMAGE },
@@ -313,20 +347,30 @@ export const OnboardingScreen: React.FC = () => {
                 selectedId={onboardingData.visualStyle}
                 onSelect={(id) => handleVisualStyleSelect(id as 'realista' | 'anime')}
               />
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         );
 
       case 2:
         return (
-          <View style={styles.stepContainer}>
-            <View style={styles.visualStepHeader}>
+          <Animated.View 
+            key={`step-2-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            <Animated.View 
+              style={styles.visualStepHeader}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
               <Text style={styles.visualStepTitle}>
-                Elige tu <Text style={styles.highlightText}>compañer@</Text>
+                Elige tu <Text style={styles.highlightText}>{genderedText.companion()}</Text>
               </Text>
               <CategoryPill label="Físico" />
-            </View>
-            <View style={styles.circleSelectorWrapper}>
+            </Animated.View>
+            <Animated.View 
+              style={styles.circleSelectorWrapper}
+              entering={FadeIn.delay(200).duration(400)}
+            >
               <CircleSelector
                 options={[
                   { id: 'femenino', label: 'Femenino', icon: '♀' },
@@ -335,162 +379,305 @@ export const OnboardingScreen: React.FC = () => {
                 selectedId={onboardingData.gender}
                 onSelect={(id) => handleGenderSelect(id as 'femenino' | 'masculino')}
               />
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         );
 
       case 3:
         return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
-            <Text style={styles.stepTitle}>Elige la personalidad</Text>
+          <Animated.View 
+            key={`step-3-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            <Animated.Text 
+              style={styles.stepIndicator}
+              entering={FadeIn.delay(50).duration(200)}
+            >
+              Paso {currentStep} de {TOTAL_STEPS}
+            </Animated.Text>
+            <Animated.Text 
+              style={styles.stepTitle}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
+              Elige la personalidad
+            </Animated.Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
-              Selecciona cómo quieres que sea tu compañer@
+              {genderedText.t('Selecciona cómo quieres que sea tu compañer@')}
             </Text>
-            <View style={styles.optionsContainer}>
-              {PERSONALITY_OPTIONS.map((option) => (
-                <OptionButton
+            <Animated.View 
+              style={styles.optionsContainer}
+              entering={FadeIn.delay(200).duration(400)}
+            >
+              {PERSONALITY_OPTIONS.map((option, index) => (
+                <Animated.View
                   key={option}
-                  title={option}
-                  onPress={() => handlePersonalitySelect(option)}
-                  selected={onboardingData.persona === option}
-                  leftIcon={<Ionicons name="person" size={20} color={onboardingData.persona === option ? Colors.text.white : Colors.text.secondary} />}
-                  rightIcon="check"
-                />
+                  entering={FadeInDown.delay(150 + index * 50).duration(300)}
+                >
+                  <OptionButton
+                    title={option}
+                    onPress={() => handlePersonalitySelect(option)}
+                    selected={onboardingData.persona === option}
+                    leftIcon={<Ionicons name="person" size={20} color={onboardingData.persona === option ? Colors.text.white : Colors.text.secondary} />}
+                    rightIcon="check"
+                  />
+                </Animated.View>
               ))}
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         );
 
       case 4:
         return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
-            <Text style={styles.stepTitle}>Elige el tono</Text>
+          <Animated.View 
+            key={`step-4-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            <Animated.Text 
+              style={styles.stepIndicator}
+              entering={FadeIn.delay(50).duration(200)}
+            >
+              Paso {currentStep} de {TOTAL_STEPS}
+            </Animated.Text>
+            <Animated.Text 
+              style={styles.stepTitle}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
+              Elige el tono
+            </Animated.Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               ¿Cómo quieres que hable contigo?
             </Text>
-            <View style={styles.optionsContainer}>
-              {TONE_OPTIONS.map((option) => (
-                <OptionButton
+            <Animated.View 
+              style={styles.optionsContainer}
+              entering={FadeIn.delay(200).duration(400)}
+            >
+              {TONE_OPTIONS.map((option, index) => (
+                <Animated.View
                   key={option}
-                  title={option}
-                  onPress={() => handleToneSelect(option)}
-                  selected={onboardingData.tone === option}
-                  leftIcon={<Ionicons name="chatbubbles" size={20} color={onboardingData.tone === option ? Colors.text.white : Colors.text.secondary} />}
-                  rightIcon="check"
-                />
+                  entering={FadeInDown.delay(150 + index * 50).duration(300)}
+                >
+                  <OptionButton
+                    title={option}
+                    onPress={() => handleToneSelect(option)}
+                    selected={onboardingData.tone === option}
+                    leftIcon={<Ionicons name="chatbubbles" size={20} color={onboardingData.tone === option ? Colors.text.white : Colors.text.secondary} />}
+                    rightIcon="check"
+                  />
+                </Animated.View>
               ))}
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         );
 
       case 5:
         return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
-            <Text style={styles.stepTitle}>Estilo de interacción</Text>
+          <Animated.View 
+            key={`step-5-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            <Animated.Text 
+              style={styles.stepIndicator}
+              entering={FadeIn.delay(50).duration(200)}
+            >
+              Paso {currentStep} de {TOTAL_STEPS}
+            </Animated.Text>
+            <Animated.Text 
+              style={styles.stepTitle}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
+              Estilo de interacción
+            </Animated.Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
-              ¿Qué tipo de relación buscas con tu compañer@?
+              {genderedText.t('¿Qué tipo de relación buscas con tu compañer@?')}
             </Text>
-            <View style={styles.optionsContainer}>
-              {INTERACTION_STYLE_OPTIONS.map((option) => (
-                <OptionButton
+            <Animated.View 
+              style={styles.optionsContainer}
+              entering={FadeIn.delay(200).duration(400)}
+            >
+              {INTERACTION_STYLE_OPTIONS.map((option, index) => (
+                <Animated.View
                   key={option}
-                  title={option}
-                  onPress={() => handleInteractionStyleSelect(option)}
-                  selected={onboardingData.interactionStyle === option}
-                  leftIcon={<Ionicons name="people" size={20} color={onboardingData.interactionStyle === option ? Colors.text.white : Colors.text.secondary} />}
-                  rightIcon="check"
-                />
+                  entering={FadeInDown.delay(150 + index * 50).duration(300)}
+                >
+                  <OptionButton
+                    title={option}
+                    onPress={() => handleInteractionStyleSelect(option)}
+                    selected={onboardingData.interactionStyle === option}
+                    leftIcon={<Ionicons name="people" size={20} color={onboardingData.interactionStyle === option ? Colors.text.white : Colors.text.secondary} />}
+                    rightIcon="check"
+                  />
+                </Animated.View>
               ))}
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         );
 
       case 6:
         return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
-            <Text style={styles.stepTitle}>Profundidad de conversación</Text>
+          <Animated.View 
+            key={`step-6-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            <Animated.Text 
+              style={styles.stepIndicator}
+              entering={FadeIn.delay(50).duration(200)}
+            >
+              Paso {currentStep} de {TOTAL_STEPS}
+            </Animated.Text>
+            <Animated.Text 
+              style={styles.stepTitle}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
+              Profundidad de conversación
+            </Animated.Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               ¿Qué tan profundas quieres que sean las conversaciones?
             </Text>
-            <View style={styles.optionsContainer}>
-              {CONVERSATION_DEPTH_OPTIONS.map((option) => (
-                <OptionButton
+            <Animated.View 
+              style={styles.optionsContainer}
+              entering={FadeIn.delay(200).duration(400)}
+            >
+              {CONVERSATION_DEPTH_OPTIONS.map((option, index) => (
+                <Animated.View
                   key={option}
-                  title={option}
-                  onPress={() => handleConversationDepthSelect(option)}
-                  selected={onboardingData.conversationDepth === option}
-                  leftIcon={<Ionicons name="layers" size={20} color={onboardingData.conversationDepth === option ? Colors.text.white : Colors.text.secondary} />}
-                  rightIcon="check"
-                />
+                  entering={FadeInDown.delay(150 + index * 50).duration(300)}
+                >
+                  <OptionButton
+                    title={option}
+                    onPress={() => handleConversationDepthSelect(option)}
+                    selected={onboardingData.conversationDepth === option}
+                    leftIcon={<Ionicons name="layers" size={20} color={onboardingData.conversationDepth === option ? Colors.text.white : Colors.text.secondary} />}
+                    rightIcon="check"
+                  />
+                </Animated.View>
               ))}
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         );
 
       case 7:
         return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
-            <Text style={styles.stepTitle}>Tus intereses</Text>
+          <Animated.View 
+            key={`step-7-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            <Animated.Text 
+              style={styles.stepIndicator}
+              entering={FadeIn.delay(50).duration(200)}
+            >
+              Paso {currentStep} de {TOTAL_STEPS}
+            </Animated.Text>
+            <Animated.Text 
+              style={styles.stepTitle}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
+              Tus intereses
+            </Animated.Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               Selecciona los temas que te interesan (puedes elegir varios)
             </Text>
-            <View style={styles.chipsContainer}>
-              {INTEREST_OPTIONS.map((option) => (
-                <ChoiceChip
+            <Animated.View 
+              style={styles.chipsContainer}
+              entering={FadeIn.delay(200).duration(400)}
+            >
+              {INTEREST_OPTIONS.map((option, index) => (
+                <Animated.View
                   key={option}
-                  label={option}
-                  onPress={() => handleInterestToggle(option)}
-                  selected={onboardingData.interests.includes(option)}
-                />
+                  entering={FadeIn.delay(100 + index * 30).duration(200)}
+                >
+                  <ChoiceChip
+                    label={option}
+                    onPress={() => handleInterestToggle(option)}
+                    selected={onboardingData.interests.includes(option)}
+                  />
+                </Animated.View>
               ))}
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         );
 
       case 8:
         return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
-            <Text style={styles.stepTitle}>Define los límites</Text>
+          <Animated.View 
+            key={`step-8-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            <Animated.Text 
+              style={styles.stepIndicator}
+              entering={FadeIn.delay(50).duration(200)}
+            >
+              Paso {currentStep} de {TOTAL_STEPS}
+            </Animated.Text>
+            <Animated.Text 
+              style={styles.stepTitle}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
+              Define los límites
+            </Animated.Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
               Establece qué temas prefieres evitar (opcional)
             </Text>
-            <View style={styles.chipsContainer}>
-              {BOUNDARY_OPTIONS.map((option) => (
-                <ChoiceChip
+            <Animated.View 
+              style={styles.chipsContainer}
+              entering={FadeIn.delay(200).duration(400)}
+            >
+              {BOUNDARY_OPTIONS.map((option, index) => (
+                <Animated.View
                   key={option}
-                  label={option}
-                  onPress={() => handleBoundaryToggle(option)}
-                  selected={onboardingData.boundaries.includes(option)}
-                />
+                  entering={FadeIn.delay(100 + index * 30).duration(200)}
+                >
+                  <ChoiceChip
+                    label={option}
+                    onPress={() => handleBoundaryToggle(option)}
+                    selected={onboardingData.boundaries.includes(option)}
+                  />
+                </Animated.View>
               ))}
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         );
 
       case 9:
         return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepIndicator}>Paso {currentStep} de {TOTAL_STEPS}</Text>
-            <Text style={styles.stepTitle}>Elige un nombre</Text>
+          <Animated.View 
+            key={`step-9-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            <Animated.Text 
+              style={styles.stepIndicator}
+              entering={FadeIn.delay(50).duration(200)}
+            >
+              Paso {currentStep} de {TOTAL_STEPS}
+            </Animated.Text>
+            <Animated.Text 
+              style={styles.stepTitle}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
+              Elige un nombre
+            </Animated.Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
-              ¿Cómo quieres llamar a tu compañer@?
+              {genderedText.t('¿Cómo quieres llamar a tu compañer@?')}
             </Text>
-            <View style={styles.inputContainer}>
+            <Animated.View 
+              style={styles.inputContainer}
+              entering={FadeIn.delay(200).duration(400)}
+            >
               <TextField
-                label="Nombre de tu compañer@"
+                label={genderedText.t('Nombre de tu compañer@')}
                 placeholder="Ej: Luna, Alex, Maya..."
                 value={onboardingData.companionName || ''}
                 onChangeText={handleCompanionNameChange}
@@ -498,7 +685,10 @@ export const OnboardingScreen: React.FC = () => {
                 error={getCompanionNameError()}
                 helperText="Solo letras, sin números ni símbolos"
               />
-              <View style={localStyles.randomRow}>
+              <Animated.View 
+                style={localStyles.randomRow}
+                entering={FadeInUp.delay(300).duration(300)}
+              >
                 <Text style={localStyles.randomHint}>¿Sin ideas?</Text>
                 <Pressable
                   onPress={handleRandomName}
@@ -510,9 +700,9 @@ export const OnboardingScreen: React.FC = () => {
                 >
                   <Text style={localStyles.randomButtonText}>🎲 Generar nombre</Text>
                 </Pressable>
-              </View>
-            </View>
-          </View>
+              </Animated.View>
+            </Animated.View>
+          </Animated.View>
         );
 
       default:

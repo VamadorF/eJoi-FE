@@ -161,28 +161,12 @@ export const LoginScreen: React.FC = () => {
           accessibilityLabel="Background"
         />
         
-        {/* Logo centrado */}
-        <Animated.View 
-          style={[
-            styles.logoContainer,
-            { 
-              opacity: fadeAnim,
-              transform: [{ scale: logoScale }] 
-            }
-          ]}
-        >
-          <Image
-            source={require('../../../../public/logos/eJoi_logos-01.png')}
-            style={styles.logo}
-            resizeMode="contain"
-            accessibilityLabel="eJoi Logo"
-          />
-        </Animated.View>
+        
       </View>
 
       {/* Sección inferior con botones */}
       <Animated.View style={[styles.bottomSection, { opacity: fadeAnim }]}>
-        <Text style={styles.loginTitle}>Log in</Text>
+        
         
         {/* Botones de Apple y Google */}
         <View style={styles.buttonsContainer}>

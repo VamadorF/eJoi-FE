@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Image } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+  SlideInDown,
+  ZoomIn,
+  Layout,
+} from 'react-native-reanimated';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/shared/types/navigation';
-import { OnboardingData } from '@/features/onboarding/types';
+import { OnboardingData, Gender } from '@/features/onboarding/types';
 import {
   GradientBackground,
   SummaryList,
@@ -18,6 +26,7 @@ import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
 import { styles } from './CreateCompanionScreen.styles';
+import { useGenderedTextWithGender } from '@/shared/hooks/useGenderedText';
 
 // Imágenes placeholder según género y estilo
 const PLACEHOLDER_IMAGES = {
@@ -40,6 +49,11 @@ export const CreateCompanionScreen: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
 
   const onboardingData = route.params?.onboardingData;
+  
+  // Hook para textos con género dinámico
+  const genderedText = useGenderedTextWithGender(
+    (onboardingData?.gender || '') as Gender | ''
+  );
 
   // Obtener imagen placeholder basada en género y estilo visual
   const getPlaceholderImage = () => {
@@ -100,195 +114,224 @@ export const CreateCompanionScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <ContentContainer>
-          <View style={styles.header}>
-            <Text style={styles.title}>Crea tu compañer@</Text>
-            <Text style={styles.subtitle}>
-              Revisa la configuración y crea tu compañer@ virtual
+          <Animated.View 
+            style={styles.header}
+            entering={FadeInDown.duration(500).springify()}
+          >
+            <Text style={styles.title}>
+              Crea tu {genderedText.companion()}
             </Text>
-          </View>
+            <Text style={styles.subtitle}>
+              Revisa la configuración y crea tu {genderedText.companion()} virtual
+            </Text>
+          </Animated.View>
 
           {/* Card 1: Apariencia */}
-          <CardSurface variant="glass" padding="lg" radius={16}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Apariencia</Text>
-              <Button
-                title="Editar"
-                onPress={() => handleEdit(1)}
-                variant="outline"
-                style={styles.editButton}
-              />
-            </View>
-            <View style={styles.personalitySection}>
-              <View style={styles.personalityRow}>
-                <Text style={styles.personalityLabel}>Estilo visual:</Text>
+          <Animated.View entering={FadeInUp.delay(100).duration(400)}>
+            <CardSurface variant="glass" padding="lg" radius={16}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Apariencia</Text>
+                <Button
+                  title="Editar"
+                  onPress={() => handleEdit(1)}
+                  variant="outline"
+                  style={styles.editButton}
+                />
               </View>
-              <View style={styles.personalityRow}>
-                <Text style={styles.personalityValue}>
-                  {onboardingData.visualStyle === 'realista' ? 'Realista' : 
-                   onboardingData.visualStyle === 'anime' ? 'Anime' : 'No seleccionado'}
-                </Text>
+              <View style={styles.personalitySection}>
+                <View style={styles.personalityRow}>
+                  <Text style={styles.personalityLabel}>Estilo visual:</Text>
+                </View>
+                <View style={styles.personalityRow}>
+                  <Text style={styles.personalityValue}>
+                    {onboardingData.visualStyle === 'realista' ? 'Realista' : 
+                     onboardingData.visualStyle === 'anime' ? 'Anime' : 'No seleccionado'}
+                  </Text>
+                </View>
+                <View style={{ height: Spacing.gapSm }} />
+                <View style={styles.personalityRow}>
+                  <Text style={styles.personalityLabel}>Género:</Text>
+                </View>
+                <View style={styles.personalityRow}>
+                  <Text style={styles.personalityValue}>
+                    {onboardingData.gender === 'femenino' ? 'Femenino' : 
+                     onboardingData.gender === 'masculino' ? 'Masculino' : 'No seleccionado'}
+                  </Text>
+                </View>
               </View>
-              <View style={{ height: Spacing.gapSm }} />
-              <View style={styles.personalityRow}>
-                <Text style={styles.personalityLabel}>Género:</Text>
-              </View>
-              <View style={styles.personalityRow}>
-                <Text style={styles.personalityValue}>
-                  {onboardingData.gender === 'femenino' ? 'Femenino' : 
-                   onboardingData.gender === 'masculino' ? 'Masculino' : 'No seleccionado'}
-                </Text>
-              </View>
-            </View>
-          </CardSurface>
+            </CardSurface>
+          </Animated.View>
 
           <View style={{ height: Spacing.gapLg }} />
 
           {/* Card 2: Identidad */}
-          <CardSurface variant="glass" padding="lg" radius={16}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Identidad</Text>
-              <Button
-                title="Editar"
-                onPress={() => handleEdit(9)}
-                variant="outline"
-                style={styles.editButton}
-              />
-            </View>
-            <View style={styles.identityContent}>
-              <View style={styles.avatarWrapper}>
-                <Image
-                  source={getPlaceholderImage()}
-                  style={styles.avatarImage}
-                  resizeMode="cover"
+          <Animated.View entering={FadeInUp.delay(200).duration(400)}>
+            <CardSurface variant="glass" padding="lg" radius={16}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Identidad</Text>
+                <Button
+                  title="Editar"
+                  onPress={() => handleEdit(9)}
+                  variant="outline"
+                  style={styles.editButton}
                 />
               </View>
-              <Text style={styles.companionName}>
-                {onboardingData.companionName || 'Sin nombre'}
-              </Text>
-            </View>
-          </CardSurface>
+              <View style={styles.identityContent}>
+                <Animated.View 
+                  style={styles.avatarWrapper}
+                  entering={ZoomIn.delay(400).duration(500).springify()}
+                >
+                  <Image
+                    source={getPlaceholderImage()}
+                    style={styles.avatarImage}
+                    resizeMode="cover"
+                  />
+                </Animated.View>
+                <Text style={styles.companionName}>
+                  {onboardingData.companionName || 'Sin nombre'}
+                </Text>
+              </View>
+            </CardSurface>
+          </Animated.View>
 
           <View style={{ height: Spacing.gapLg }} />
 
           {/* Card 3: Personalidad/Tono/Estilo */}
-          <CardSurface variant="glass" padding="lg" radius={16}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Personalidad</Text>
-              <Button
-                title="Editar"
-                onPress={() => handleEdit(3)}
-                variant="outline"
-                style={styles.editButton}
-              />
-            </View>
-            <View style={styles.personalitySection}>
-              <View style={styles.personalityRow}>
-                <Text style={styles.personalityLabel}>Personalidad:</Text>
+          <Animated.View entering={FadeInUp.delay(300).duration(400)}>
+            <CardSurface variant="glass" padding="lg" radius={16}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Personalidad</Text>
+                <Button
+                  title="Editar"
+                  onPress={() => handleEdit(3)}
+                  variant="outline"
+                  style={styles.editButton}
+                />
               </View>
-              <View style={styles.personalityRow}>
-                <Text style={styles.personalityValue}>{onboardingData.persona}</Text>
+              <View style={styles.personalitySection}>
+                <View style={styles.personalityRow}>
+                  <Text style={styles.personalityLabel}>Personalidad:</Text>
+                </View>
+                <View style={styles.personalityRow}>
+                  <Text style={styles.personalityValue}>{onboardingData.persona}</Text>
+                </View>
+                <View style={{ height: Spacing.gapSm }} />
+                <View style={styles.personalityRow}>
+                  <Text style={styles.personalityLabel}>Tono:</Text>
+                </View>
+                <View style={styles.personalityRow}>
+                  <Text style={styles.personalityValue}>{onboardingData.tone}</Text>
+                </View>
+                {onboardingData.interactionStyle && (
+                  <>
+                    <View style={{ height: Spacing.gapSm }} />
+                    <View style={styles.personalityRow}>
+                      <Text style={styles.personalityLabel}>Estilo:</Text>
+                    </View>
+                    <View style={styles.personalityRow}>
+                      <Text style={styles.personalityValue}>{onboardingData.interactionStyle}</Text>
+                    </View>
+                  </>
+                )}
+                {onboardingData.conversationDepth && (
+                  <>
+                    <View style={{ height: Spacing.gapSm }} />
+                    <View style={styles.personalityRow}>
+                      <Text style={styles.personalityLabel}>Profundidad:</Text>
+                    </View>
+                    <View style={styles.personalityRow}>
+                      <Text style={styles.personalityValue}>{onboardingData.conversationDepth}</Text>
+                    </View>
+                  </>
+                )}
               </View>
-              <View style={{ height: Spacing.gapSm }} />
-              <View style={styles.personalityRow}>
-                <Text style={styles.personalityLabel}>Tono:</Text>
-              </View>
-              <View style={styles.personalityRow}>
-                <Text style={styles.personalityValue}>{onboardingData.tone}</Text>
-              </View>
-              {onboardingData.interactionStyle && (
-                <>
-                  <View style={{ height: Spacing.gapSm }} />
-                  <View style={styles.personalityRow}>
-                    <Text style={styles.personalityLabel}>Estilo:</Text>
-                  </View>
-                  <View style={styles.personalityRow}>
-                    <Text style={styles.personalityValue}>{onboardingData.interactionStyle}</Text>
-                  </View>
-                </>
-              )}
-              {onboardingData.conversationDepth && (
-                <>
-                  <View style={{ height: Spacing.gapSm }} />
-                  <View style={styles.personalityRow}>
-                    <Text style={styles.personalityLabel}>Profundidad:</Text>
-                  </View>
-                  <View style={styles.personalityRow}>
-                    <Text style={styles.personalityValue}>{onboardingData.conversationDepth}</Text>
-                  </View>
-                </>
-              )}
-            </View>
-          </CardSurface>
+            </CardSurface>
+          </Animated.View>
 
           <View style={{ height: Spacing.gapLg }} />
 
           {/* Card 4: Intereses + Límites */}
-          <CardSurface variant="glass" padding="lg" radius={16}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Intereses</Text>
-              <Button
-                title="Editar"
-                onPress={() => handleEdit(7)}
-                variant="outline"
-                style={styles.editButton}
-              />
-            </View>
-            {onboardingData.interests.length > 0 ? (
-              <View style={styles.chipsContainer}>
-                {onboardingData.interests.slice(0, 5).map((interest) => (
-                  <ChoiceChip
-                    key={interest}
-                    label={interest}
-                    selected={true}
-                    onPress={() => {}}
-                    size="sm"
-                  />
-                ))}
-                {onboardingData.interests.length > 5 && (
-                  <ChoiceChip
-                    label={`+${onboardingData.interests.length - 5}`}
-                    selected={false}
-                    onPress={() => {}}
-                    size="sm"
-                  />
-                )}
+          <Animated.View entering={FadeInUp.delay(400).duration(400)}>
+            <CardSurface variant="glass" padding="lg" radius={16}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Intereses</Text>
+                <Button
+                  title="Editar"
+                  onPress={() => handleEdit(7)}
+                  variant="outline"
+                  style={styles.editButton}
+                />
               </View>
-            ) : (
-              <Text style={styles.emptyText}>Sin intereses seleccionados</Text>
-            )}
+              {onboardingData.interests.length > 0 ? (
+                <Animated.View 
+                  style={styles.chipsContainer}
+                  entering={FadeIn.delay(500).duration(300)}
+                >
+                  {onboardingData.interests.slice(0, 5).map((interest, index) => (
+                    <Animated.View
+                      key={interest}
+                      entering={FadeIn.delay(500 + index * 50).duration(200)}
+                    >
+                      <ChoiceChip
+                        label={interest}
+                        selected={true}
+                        onPress={() => {}}
+                        size="sm"
+                      />
+                    </Animated.View>
+                  ))}
+                  {onboardingData.interests.length > 5 && (
+                    <ChoiceChip
+                      label={`+${onboardingData.interests.length - 5}`}
+                      selected={false}
+                      onPress={() => {}}
+                      size="sm"
+                    />
+                  )}
+                </Animated.View>
+              ) : (
+                <Text style={styles.emptyText}>Sin intereses seleccionados</Text>
+              )}
 
-            <View style={{ height: Spacing.gapLg }} />
+              <View style={{ height: Spacing.gapLg }} />
 
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Límites</Text>
-              <Button
-                title="Editar"
-                onPress={() => handleEdit(8)}
-                variant="outline"
-                style={styles.editButton}
-              />
-            </View>
-            {onboardingData.boundaries.length > 0 ? (
-              <View style={styles.boundariesList}>
-                {onboardingData.boundaries.map((boundary, index) => (
-                  <Text key={index} style={styles.boundaryItem}>
-                    • {boundary}
-                  </Text>
-                ))}
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Límites</Text>
+                <Button
+                  title="Editar"
+                  onPress={() => handleEdit(8)}
+                  variant="outline"
+                  style={styles.editButton}
+                />
               </View>
-            ) : (
-              <Text style={styles.emptyText}>Sin límites definidos</Text>
-            )}
-          </CardSurface>
+              {onboardingData.boundaries.length > 0 ? (
+                <View style={styles.boundariesList}>
+                  {onboardingData.boundaries.map((boundary, index) => (
+                    <Animated.Text 
+                      key={index} 
+                      style={styles.boundaryItem}
+                      entering={FadeInDown.delay(600 + index * 50).duration(200)}
+                    >
+                      • {boundary}
+                    </Animated.Text>
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.emptyText}>Sin límites definidos</Text>
+              )}
+            </CardSurface>
+          </Animated.View>
         </ContentContainer>
       </ScrollView>
 
-      <PrimaryCTA
-        label={isCreating ? 'Creando...' : 'Crear Compañer@'}
-        onPress={handleCreateCompanion}
-        loading={isCreating}
-        disabled={isCreating}
-      />
+      <Animated.View entering={SlideInDown.delay(600).duration(400).springify()}>
+        <PrimaryCTA
+          label={isCreating ? 'Creando...' : `Crear ${genderedText.companion()}`}
+          onPress={handleCreateCompanion}
+          loading={isCreating}
+          disabled={isCreating}
+        />
+      </Animated.View>
     </GradientBackground>
   );
 };
