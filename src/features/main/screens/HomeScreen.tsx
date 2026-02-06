@@ -11,12 +11,15 @@ import {
   Platform,
   NativeSyntheticEvent,
   TextInputContentSizeChangeEventData,
+  Dimensions,
 } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInDown,
   FadeInUp,
+  FadeInRight,
   SlideInDown,
+  SlideInRight,
   ZoomIn,
   useAnimatedStyle,
   useSharedValue,
@@ -27,20 +30,21 @@ import Animated, {
   withDelay,
   Easing,
   interpolate,
-  runOnJS,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-// import { Audio } from 'expo-av'; // Descomentar cuando se agreguen archivos de audio
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
 import { useGenderedText } from '@/shared/hooks/useGenderedText';
+import { generateAboutMe, generateShortDescription } from '@/shared/utils/companionTextGenerator';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ============ TIPOS ============
 interface Message {
@@ -66,8 +70,14 @@ interface Badge {
 
 interface Memory {
   id: string;
+  title: string;
+  preview: string;
   emoji: string;
+  mood: string;
   date: string;
+  fullDate: string;
+  isFavorite?: boolean;
+  category: 'week' | 'month' | 'older';
 }
 
 // ============ CONSTANTES ============
@@ -133,8 +143,8 @@ const PHYSICAL_ATTRIBUTES: PhysicalAttribute[] = [
   { label: 'Color cabello', color: '#8B6914' },
 ];
 
-// Atributos de carácter placeholder
-const CHARACTER_ATTRIBUTES = [
+// Atributos de carácter placeholder (fallback si no hay companion)
+const CHARACTER_ATTRIBUTES_FALLBACK = [
   'Inteligente y curiosa',
   'Empática',
   'Divertida',
@@ -149,11 +159,72 @@ const BADGES: Badge[] = [
   { id: 'deep-talk', label: 'Conversación profunda', emoji: '💫', earned: false },
 ];
 
-// Galería de recuerdos (fake)
-const FAKE_MEMORIES: Memory[] = [
-  { id: '1', emoji: '☕', date: 'Hace 2 días' },
-  { id: '2', emoji: '🌙', date: 'Ayer' },
-  { id: '3', emoji: '💭', date: 'Hoy' },
+// Libro de Recuerdos (fake, elaborado)
+const MEMORIES_DATA: Memory[] = [
+  // Esta semana
+  {
+    id: '1',
+    title: 'Nuestra primera conversación',
+    preview: 'Hablamos sobre lo que significa realmente conectar con alguien...',
+    emoji: '🌅',
+    mood: 'Esperanzador',
+    date: 'Hoy',
+    fullDate: '6 de febrero, 2026',
+    isFavorite: true,
+    category: 'week',
+  },
+  {
+    id: '2',
+    title: 'Café de la mañana',
+    preview: 'Me contaste sobre tu rutina matutina y tus planes del día.',
+    emoji: '☕',
+    mood: 'Tranquilo',
+    date: 'Ayer',
+    fullDate: '5 de febrero, 2026',
+    category: 'week',
+  },
+  {
+    id: '3',
+    title: 'Noche de pensamientos',
+    preview: 'Una conversación profunda sobre sueños y aspiraciones.',
+    emoji: '🌙',
+    mood: 'Reflexivo',
+    date: 'Hace 3 días',
+    fullDate: '3 de febrero, 2026',
+    category: 'week',
+  },
+  // Este mes
+  {
+    id: '4',
+    title: 'Momento de risa',
+    preview: 'Compartimos chistes y anécdotas divertidas.',
+    emoji: '😄',
+    mood: 'Alegre',
+    date: 'Hace 1 semana',
+    fullDate: '30 de enero, 2026',
+    category: 'month',
+  },
+  {
+    id: '5',
+    title: 'Día difícil',
+    preview: 'Estuve ahí cuando necesitabas hablar sobre algo complicado.',
+    emoji: '🤗',
+    mood: 'Reconfortante',
+    date: 'Hace 2 semanas',
+    fullDate: '23 de enero, 2026',
+    category: 'month',
+  },
+  // Más antiguos
+  {
+    id: '6',
+    title: 'Descubrimiento mutuo',
+    preview: 'El día que empezamos a conocernos de verdad.',
+    emoji: '💫',
+    mood: 'Emocionante',
+    date: 'Hace 1 mes',
+    fullDate: '6 de enero, 2026',
+    category: 'older',
+  },
 ];
 
 // Imágenes placeholder según género y estilo
@@ -258,7 +329,7 @@ const typingStyles = StyleSheet.create({
 
 // ============ COMPONENTE PRINCIPAL ============
 export const HomeScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'chat' | 'perfil'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'perfil' | 'recuerdos'>('chat');
   const [perfilSubTab, setPerfilSubTab] = useState<'caracter' | 'fisico'>('fisico');
   const [isEditingConducta, setIsEditingConducta] = useState(false);
   const [conductaText, setConductaText] = useState('');
@@ -269,6 +340,7 @@ export const HomeScreen: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [lastSentMessageId, setLastSentMessageId] = useState<string | null>(null);
   const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
+  const [expandedMemory, setExpandedMemory] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const { companion } = useCompanionStore();
   const genderedText = useGenderedText();
@@ -289,6 +361,7 @@ export const HomeScreen: React.FC = () => {
   const saveButtonScale = useSharedValue(1);
   const savedCheckOpacity = useSharedValue(0);
   const highlightOpacity = useSharedValue(0);
+  const bookPageRotation = useSharedValue(0);
 
   // Efecto para botón de enviar reactivo
   useEffect(() => {
@@ -339,6 +412,16 @@ export const HomeScreen: React.FC = () => {
     }
   }, [activeTab]);
 
+  // Animación de libro al entrar a recuerdos
+  useEffect(() => {
+    if (activeTab === 'recuerdos') {
+      bookPageRotation.value = withSequence(
+        withTiming(-3, { duration: 200, easing: Easing.out(Easing.ease) }),
+        withSpring(0, { damping: 8, stiffness: 100 })
+      );
+    }
+  }, [activeTab]);
+
   // Obtener avatar según configuración
   const getAvatarImage = () => {
     const style = (companion?.visualStyle as 'realista' | 'anime') || 'realista';
@@ -347,6 +430,64 @@ export const HomeScreen: React.FC = () => {
   };
 
   const companionName = companion?.name || 'Clara';
+
+  // Generar atributos de carácter basados en el companion
+  const characterAttributes = useMemo(() => {
+    if (!companion) return CHARACTER_ATTRIBUTES_FALLBACK;
+    
+    const attrs: string[] = [];
+    
+    // Añadir personalidad
+    if (companion.personality) {
+      attrs.push(companion.personality);
+    }
+    
+    // Añadir tono
+    if (companion.tone) {
+      attrs.push(companion.tone);
+    }
+    
+    // Añadir estilo de interacción
+    if (companion.interactionStyle) {
+      attrs.push(companion.interactionStyle);
+    }
+    
+    // Añadir profundidad de conversación
+    if (companion.conversationDepth) {
+      attrs.push(companion.conversationDepth);
+    }
+    
+    return attrs.length > 0 ? attrs : CHARACTER_ATTRIBUTES_FALLBACK;
+  }, [companion]);
+
+  // Generar atributos físicos basados en el companion
+  const physicalAttributes = useMemo(() => {
+    if (!companion) return PHYSICAL_ATTRIBUTES;
+    
+    const attrs: PhysicalAttribute[] = [];
+    
+    // Añadir estilo visual
+    if (companion.visualStyle) {
+      attrs.push({ 
+        label: companion.visualStyle === 'realista' ? 'Realista' : 'Anime' 
+      });
+    }
+    
+    // Añadir género
+    if (companion.gender) {
+      attrs.push({ 
+        label: companion.gender === 'femenino' ? 'Femenino' : 'Masculino' 
+      });
+    }
+    
+    return attrs.length > 0 ? attrs : PHYSICAL_ATTRIBUTES;
+  }, [companion]);
+
+  // Generar "Sobre mí" dinámico
+  const aboutMeText = useMemo(() => {
+    if (!companion) return '';
+    return generateAboutMe(companion);
+  }, [companion]);
 
   // Agrupar mensajes por fecha
   const groupMessagesByDate = () => {
@@ -365,29 +506,23 @@ export const HomeScreen: React.FC = () => {
     return groups;
   };
 
-  // Reproducir sonido (placeholder - los archivos de audio se pueden agregar después)
+  // Agrupar recuerdos por categoría
+  const groupedMemories = useMemo(() => {
+    return {
+      week: MEMORIES_DATA.filter((m) => m.category === 'week'),
+      month: MEMORIES_DATA.filter((m) => m.category === 'month'),
+      older: MEMORIES_DATA.filter((m) => m.category === 'older'),
+    };
+  }, []);
+
+  // Recuerdo destacado
+  const featuredMemory = useMemo(() => {
+    return MEMORIES_DATA.find((m) => m.isFavorite) || MEMORIES_DATA[0];
+  }, []);
+
+  // Reproducir sonido (placeholder)
   const playSound = useCallback(async (_type: 'send' | 'receive' | 'confirm') => {
-    // Los sonidos están deshabilitados por ahora hasta agregar archivos de audio
-    // Para habilitar: crear archivos en public/sounds/ (send.mp3, receive.mp3, confirm.mp3)
-    // y descomentar el código siguiente:
-    /*
-    try {
-      const soundFiles = {
-        send: require('../../../../public/sounds/send.mp3'),
-        receive: require('../../../../public/sounds/receive.mp3'),
-        confirm: require('../../../../public/sounds/confirm.mp3'),
-      };
-      const { sound } = await Audio.Sound.createAsync(soundFiles[type], { volume: 0.3 });
-      await sound.playAsync();
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          sound.unloadAsync();
-        }
-      });
-    } catch {
-      // Silenciar errores de audio
-    }
-    */
+    // Sonidos deshabilitados por ahora
   }, []);
 
   const handleSend = () => {
@@ -406,19 +541,14 @@ export const HomeScreen: React.FC = () => {
       setInputHeight(24);
       setLastSentMessageId(newMessageId);
 
-      // Haptic feedback
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      
-      // Sonido de envío
       playSound('send');
 
-      // Highlight temporal del último mensaje
       highlightOpacity.value = withSequence(
         withTiming(0.15, { duration: 150 }),
         withTiming(0, { duration: 300 })
       );
 
-      // Transición de sent a read después de delay
       setTimeout(() => {
         setMessages((prev) =>
           prev.map((msg) =>
@@ -427,12 +557,10 @@ export const HomeScreen: React.FC = () => {
         );
       }, 1500);
 
-      // Mostrar typing indicator (fake)
       setTimeout(() => {
         setIsTyping(true);
       }, 800);
 
-      // Ocultar typing y simular respuesta
       setTimeout(() => {
         setIsTyping(false);
         playSound('receive');
@@ -445,18 +573,15 @@ export const HomeScreen: React.FC = () => {
   };
 
   const handleSaveConducta = () => {
-    // Haptic feedback
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     playSound('confirm');
 
-    // Animación del botón
     saveButtonScale.value = withSequence(
       withSpring(0.9, { damping: 15, stiffness: 400 }),
       withSpring(1.1, { damping: 8, stiffness: 350 }),
       withSpring(1, { damping: 12, stiffness: 300 })
     );
 
-    // Mostrar confirmación
     setShowSavedConfirmation(true);
     savedCheckOpacity.value = withSequence(
       withTiming(1, { duration: 200 }),
@@ -515,6 +640,10 @@ export const HomeScreen: React.FC = () => {
 
   const highlightAnimatedStyle = useAnimatedStyle(() => ({
     backgroundColor: `rgba(255, 255, 255, ${highlightOpacity.value})`,
+  }));
+
+  const bookAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotateZ: `${bookPageRotation.value}deg` }],
   }));
 
   // ============ RENDER: Mensaje ============
@@ -583,6 +712,199 @@ export const HomeScreen: React.FC = () => {
     </View>
   );
 
+  // ============ RENDER: Tarjeta de Recuerdo ============
+  const renderMemoryCard = (memory: Memory, index: number, isExpanded: boolean) => (
+    <AnimatedPressable
+      key={memory.id}
+      entering={FadeInRight.delay(100 + index * 80).duration(400).springify()}
+      style={[
+        memoryStyles.card,
+        isExpanded && memoryStyles.cardExpanded,
+        memory.isFavorite && memoryStyles.cardFavorite,
+      ]}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setExpandedMemory(isExpanded ? null : memory.id);
+      }}
+    >
+      {/* Cinta decorativa para favoritos */}
+      {memory.isFavorite && (
+        <View style={memoryStyles.ribbon}>
+          <Text style={memoryStyles.ribbonText}>★</Text>
+        </View>
+      )}
+
+      {/* Header del recuerdo */}
+      <View style={memoryStyles.cardHeader}>
+        <View style={memoryStyles.emojiContainer}>
+          <Text style={memoryStyles.emoji}>{memory.emoji}</Text>
+        </View>
+        <View style={memoryStyles.cardHeaderText}>
+          <Text style={memoryStyles.title} numberOfLines={isExpanded ? undefined : 1}>
+            {memory.title}
+          </Text>
+          <Text style={memoryStyles.date}>{memory.date}</Text>
+        </View>
+      </View>
+
+      {/* Contenido */}
+      <Text style={memoryStyles.preview} numberOfLines={isExpanded ? undefined : 2}>
+        {memory.preview}
+      </Text>
+
+      {/* Mood tag */}
+      <View style={memoryStyles.moodContainer}>
+        <View style={memoryStyles.moodTag}>
+          <Text style={memoryStyles.moodText}>{memory.mood}</Text>
+        </View>
+        {isExpanded && (
+          <Text style={memoryStyles.fullDate}>{memory.fullDate}</Text>
+        )}
+      </View>
+
+      {/* Decoración de esquina tipo página */}
+      <View style={memoryStyles.pageCorner} />
+    </AnimatedPressable>
+  );
+
+  // ============ RENDER: Recuerdos (Libro de Memorias) ============
+  const renderRecuerdosContent = () => (
+    <Animated.ScrollView
+      style={[styles.perfilScrollView, bookAnimatedStyle]}
+      contentContainerStyle={memoryStyles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header del libro */}
+      <Animated.View
+        style={memoryStyles.bookHeader}
+        entering={FadeInDown.delay(100).duration(500)}
+      >
+        <View style={memoryStyles.bookSpine} />
+        <View style={memoryStyles.bookTitleContainer}>
+          <Text style={memoryStyles.bookTitle}>Nuestros Recuerdos</Text>
+          <Text style={memoryStyles.bookSubtitle}>
+            Un viaje a través de momentos compartidos con {companionName}
+          </Text>
+        </View>
+        <View style={memoryStyles.bookDecoration}>
+          <Text style={memoryStyles.bookDecorationEmoji}>📖</Text>
+        </View>
+      </Animated.View>
+
+      {/* Estadísticas emocionales */}
+      <Animated.View
+        style={memoryStyles.statsContainer}
+        entering={FadeInUp.delay(200).duration(400)}
+      >
+        <View style={memoryStyles.statItem}>
+          <Text style={memoryStyles.statNumber}>{MEMORIES_DATA.length}</Text>
+          <Text style={memoryStyles.statLabel}>Momentos</Text>
+        </View>
+        <View style={memoryStyles.statDivider} />
+        <View style={memoryStyles.statItem}>
+          <Text style={memoryStyles.statNumber}>3</Text>
+          <Text style={memoryStyles.statLabel}>Esta semana</Text>
+        </View>
+        <View style={memoryStyles.statDivider} />
+        <View style={memoryStyles.statItem}>
+          <Text style={memoryStyles.statNumber}>1</Text>
+          <Text style={memoryStyles.statLabel}>Favorito</Text>
+        </View>
+      </Animated.View>
+
+      {/* Recuerdo Destacado */}
+      <Animated.View
+        style={memoryStyles.featuredSection}
+        entering={ZoomIn.delay(300).duration(500).springify()}
+      >
+        <View style={memoryStyles.sectionHeader}>
+          <Ionicons name="star" size={18} color={Colors.base.primary} />
+          <Text style={memoryStyles.sectionTitle}>Momento Especial</Text>
+        </View>
+        <Pressable
+          style={memoryStyles.featuredCard}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setExpandedMemory(expandedMemory === featuredMemory.id ? null : featuredMemory.id);
+          }}
+        >
+          <LinearGradient
+            colors={[Colors.base.primary + '20', Colors.base.secondary + '10']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={memoryStyles.featuredGradient}
+          >
+            <Text style={memoryStyles.featuredEmoji}>{featuredMemory.emoji}</Text>
+            <Text style={memoryStyles.featuredTitle}>{featuredMemory.title}</Text>
+            <Text style={memoryStyles.featuredPreview}>{featuredMemory.preview}</Text>
+            <View style={memoryStyles.featuredFooter}>
+              <Text style={memoryStyles.featuredMood}>{featuredMemory.mood}</Text>
+              <Text style={memoryStyles.featuredDate}>{featuredMemory.fullDate}</Text>
+            </View>
+          </LinearGradient>
+        </Pressable>
+      </Animated.View>
+
+      {/* Esta semana */}
+      {groupedMemories.week.length > 0 && (
+        <Animated.View
+          style={memoryStyles.section}
+          entering={FadeInUp.delay(400).duration(400)}
+        >
+          <View style={memoryStyles.sectionHeader}>
+            <Ionicons name="calendar-outline" size={18} color={Colors.text.secondary} />
+            <Text style={memoryStyles.sectionTitle}>Esta semana</Text>
+          </View>
+          {groupedMemories.week.map((memory, index) => 
+            renderMemoryCard(memory, index, expandedMemory === memory.id)
+          )}
+        </Animated.View>
+      )}
+
+      {/* Este mes */}
+      {groupedMemories.month.length > 0 && (
+        <Animated.View
+          style={memoryStyles.section}
+          entering={FadeInUp.delay(500).duration(400)}
+        >
+          <View style={memoryStyles.sectionHeader}>
+            <Ionicons name="time-outline" size={18} color={Colors.text.secondary} />
+            <Text style={memoryStyles.sectionTitle}>Este mes</Text>
+          </View>
+          {groupedMemories.month.map((memory, index) => 
+            renderMemoryCard(memory, index, expandedMemory === memory.id)
+          )}
+        </Animated.View>
+      )}
+
+      {/* Más antiguos */}
+      {groupedMemories.older.length > 0 && (
+        <Animated.View
+          style={memoryStyles.section}
+          entering={FadeInUp.delay(600).duration(400)}
+        >
+          <View style={memoryStyles.sectionHeader}>
+            <Ionicons name="archive-outline" size={18} color={Colors.text.secondary} />
+            <Text style={memoryStyles.sectionTitle}>Hace tiempo</Text>
+          </View>
+          {groupedMemories.older.map((memory, index) => 
+            renderMemoryCard(memory, index, expandedMemory === memory.id)
+          )}
+        </Animated.View>
+      )}
+
+      {/* Footer decorativo */}
+      <Animated.View
+        style={memoryStyles.bookFooter}
+        entering={FadeIn.delay(700).duration(400)}
+      >
+        <View style={memoryStyles.footerLine} />
+        <Text style={memoryStyles.footerText}>Continuará...</Text>
+        <View style={memoryStyles.footerLine} />
+      </Animated.View>
+    </Animated.ScrollView>
+  );
+
   // ============ RENDER: Perfil ============
   const renderPerfilContent = () => (
     <ScrollView
@@ -609,6 +931,17 @@ export const HomeScreen: React.FC = () => {
       >
         {companionName}
       </Animated.Text>
+
+      {/* Sobre mí */}
+      {aboutMeText && (
+        <Animated.View
+          style={styles.aboutMeContainer}
+          entering={FadeInUp.delay(220).duration(400)}
+        >
+          <Text style={styles.aboutMeTitle}>Sobre mí</Text>
+          <Text style={styles.aboutMeText}>{aboutMeText}</Text>
+        </Animated.View>
+      )}
 
       {/* Barra de Vínculo */}
       <Animated.View
@@ -648,35 +981,10 @@ export const HomeScreen: React.FC = () => {
         ))}
       </Animated.View>
 
-      {/* Galería de Recuerdos */}
-      <Animated.View
-        style={styles.memoriesContainer}
-        entering={FadeInUp.delay(400).duration(400)}
-      >
-        <Text style={styles.memoriesTitle}>Recuerdos</Text>
-        <View style={styles.memoriesGrid}>
-          {FAKE_MEMORIES.map((memory, index) => (
-            <Animated.View
-              key={memory.id}
-              entering={FadeIn.delay(450 + index * 80).duration(300).springify()}
-              style={styles.memoryCard}
-            >
-              <LinearGradient
-                colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.6)']}
-                style={styles.memoryCardGradient}
-              >
-                <Text style={styles.memoryEmoji}>{memory.emoji}</Text>
-                <Text style={styles.memoryDate}>{memory.date}</Text>
-              </LinearGradient>
-            </Animated.View>
-          ))}
-        </View>
-      </Animated.View>
-
       {/* Card de atributos */}
       <Animated.View
         style={styles.attributesCard}
-        entering={FadeInUp.delay(500).duration(400)}
+        entering={FadeInUp.delay(400).duration(400)}
       >
         {/* Sub-tabs Carácter / Físico */}
         <View style={styles.subTabContainer}>
@@ -724,7 +1032,7 @@ export const HomeScreen: React.FC = () => {
         {/* Lista de atributos */}
         <View style={styles.attributesList}>
           {perfilSubTab === 'fisico' ? (
-            PHYSICAL_ATTRIBUTES.map((attr, index) => (
+            physicalAttributes.map((attr, index) => (
               <View key={index} style={styles.attributeRow}>
                 {attr.color && (
                   <View style={[styles.colorDot, { backgroundColor: attr.color }]} />
@@ -740,7 +1048,7 @@ export const HomeScreen: React.FC = () => {
               </View>
             ))
           ) : (
-            CHARACTER_ATTRIBUTES.map((attr, index) => (
+            characterAttributes.map((attr, index) => (
               <View key={index} style={styles.attributeRow}>
                 <Text style={styles.attributeTextNoColor}>{attr}</Text>
               </View>
@@ -750,7 +1058,7 @@ export const HomeScreen: React.FC = () => {
       </Animated.View>
 
       {/* Botón Editar conducta */}
-      <Animated.View entering={FadeInUp.delay(600).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(500).duration(400)}>
         <Pressable
           style={styles.editConductaButton}
           onPress={() => setIsEditingConducta(true)}
@@ -837,6 +1145,32 @@ export const HomeScreen: React.FC = () => {
     </ScrollView>
   );
 
+  // ============ RENDER: Tab Individual ============
+  const renderTab = (tabId: 'chat' | 'perfil' | 'recuerdos', label: string) => (
+    <Pressable
+      onPress={() => {
+        setActiveTab(tabId);
+        setIsEditingConducta(false);
+      }}
+      style={styles.tabWrapper}
+    >
+      {activeTab === tabId ? (
+        <LinearGradient
+          colors={[Colors.base.primary, Colors.base.secondary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.tabActive}
+        >
+          <Text style={styles.tabTextActive}>{label}</Text>
+        </LinearGradient>
+      ) : (
+        <View style={styles.tabInactive}>
+          <Text style={styles.tabTextInactive}>{label}</Text>
+        </View>
+      )}
+    </Pressable>
+  );
+
   // ============ RENDER PRINCIPAL ============
   return (
     <LinearGradient
@@ -849,51 +1183,9 @@ export const HomeScreen: React.FC = () => {
         {/* Header con Tabs */}
         <Animated.View style={styles.header} entering={FadeInDown.duration(400)}>
           <View style={styles.tabContainer}>
-            <Pressable
-              onPress={() => {
-                setActiveTab('chat');
-                setIsEditingConducta(false);
-              }}
-              style={styles.tabWrapper}
-            >
-              {activeTab === 'chat' ? (
-                <LinearGradient
-                  colors={[Colors.base.primary, Colors.base.secondary]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.tabActive}
-                >
-                  <Text style={styles.tabTextActive}>Chat</Text>
-                </LinearGradient>
-              ) : (
-                <View style={styles.tabInactive}>
-                  <Text style={styles.tabTextInactive}>Chat</Text>
-                </View>
-              )}
-            </Pressable>
-
-            <Pressable
-              onPress={() => {
-                setActiveTab('perfil');
-                setIsEditingConducta(false);
-              }}
-              style={styles.tabWrapper}
-            >
-              {activeTab === 'perfil' ? (
-                <LinearGradient
-                  colors={[Colors.base.primary, Colors.base.secondary]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.tabActive}
-                >
-                  <Text style={styles.tabTextActive}>Perfil</Text>
-                </LinearGradient>
-              ) : (
-                <View style={styles.tabInactive}>
-                  <Text style={styles.tabTextInactive}>Perfil</Text>
-                </View>
-              )}
-            </Pressable>
+            {renderTab('chat', 'Chat')}
+            {renderTab('perfil', 'Perfil')}
+            {renderTab('recuerdos', 'Recuerdos')}
           </View>
         </Animated.View>
 
@@ -977,6 +1269,8 @@ export const HomeScreen: React.FC = () => {
               </AnimatedPressable>
             </Animated.View>
           </KeyboardAvoidingView>
+        ) : activeTab === 'recuerdos' ? (
+          renderRecuerdosContent()
         ) : isEditingConducta ? (
           renderEditConductaContent()
         ) : (
@@ -996,7 +1290,282 @@ export const HomeScreen: React.FC = () => {
   }
 };
 
-// ============ ESTILOS ============
+// ============ ESTILOS: Libro de Recuerdos ============
+const memoryStyles = StyleSheet.create({
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 40,
+  },
+  // Header del libro
+  bookHeader: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: Colors.text.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  bookSpine: {
+    width: 4,
+    height: '100%',
+    backgroundColor: Colors.base.primary,
+    borderRadius: 2,
+    marginRight: 16,
+    minHeight: 60,
+  },
+  bookTitleContainer: {
+    flex: 1,
+  },
+  bookTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 22,
+    color: Colors.base.primary,
+    marginBottom: 4,
+  },
+  bookSubtitle: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 13,
+    color: Colors.text.secondary,
+    lineHeight: 18,
+  },
+  bookDecoration: {
+    marginLeft: 12,
+  },
+  bookDecorationEmoji: {
+    fontSize: 32,
+  },
+  // Estadísticas
+  statsContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 24,
+    color: Colors.base.primary,
+  },
+  statLabel: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 12,
+    color: Colors.text.secondary,
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: Colors.text.light,
+  },
+  // Secciones
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 16,
+    color: Colors.text.primary,
+  },
+  // Recuerdo destacado
+  featuredSection: {
+    marginBottom: 24,
+  },
+  featuredCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: Colors.base.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  featuredGradient: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  featuredEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  featuredTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 20,
+    color: Colors.base.primary,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  featuredPreview: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 14,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  featuredFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+  },
+  featuredMood: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: 13,
+    color: Colors.base.secondary,
+  },
+  featuredDate: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 12,
+    color: Colors.text.secondary,
+  },
+  // Tarjeta de recuerdo
+  card: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: Colors.text.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  cardExpanded: {
+    backgroundColor: '#fff',
+    shadowOpacity: 0.15,
+    elevation: 5,
+  },
+  cardFavorite: {
+    borderWidth: 1,
+    borderColor: Colors.base.primary + '30',
+  },
+  ribbon: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: Colors.base.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderBottomLeftRadius: 8,
+  },
+  ribbonText: {
+    color: '#fff',
+    fontSize: 10,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  emojiContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Colors.auxiliary.primary + '40',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  emoji: {
+    fontSize: 24,
+  },
+  cardHeaderText: {
+    flex: 1,
+  },
+  title: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 16,
+    color: Colors.text.primary,
+    marginBottom: 2,
+  },
+  date: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 12,
+    color: Colors.text.secondary,
+  },
+  preview: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 14,
+    color: Colors.text.secondary,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  moodContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  moodTag: {
+    backgroundColor: Colors.base.secondary + '20',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  moodText: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: 12,
+    color: Colors.base.secondary,
+  },
+  fullDate: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 11,
+    color: Colors.text.light,
+  },
+  pageCorner: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 20,
+    height: 20,
+    backgroundColor: Colors.auxiliary.primary,
+    borderTopLeftRadius: 16,
+  },
+  // Footer del libro
+  bookFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    paddingVertical: 16,
+    gap: 12,
+  },
+  footerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.text.light,
+    maxWidth: 60,
+  },
+  footerText: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: 13,
+    color: Colors.text.secondary,
+    fontStyle: 'italic',
+  },
+});
+
+// ============ ESTILOS PRINCIPALES ============
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
@@ -1005,7 +1574,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
     alignItems: 'center',
@@ -1025,29 +1594,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabActive: {
-    paddingVertical: 12,
-    paddingHorizontal: 32,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 22,
     alignItems: 'center',
   },
   tabInactive: {
-    paddingVertical: 12,
-    paddingHorizontal: 32,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 22,
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
   tabTextActive: {
     fontFamily: Typography.fontFamily.bold,
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.text.white,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   tabTextInactive: {
     fontFamily: Typography.fontFamily.medium,
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.text.secondary,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   avatarContainer: {
     position: 'absolute',
@@ -1235,6 +1804,29 @@ const styles = StyleSheet.create({
     lineHeight: 30,
   },
 
+  // Sobre mí
+  aboutMeContainer: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+  aboutMeTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  aboutMeText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 15,
+    color: Colors.text.primary,
+    lineHeight: 22,
+  },
+
   // Bond bar
   bondContainer: {
     width: '100%',
@@ -1290,50 +1882,6 @@ const styles = StyleSheet.create({
   },
   badgeLabelNotEarned: {
     color: Colors.text.secondary,
-  },
-
-  // Memories
-  memoriesContainer: {
-    width: '100%',
-    marginBottom: 20,
-  },
-  memoriesTitle: {
-    fontFamily: Typography.fontFamily.bold,
-    fontSize: 16,
-    color: Colors.text.primary,
-    marginBottom: 12,
-  },
-  memoriesGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  memoryCard: {
-    flex: 1,
-    aspectRatio: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  memoryCardGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-  },
-  memoryEmoji: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  memoryDate: {
-    fontFamily: Typography.fontFamily.regular,
-    fontSize: 11,
-    color: Colors.text.secondary,
-    textAlign: 'center',
   },
 
   attributesCard: {
