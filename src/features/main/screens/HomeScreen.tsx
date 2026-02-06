@@ -39,6 +39,7 @@ import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
 import { useGenderedText } from '@/shared/hooks/useGenderedText';
+import { generateAboutMe, generateShortDescription } from '@/shared/utils/companionTextGenerator';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
@@ -142,8 +143,8 @@ const PHYSICAL_ATTRIBUTES: PhysicalAttribute[] = [
   { label: 'Color cabello', color: '#8B6914' },
 ];
 
-// Atributos de carácter placeholder
-const CHARACTER_ATTRIBUTES = [
+// Atributos de carácter placeholder (fallback si no hay companion)
+const CHARACTER_ATTRIBUTES_FALLBACK = [
   'Inteligente y curiosa',
   'Empática',
   'Divertida',
@@ -429,6 +430,64 @@ export const HomeScreen: React.FC = () => {
   };
 
   const companionName = companion?.name || 'Clara';
+
+  // Generar atributos de carácter basados en el companion
+  const characterAttributes = useMemo(() => {
+    if (!companion) return CHARACTER_ATTRIBUTES_FALLBACK;
+    
+    const attrs: string[] = [];
+    
+    // Añadir personalidad
+    if (companion.personality) {
+      attrs.push(companion.personality);
+    }
+    
+    // Añadir tono
+    if (companion.tone) {
+      attrs.push(companion.tone);
+    }
+    
+    // Añadir estilo de interacción
+    if (companion.interactionStyle) {
+      attrs.push(companion.interactionStyle);
+    }
+    
+    // Añadir profundidad de conversación
+    if (companion.conversationDepth) {
+      attrs.push(companion.conversationDepth);
+    }
+    
+    return attrs.length > 0 ? attrs : CHARACTER_ATTRIBUTES_FALLBACK;
+  }, [companion]);
+
+  // Generar atributos físicos basados en el companion
+  const physicalAttributes = useMemo(() => {
+    if (!companion) return PHYSICAL_ATTRIBUTES;
+    
+    const attrs: PhysicalAttribute[] = [];
+    
+    // Añadir estilo visual
+    if (companion.visualStyle) {
+      attrs.push({ 
+        label: companion.visualStyle === 'realista' ? 'Realista' : 'Anime' 
+      });
+    }
+    
+    // Añadir género
+    if (companion.gender) {
+      attrs.push({ 
+        label: companion.gender === 'femenino' ? 'Femenino' : 'Masculino' 
+      });
+    }
+    
+    return attrs.length > 0 ? attrs : PHYSICAL_ATTRIBUTES;
+  }, [companion]);
+
+  // Generar "Sobre mí" dinámico
+  const aboutMeText = useMemo(() => {
+    if (!companion) return '';
+    return generateAboutMe(companion);
+  }, [companion]);
 
   // Agrupar mensajes por fecha
   const groupMessagesByDate = () => {
@@ -873,6 +932,17 @@ export const HomeScreen: React.FC = () => {
         {companionName}
       </Animated.Text>
 
+      {/* Sobre mí */}
+      {aboutMeText && (
+        <Animated.View
+          style={styles.aboutMeContainer}
+          entering={FadeInUp.delay(220).duration(400)}
+        >
+          <Text style={styles.aboutMeTitle}>Sobre mí</Text>
+          <Text style={styles.aboutMeText}>{aboutMeText}</Text>
+        </Animated.View>
+      )}
+
       {/* Barra de Vínculo */}
       <Animated.View
         style={styles.bondContainer}
@@ -962,7 +1032,7 @@ export const HomeScreen: React.FC = () => {
         {/* Lista de atributos */}
         <View style={styles.attributesList}>
           {perfilSubTab === 'fisico' ? (
-            PHYSICAL_ATTRIBUTES.map((attr, index) => (
+            physicalAttributes.map((attr, index) => (
               <View key={index} style={styles.attributeRow}>
                 {attr.color && (
                   <View style={[styles.colorDot, { backgroundColor: attr.color }]} />
@@ -978,7 +1048,7 @@ export const HomeScreen: React.FC = () => {
               </View>
             ))
           ) : (
-            CHARACTER_ATTRIBUTES.map((attr, index) => (
+            characterAttributes.map((attr, index) => (
               <View key={index} style={styles.attributeRow}>
                 <Text style={styles.attributeTextNoColor}>{attr}</Text>
               </View>
@@ -1732,6 +1802,29 @@ const styles = StyleSheet.create({
     color: Colors.base.primary,
     marginBottom: 12,
     lineHeight: 30,
+  },
+
+  // Sobre mí
+  aboutMeContainer: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+  aboutMeTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  aboutMeText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 15,
+    color: Colors.text.primary,
+    lineHeight: 22,
   },
 
   // Bond bar
