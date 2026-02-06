@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,43 +9,77 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  NativeSyntheticEvent,
+  TextInputContentSizeChangeEventData,
 } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInDown,
   FadeInUp,
   SlideInDown,
-  SlideInRight,
   ZoomIn,
-  Layout,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withSequence,
+  withTiming,
+  withRepeat,
+  withDelay,
+  Easing,
+  interpolate,
+  runOnJS,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+// import { Audio } from 'expo-av'; // Descomentar cuando se agreguen archivos de audio
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
 import { useGenderedText } from '@/shared/hooks/useGenderedText';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
-// Tipos
+// ============ TIPOS ============
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: string;
   date: string;
+  readStatus?: 'sent' | 'read';
 }
 
 interface PhysicalAttribute {
   label: string;
   color?: string;
 }
+
+interface Badge {
+  id: string;
+  label: string;
+  emoji: string;
+  earned: boolean;
+}
+
+interface Memory {
+  id: string;
+  emoji: string;
+  date: string;
+}
+
+// ============ CONSTANTES ============
+
+// Placeholders contextuales rotativos
+const INPUT_PLACEHOLDERS = [
+  '¿Qué te gustaría decir ahora?',
+  'Cuéntame algo',
+  'Escribe aquí...',
+  '¿Qué tienes en mente?',
+  'Dime lo que piensas',
+];
 
 // Mensajes placeholder hardcodeados
 const PLACEHOLDER_MESSAGES: Message[] = [
@@ -62,6 +96,7 @@ const PLACEHOLDER_MESSAGES: Message[] = [
     isUser: true,
     timestamp: '18:09',
     date: 'Ayer',
+    readStatus: 'read',
   },
   {
     id: '3',
@@ -72,10 +107,11 @@ const PLACEHOLDER_MESSAGES: Message[] = [
   },
   {
     id: '4',
-    text: 'Una relación continua, no un chatbot.',
+    text: 'Una relación continua, no un chatbot. Este es un mensaje más largo para probar la funcionalidad de "Leer más" que debería aparecer cuando el texto supera cierta cantidad de caracteres definida en el componente.',
     isUser: true,
     timestamp: '18:09',
     date: 'Hoy',
+    readStatus: 'read',
   },
   {
     id: '5',
@@ -83,6 +119,7 @@ const PLACEHOLDER_MESSAGES: Message[] = [
     isUser: true,
     timestamp: '18:09',
     date: 'Hoy',
+    readStatus: 'sent',
   },
 ];
 
@@ -105,6 +142,20 @@ const CHARACTER_ATTRIBUTES = [
   'Aventurera',
 ];
 
+// Badges estéticos (fake, no persistente)
+const BADGES: Badge[] = [
+  { id: 'first-day', label: 'Primer día', emoji: '🌱', earned: true },
+  { id: 'personality', label: 'Personalidad definida', emoji: '✨', earned: true },
+  { id: 'deep-talk', label: 'Conversación profunda', emoji: '💫', earned: false },
+];
+
+// Galería de recuerdos (fake)
+const FAKE_MEMORIES: Memory[] = [
+  { id: '1', emoji: '☕', date: 'Hace 2 días' },
+  { id: '2', emoji: '🌙', date: 'Ayer' },
+  { id: '3', emoji: '💭', date: 'Hoy' },
+];
+
 // Imágenes placeholder según género y estilo
 const AVATAR_IMAGES = {
   realista: {
@@ -117,19 +168,176 @@ const AVATAR_IMAGES = {
   },
 };
 
+// ============ COMPONENTE: Typing Indicator ============
+const TypingIndicator: React.FC = () => {
+  const dot1 = useSharedValue(0);
+  const dot2 = useSharedValue(0);
+  const dot3 = useSharedValue(0);
+
+  useEffect(() => {
+    dot1.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 400, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+    dot2.value = withDelay(
+      150,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 400, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
+      )
+    );
+    dot3.value = withDelay(
+      300,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 400, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
+      )
+    );
+  }, []);
+
+  const dotStyle1 = useAnimatedStyle(() => ({
+    opacity: interpolate(dot1.value, [0, 1], [0.3, 1]),
+    transform: [{ translateY: interpolate(dot1.value, [0, 1], [0, -2]) }],
+  }));
+
+  const dotStyle2 = useAnimatedStyle(() => ({
+    opacity: interpolate(dot2.value, [0, 1], [0.3, 1]),
+    transform: [{ translateY: interpolate(dot2.value, [0, 1], [0, -2]) }],
+  }));
+
+  const dotStyle3 = useAnimatedStyle(() => ({
+    opacity: interpolate(dot3.value, [0, 1], [0.3, 1]),
+    transform: [{ translateY: interpolate(dot3.value, [0, 1], [0, -2]) }],
+  }));
+
+  return (
+    <View style={typingStyles.container}>
+      <View style={typingStyles.bubble}>
+        <Animated.View style={[typingStyles.dot, dotStyle1]} />
+        <Animated.View style={[typingStyles.dot, dotStyle2]} />
+        <Animated.View style={[typingStyles.dot, dotStyle3]} />
+      </View>
+    </View>
+  );
+};
+
+const typingStyles = StyleSheet.create({
+  container: {
+    alignSelf: 'flex-start',
+    marginLeft: 40,
+    marginTop: 8,
+  },
+  bubble: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 18,
+    borderBottomLeftRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 4,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.text.secondary,
+  },
+});
+
+// ============ COMPONENTE PRINCIPAL ============
 export const HomeScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'chat' | 'perfil'>('chat');
   const [perfilSubTab, setPerfilSubTab] = useState<'caracter' | 'fisico'>('fisico');
   const [isEditingConducta, setIsEditingConducta] = useState(false);
   const [conductaText, setConductaText] = useState('');
   const [inputText, setInputText] = useState('');
+  const [inputHeight, setInputHeight] = useState(24);
   const [messages, setMessages] = useState<Message[]>(PLACEHOLDER_MESSAGES);
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
+  const [isTyping, setIsTyping] = useState(false);
+  const [lastSentMessageId, setLastSentMessageId] = useState<string | null>(null);
+  const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const { companion } = useCompanionStore();
   const genderedText = useGenderedText();
-  
-  // Animación para botón de enviar
+  const lastInteractionTime = useRef(Date.now());
+
+  // Placeholder contextual aleatorio (se selecciona al montar)
+  const placeholder = useMemo(
+    () => INPUT_PLACEHOLDERS[Math.floor(Math.random() * INPUT_PLACEHOLDERS.length)],
+    []
+  );
+
+  // Animaciones
   const sendButtonScale = useSharedValue(1);
+  const sendButtonOpacity = useSharedValue(0.5);
+  const avatarScale = useSharedValue(1);
+  const avatarScaleY = useSharedValue(1);
+  const bondBarWidth = useSharedValue(0);
+  const saveButtonScale = useSharedValue(1);
+  const savedCheckOpacity = useSharedValue(0);
+  const highlightOpacity = useSharedValue(0);
+
+  // Efecto para botón de enviar reactivo
+  useEffect(() => {
+    if (inputText.trim()) {
+      sendButtonOpacity.value = withSpring(1);
+      sendButtonScale.value = withSpring(1.05);
+    } else {
+      sendButtonOpacity.value = withSpring(0.5);
+      sendButtonScale.value = withSpring(1);
+    }
+  }, [inputText]);
+
+  // Pulso del avatar al escribir
+  useEffect(() => {
+    if (inputText) {
+      lastInteractionTime.current = Date.now();
+      avatarScale.value = withSequence(
+        withSpring(1.04, { damping: 15, stiffness: 400 }),
+        withSpring(1, { damping: 12, stiffness: 300 })
+      );
+    }
+  }, [inputText]);
+
+  // Idle animation del avatar (respiración cada 10-15s)
+  useEffect(() => {
+    const idleInterval = setInterval(() => {
+      const timeSinceLastInteraction = Date.now() - lastInteractionTime.current;
+      if (timeSinceLastInteraction > 5000) {
+        avatarScaleY.value = withSequence(
+          withTiming(1.02, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 600, easing: Easing.inOut(Easing.ease) })
+        );
+      }
+    }, 12000);
+
+    return () => clearInterval(idleInterval);
+  }, []);
+
+  // Animación de barra de vínculo al entrar al perfil
+  useEffect(() => {
+    if (activeTab === 'perfil') {
+      bondBarWidth.value = withDelay(
+        400,
+        withSpring(65, { damping: 15, stiffness: 100 })
+      );
+    } else {
+      bondBarWidth.value = 0;
+    }
+  }, [activeTab]);
 
   // Obtener avatar según configuración
   const getAvatarImage = () => {
@@ -157,18 +365,79 @@ export const HomeScreen: React.FC = () => {
     return groups;
   };
 
+  // Reproducir sonido (placeholder - los archivos de audio se pueden agregar después)
+  const playSound = useCallback(async (_type: 'send' | 'receive' | 'confirm') => {
+    // Los sonidos están deshabilitados por ahora hasta agregar archivos de audio
+    // Para habilitar: crear archivos en public/sounds/ (send.mp3, receive.mp3, confirm.mp3)
+    // y descomentar el código siguiente:
+    /*
+    try {
+      const soundFiles = {
+        send: require('../../../../public/sounds/send.mp3'),
+        receive: require('../../../../public/sounds/receive.mp3'),
+        confirm: require('../../../../public/sounds/confirm.mp3'),
+      };
+      const { sound } = await Audio.Sound.createAsync(soundFiles[type], { volume: 0.3 });
+      await sound.playAsync();
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          sound.unloadAsync();
+        }
+      });
+    } catch {
+      // Silenciar errores de audio
+    }
+    */
+  }, []);
+
   const handleSend = () => {
     if (inputText.trim()) {
+      const newMessageId = Date.now().toString();
       const newMessage: Message = {
-        id: Date.now().toString(),
+        id: newMessageId,
         text: inputText.trim(),
         isUser: true,
         timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
         date: 'Hoy',
+        readStatus: 'sent',
       };
       setMessages([...messages, newMessage]);
       setInputText('');
+      setInputHeight(24);
+      setLastSentMessageId(newMessageId);
+
+      // Haptic feedback
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
+      // Sonido de envío
+      playSound('send');
+
+      // Highlight temporal del último mensaje
+      highlightOpacity.value = withSequence(
+        withTiming(0.15, { duration: 150 }),
+        withTiming(0, { duration: 300 })
+      );
+
+      // Transición de sent a read después de delay
+      setTimeout(() => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === newMessageId ? { ...msg, readStatus: 'read' as const } : msg
+          )
+        );
+      }, 1500);
+
+      // Mostrar typing indicator (fake)
+      setTimeout(() => {
+        setIsTyping(true);
+      }, 800);
+
+      // Ocultar typing y simular respuesta
+      setTimeout(() => {
+        setIsTyping(false);
+        playSound('receive');
+      }, 2500);
+
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
@@ -176,57 +445,135 @@ export const HomeScreen: React.FC = () => {
   };
 
   const handleSaveConducta = () => {
-    // TODO: Guardar conducta en el backend
-    setIsEditingConducta(false);
-  };
+    // Haptic feedback
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    playSound('confirm');
 
-  const sendButtonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: sendButtonScale.value }],
-  }));
-
-  const handleSendPress = () => {
-    sendButtonScale.value = withSequence(
+    // Animación del botón
+    saveButtonScale.value = withSequence(
       withSpring(0.9, { damping: 15, stiffness: 400 }),
       withSpring(1.1, { damping: 8, stiffness: 350 }),
       withSpring(1, { damping: 12, stiffness: 300 })
     );
-    handleSend();
+
+    // Mostrar confirmación
+    setShowSavedConfirmation(true);
+    savedCheckOpacity.value = withSequence(
+      withTiming(1, { duration: 200 }),
+      withDelay(1500, withTiming(0, { duration: 300 }))
+    );
+
+    setTimeout(() => {
+      setShowSavedConfirmation(false);
+      setIsEditingConducta(false);
+    }, 2000);
   };
 
-  const renderMessage = (message: Message, index: number) => (
-    <Animated.View
-      key={message.id}
-      entering={FadeInDown.delay(index * 50).duration(300)}
-      style={[
-        styles.messageContainer,
-        message.isUser ? styles.userMessageContainer : styles.companionMessageContainer,
-      ]}
-    >
-      <View
+  const toggleMessageExpanded = (messageId: string) => {
+    setExpandedMessages((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleInputContentSizeChange = (
+    event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>
+  ) => {
+    const newHeight = Math.min(Math.max(event.nativeEvent.contentSize.height, 24), 100);
+    setInputHeight(newHeight);
+  };
+
+  // Estilos animados
+  const sendButtonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: sendButtonScale.value }],
+    opacity: sendButtonOpacity.value,
+  }));
+
+  const avatarAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: avatarScale.value },
+      { scaleY: avatarScaleY.value },
+    ],
+  }));
+
+  const bondBarAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${bondBarWidth.value}%`,
+  }));
+
+  const saveButtonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: saveButtonScale.value }],
+  }));
+
+  const savedConfirmationStyle = useAnimatedStyle(() => ({
+    opacity: savedCheckOpacity.value,
+  }));
+
+  const highlightAnimatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: `rgba(255, 255, 255, ${highlightOpacity.value})`,
+  }));
+
+  // ============ RENDER: Mensaje ============
+  const renderMessage = (message: Message, index: number, isLastUserMessage: boolean) => {
+    const isExpanded = expandedMessages.has(message.id);
+    const shouldTruncate = message.text.length > 200 && !isExpanded;
+    const displayText = shouldTruncate
+      ? message.text.substring(0, 200) + '...'
+      : message.text;
+
+    return (
+      <Animated.View
+        key={message.id}
+        entering={FadeInDown.delay(index * 40).duration(250).springify()}
         style={[
-          styles.messageBubble,
-          message.isUser ? styles.userBubble : styles.companionBubble,
+          styles.messageContainer,
+          message.isUser ? styles.userMessageContainer : styles.companionMessageContainer,
+          isLastUserMessage && message.id === lastSentMessageId && highlightAnimatedStyle,
         ]}
       >
-        <Text
+        <Pressable
+          onPress={() => shouldTruncate || isExpanded ? toggleMessageExpanded(message.id) : null}
           style={[
-            styles.messageText,
-            message.isUser ? styles.userMessageText : styles.companionMessageText,
+            styles.messageBubble,
+            message.isUser ? styles.userBubble : styles.companionBubble,
           ]}
         >
-          {message.text}
-        </Text>
-      </View>
-      <Text
-        style={[
-          styles.timestamp,
-          message.isUser ? styles.userTimestamp : styles.companionTimestamp,
-        ]}
-      >
-        {message.timestamp}
-      </Text>
-    </Animated.View>
-  );
+          <Text
+            style={[
+              styles.messageText,
+              message.isUser ? styles.userMessageText : styles.companionMessageText,
+            ]}
+          >
+            {displayText}
+          </Text>
+          {message.text.length > 200 && (
+            <Text style={styles.readMoreText}>
+              {isExpanded ? 'Ver menos' : 'Leer más...'}
+            </Text>
+          )}
+        </Pressable>
+        <View style={styles.timestampContainer}>
+          <Text
+            style={[
+              styles.timestamp,
+              message.isUser ? styles.userTimestamp : styles.companionTimestamp,
+            ]}
+          >
+            {message.timestamp}
+          </Text>
+          {message.isUser && message.readStatus && (
+            <Text style={styles.readStatus}>
+              {message.readStatus === 'read' ? '✓✓' : '✓'}
+            </Text>
+          )}
+        </View>
+      </Animated.View>
+    );
+  };
 
   const renderDateSeparator = (date: string) => (
     <View style={styles.dateSeparator}>
@@ -236,14 +583,15 @@ export const HomeScreen: React.FC = () => {
     </View>
   );
 
+  // ============ RENDER: Perfil ============
   const renderPerfilContent = () => (
-    <ScrollView 
+    <ScrollView
       style={styles.perfilScrollView}
       contentContainerStyle={styles.perfilScrollContent}
       showsVerticalScrollIndicator={false}
     >
       {/* Imagen grande del companion */}
-      <Animated.View 
+      <Animated.View
         style={styles.profileImageContainer}
         entering={ZoomIn.duration(500).springify()}
       >
@@ -255,17 +603,80 @@ export const HomeScreen: React.FC = () => {
       </Animated.View>
 
       {/* Nombre */}
-      <Animated.Text 
+      <Animated.Text
         style={styles.profileName}
         entering={FadeInUp.delay(200).duration(400)}
       >
         {companionName}
       </Animated.Text>
 
-      {/* Card de atributos */}
-      <Animated.View 
-        style={styles.attributesCard}
+      {/* Barra de Vínculo */}
+      <Animated.View
+        style={styles.bondContainer}
+        entering={FadeInUp.delay(250).duration(400)}
+      >
+        <Text style={styles.bondLabel}>Vínculo</Text>
+        <View style={styles.bondBarBg}>
+          <AnimatedLinearGradient
+            colors={[Colors.base.primary, Colors.base.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.bondBarFill, bondBarAnimatedStyle]}
+          />
+        </View>
+      </Animated.View>
+
+      {/* Badges */}
+      <Animated.View
+        style={styles.badgesContainer}
         entering={FadeInUp.delay(300).duration(400)}
+      >
+        {BADGES.map((badge, index) => (
+          <Animated.View
+            key={badge.id}
+            entering={FadeIn.delay(350 + index * 100).duration(300)}
+            style={[
+              styles.badge,
+              !badge.earned && styles.badgeNotEarned,
+            ]}
+          >
+            <Text style={styles.badgeEmoji}>{badge.emoji}</Text>
+            <Text style={[styles.badgeLabel, !badge.earned && styles.badgeLabelNotEarned]}>
+              {badge.label}
+            </Text>
+          </Animated.View>
+        ))}
+      </Animated.View>
+
+      {/* Galería de Recuerdos */}
+      <Animated.View
+        style={styles.memoriesContainer}
+        entering={FadeInUp.delay(400).duration(400)}
+      >
+        <Text style={styles.memoriesTitle}>Recuerdos</Text>
+        <View style={styles.memoriesGrid}>
+          {FAKE_MEMORIES.map((memory, index) => (
+            <Animated.View
+              key={memory.id}
+              entering={FadeIn.delay(450 + index * 80).duration(300).springify()}
+              style={styles.memoryCard}
+            >
+              <LinearGradient
+                colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.6)']}
+                style={styles.memoryCardGradient}
+              >
+                <Text style={styles.memoryEmoji}>{memory.emoji}</Text>
+                <Text style={styles.memoryDate}>{memory.date}</Text>
+              </LinearGradient>
+            </Animated.View>
+          ))}
+        </View>
+      </Animated.View>
+
+      {/* Card de atributos */}
+      <Animated.View
+        style={styles.attributesCard}
+        entering={FadeInUp.delay(500).duration(400)}
       >
         {/* Sub-tabs Carácter / Físico */}
         <View style={styles.subTabContainer}>
@@ -273,17 +684,20 @@ export const HomeScreen: React.FC = () => {
             onPress={() => setPerfilSubTab('caracter')}
             style={styles.subTabWrapper}
           >
-            <View style={[
-              styles.subTab,
-              perfilSubTab === 'caracter' && styles.subTabInactive,
-            ]}>
-              <Text style={[
-                styles.subTabText,
-                perfilSubTab === 'caracter' ? styles.subTabTextInactive : styles.subTabTextActive,
-              ]}>
-                Carácter
-              </Text>
-            </View>
+            {perfilSubTab === 'caracter' ? (
+              <LinearGradient
+                colors={[Colors.base.primary, Colors.base.secondary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.subTabActive}
+              >
+                <Text style={styles.subTabTextWhite}>Carácter</Text>
+              </LinearGradient>
+            ) : (
+              <View style={styles.subTabInactive}>
+                <Text style={styles.subTabTextInactive}>Carácter</Text>
+              </View>
+            )}
           </Pressable>
 
           <Pressable
@@ -315,10 +729,12 @@ export const HomeScreen: React.FC = () => {
                 {attr.color && (
                   <View style={[styles.colorDot, { backgroundColor: attr.color }]} />
                 )}
-                <Text style={[
-                  styles.attributeText,
-                  !attr.color && styles.attributeTextNoColor,
-                ]}>
+                <Text
+                  style={[
+                    styles.attributeText,
+                    !attr.color && styles.attributeTextNoColor,
+                  ]}
+                >
                   {attr.label}
                 </Text>
               </View>
@@ -334,7 +750,7 @@ export const HomeScreen: React.FC = () => {
       </Animated.View>
 
       {/* Botón Editar conducta */}
-      <Animated.View entering={FadeInUp.delay(400).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(600).duration(400)}>
         <Pressable
           style={styles.editConductaButton}
           onPress={() => setIsEditingConducta(true)}
@@ -345,8 +761,9 @@ export const HomeScreen: React.FC = () => {
     </ScrollView>
   );
 
+  // ============ RENDER: Editar Conducta ============
   const renderEditConductaContent = () => (
-    <ScrollView 
+    <ScrollView
       style={styles.perfilScrollView}
       contentContainerStyle={styles.perfilScrollContent}
       showsVerticalScrollIndicator={false}
@@ -375,6 +792,17 @@ export const HomeScreen: React.FC = () => {
         </LinearGradient>
       </View>
 
+      {/* Helper text */}
+      <Animated.View
+        style={styles.helperTextContainer}
+        entering={FadeIn.delay(100).duration(300)}
+      >
+        <Ionicons name="information-circle-outline" size={16} color={Colors.text.secondary} />
+        <Text style={styles.helperText}>
+          Esto define cómo se comporta {companionName}
+        </Text>
+      </Animated.View>
+
       {/* Card de edición */}
       <View style={styles.editCard}>
         <TextInput
@@ -389,17 +817,27 @@ export const HomeScreen: React.FC = () => {
       </View>
 
       {/* Botón de guardar */}
-      <Pressable
-        style={styles.saveButton}
-        onPress={handleSaveConducta}
-      >
-        <View style={styles.checkCircle}>
-          <Ionicons name="checkmark" size={32} color="#fff" />
-        </View>
-      </Pressable>
+      <View style={styles.saveButtonContainer}>
+        <AnimatedPressable
+          style={[styles.saveButton, saveButtonAnimatedStyle]}
+          onPress={handleSaveConducta}
+        >
+          <View style={styles.checkCircle}>
+            <Ionicons name="checkmark" size={32} color="#fff" />
+          </View>
+        </AnimatedPressable>
+
+        {/* Confirmación visual */}
+        {showSavedConfirmation && (
+          <Animated.View style={[styles.savedConfirmation, savedConfirmationStyle]}>
+            <Text style={styles.savedConfirmationText}>¡Guardado!</Text>
+          </Animated.View>
+        )}
+      </View>
     </ScrollView>
   );
 
+  // ============ RENDER PRINCIPAL ============
   return (
     <LinearGradient
       colors={[Colors.auxiliary.primary, Colors.auxiliary.secondary]}
@@ -409,10 +847,7 @@ export const HomeScreen: React.FC = () => {
     >
       <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header con Tabs */}
-        <Animated.View 
-          style={styles.header}
-          entering={FadeInDown.duration(400)}
-        >
+        <Animated.View style={styles.header} entering={FadeInDown.duration(400)}>
           <View style={styles.tabContainer}>
             <Pressable
               onPress={() => {
@@ -464,8 +899,8 @@ export const HomeScreen: React.FC = () => {
 
         {/* Avatar pequeño del companion (solo en chat) */}
         {activeTab === 'chat' && (
-          <Animated.View 
-            style={styles.avatarContainer}
+          <Animated.View
+            style={[styles.avatarContainer, avatarAnimatedStyle]}
             entering={ZoomIn.delay(200).duration(400).springify()}
           >
             <Image
@@ -491,48 +926,77 @@ export const HomeScreen: React.FC = () => {
               onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
             >
               {groupMessagesByDate().map((group, groupIndex) => (
-                <Animated.View 
+                <Animated.View
                   key={group.date}
                   entering={FadeIn.delay(groupIndex * 100).duration(300)}
                 >
                   {renderDateSeparator(group.date)}
-                  {group.messages.map((msg, idx) => renderMessage(msg, idx))}
+                  {group.messages.map((msg, idx) => {
+                    const isLastUserMsg =
+                      msg.isUser &&
+                      idx === group.messages.length - 1 &&
+                      groupIndex === groupMessagesByDate().length - 1;
+                    return renderMessage(msg, idx, isLastUserMsg);
+                  })}
                 </Animated.View>
               ))}
+              {isTyping && <TypingIndicator />}
             </ScrollView>
 
             {/* Input de mensaje */}
-            <Animated.View 
+            <Animated.View
               style={styles.inputContainer}
               entering={SlideInDown.delay(200).duration(400).springify()}
             >
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, { minHeight: inputHeight + 24 }]}>
                 <TextInput
-                  style={styles.textInput}
-                  placeholder=""
+                  style={[styles.textInput, { height: inputHeight }]}
+                  placeholder={placeholder}
                   placeholderTextColor={Colors.text.light}
                   value={inputText}
-                  onChangeText={setInputText}
+                  onChangeText={(text) => {
+                    setInputText(text);
+                    lastInteractionTime.current = Date.now();
+                  }}
                   onSubmitEditing={handleSendPress}
+                  onContentSizeChange={handleInputContentSizeChange}
                   returnKeyType="send"
+                  multiline
+                  scrollEnabled={inputHeight >= 100}
                 />
               </View>
               <AnimatedPressable
                 style={[styles.sendButton, sendButtonAnimatedStyle]}
                 onPress={handleSendPress}
               >
-                <Ionicons name="add" size={28} color={Colors.text.white} />
+                <Ionicons
+                  name={inputText.trim() ? 'send' : 'add'}
+                  size={inputText.trim() ? 22 : 28}
+                  color={Colors.text.white}
+                />
               </AnimatedPressable>
             </Animated.View>
           </KeyboardAvoidingView>
+        ) : isEditingConducta ? (
+          renderEditConductaContent()
         ) : (
-          isEditingConducta ? renderEditConductaContent() : renderPerfilContent()
+          renderPerfilContent()
         )}
       </SafeAreaView>
     </LinearGradient>
   );
+
+  function handleSendPress() {
+    sendButtonScale.value = withSequence(
+      withSpring(0.85, { damping: 15, stiffness: 400 }),
+      withSpring(1.15, { damping: 8, stiffness: 350 }),
+      withSpring(1, { damping: 12, stiffness: 300 })
+    );
+    handleSend();
+  }
 };
 
+// ============ ESTILOS ============
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
@@ -663,11 +1127,23 @@ const styles = StyleSheet.create({
   companionMessageText: {
     color: Colors.text.primary,
   },
+  readMoreText: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: 13,
+    color: Colors.base.secondary,
+    marginTop: 4,
+    opacity: 0.8,
+  },
+  timestampContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 4,
+  },
   timestamp: {
     fontFamily: Typography.fontFamily.regular,
     fontSize: 11,
     color: Colors.text.secondary,
-    marginTop: 4,
     lineHeight: 14,
   },
   userTimestamp: {
@@ -676,9 +1152,15 @@ const styles = StyleSheet.create({
   companionTimestamp: {
     marginLeft: 4,
   },
+  readStatus: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 11,
+    color: Colors.text.secondary,
+    opacity: 0.5,
+  },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingBottom: Platform.OS === 'ios' ? 24 : 12,
@@ -696,12 +1178,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    justifyContent: 'center',
   },
   textInput: {
     fontFamily: Typography.fontFamily.regular,
     fontSize: 16,
     color: Colors.text.primary,
     minHeight: 24,
+    maxHeight: 100,
   },
   sendButton: {
     width: 50,
@@ -747,9 +1231,111 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fontFamily.bold,
     fontSize: 24,
     color: Colors.base.primary,
-    marginBottom: 20,
+    marginBottom: 12,
     lineHeight: 30,
   },
+
+  // Bond bar
+  bondContainer: {
+    width: '100%',
+    marginBottom: 16,
+  },
+  bondLabel: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: 13,
+    color: Colors.text.secondary,
+    marginBottom: 6,
+  },
+  bondBarBg: {
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  bondBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+
+  // Badges
+  badgesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 20,
+    width: '100%',
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+    gap: 6,
+  },
+  badgeNotEarned: {
+    opacity: 0.4,
+  },
+  badgeEmoji: {
+    fontSize: 14,
+  },
+  badgeLabel: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: 12,
+    color: Colors.text.primary,
+  },
+  badgeLabelNotEarned: {
+    color: Colors.text.secondary,
+  },
+
+  // Memories
+  memoriesContainer: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  memoriesTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 16,
+    color: Colors.text.primary,
+    marginBottom: 12,
+  },
+  memoriesGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  memoryCard: {
+    flex: 1,
+    aspectRatio: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: Colors.text.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  memoryCardGradient: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+  },
+  memoryEmoji: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  memoryDate: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 11,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+  },
+
   attributesCard: {
     backgroundColor: Colors.background.white,
     borderRadius: 20,
@@ -772,12 +1358,6 @@ const styles = StyleSheet.create({
   subTabWrapper: {
     flex: 1,
   },
-  subTab: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
   subTabActive: {
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -791,22 +1371,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
-  subTabText: {
-    fontFamily: Typography.fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 18,
-  },
   subTabTextWhite: {
     fontFamily: Typography.fontFamily.bold,
     fontSize: 14,
     color: Colors.text.white,
     lineHeight: 18,
   },
-  subTabTextActive: {
-    color: Colors.text.secondary,
-  },
   subTabTextInactive: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: 14,
     color: Colors.text.secondary,
+    lineHeight: 18,
   },
   attributesList: {
     paddingHorizontal: 8,
@@ -815,7 +1390,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
-    minWidth: 0, // 🔧 permite encogimiento real en row
+    minWidth: 0,
   },
   colorDot: {
     width: 16,
@@ -828,7 +1403,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text.primary,
     lineHeight: 22,
-    flexShrink: 1, // 🔧 permite encogimiento
+    flexShrink: 1,
     minWidth: 0,
   },
   attributeTextNoColor: {
@@ -856,7 +1431,7 @@ const styles = StyleSheet.create({
 
   // Edit Conducta styles
   editConductaHeader: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   editConductaHeaderButton: {
     paddingVertical: 12,
@@ -868,6 +1443,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text.white,
     lineHeight: 20,
+  },
+  helperTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  helperText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 13,
+    color: Colors.text.secondary,
+    lineHeight: 18,
   },
   editCard: {
     backgroundColor: Colors.background.white,
@@ -889,6 +1477,9 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 180,
   },
+  saveButtonContainer: {
+    alignItems: 'center',
+  },
   saveButton: {
     alignItems: 'center',
   },
@@ -904,5 +1495,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+  },
+  savedConfirmation: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: Colors.base.primary,
+    borderRadius: 20,
+  },
+  savedConfirmationText: {
+    fontFamily: Typography.fontFamily.medium,
+    fontSize: 14,
+    color: Colors.text.white,
   },
 });
