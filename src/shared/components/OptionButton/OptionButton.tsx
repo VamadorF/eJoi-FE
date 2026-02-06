@@ -1,6 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring,
+  withSequence,
+  withTiming,
+  interpolateColor,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/shared/theme/colors';
 import { OptionButtonProps, RightIconType } from './OptionButton.types';
@@ -12,11 +19,13 @@ const renderRightIcon = (rightIcon: RightIconType, selected: boolean) => {
   if (typeof rightIcon === 'string') {
     if (rightIcon === 'check') {
       return (
-        <Ionicons
-          name={selected ? 'checkmark-circle' : 'checkmark-circle-outline'}
-          size={24}
-          color={selected ? Colors.text.white : Colors.text.secondary}
-        />
+        <Animated.View>
+          <Ionicons
+            name={selected ? 'checkmark-circle' : 'checkmark-circle-outline'}
+            size={24}
+            color={selected ? Colors.text.white : Colors.text.secondary}
+          />
+        </Animated.View>
       );
     }
     if (rightIcon === 'arrow') {
@@ -49,6 +58,20 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
   }
 
   const scale = useSharedValue(1);
+  const selectionProgress = useSharedValue(selected ? 1 : 0);
+
+  useEffect(() => {
+    if (selected) {
+      selectionProgress.value = withSpring(1, { damping: 15, stiffness: 300 });
+      // Efecto de "pop" al seleccionar
+      scale.value = withSequence(
+        withSpring(1.03, { damping: 10, stiffness: 400 }),
+        withSpring(1, { damping: 15, stiffness: 250 })
+      );
+    } else {
+      selectionProgress.value = withTiming(0, { duration: 150 });
+    }
+  }, [selected]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -56,13 +79,25 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
 
   const handlePressIn = () => {
     if (!disabled) {
-      scale.value = withSpring(0.95);
+      scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
     }
   };
 
   const handlePressOut = () => {
     if (!disabled) {
-      scale.value = withSpring(1);
+      scale.value = withSpring(1, { damping: 12, stiffness: 300 });
+    }
+  };
+
+  const handlePress = () => {
+    if (!disabled) {
+      // Animación de feedback al presionar
+      scale.value = withSequence(
+        withSpring(0.96, { damping: 15, stiffness: 400 }),
+        withSpring(1.02, { damping: 10, stiffness: 350 }),
+        withSpring(1, { damping: 12, stiffness: 300 })
+      );
+      onPress();
     }
   };
 
@@ -74,11 +109,11 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
         selected && styles.buttonSelected,
         disabled && styles.buttonDisabled,
       ]}
-      onPress={onPress}
+      onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       disabled={disabled}
-      activeOpacity={0.8}
+      activeOpacity={1}
     >
       {leftIcon && <View style={styles.leftIconContainer}>{leftIcon}</View>}
 

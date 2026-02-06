@@ -1,5 +1,11 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+  SlideInDown,
+} from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,12 +18,14 @@ import { styles } from './ChatScreen.styles';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
+import { useGenderedText } from '@/shared/hooks/useGenderedText';
 
 type ChatScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Chat'>;
 
 export const ChatScreen: React.FC = () => {
   const navigation = useNavigation<ChatScreenNavigationProp>();
   const { companion } = useCompanionStore();
+  const genderedText = useGenderedText();
 
   const handleStartOnboarding = () => {
     navigation.navigate('Onboarding');
@@ -33,19 +41,24 @@ export const ChatScreen: React.FC = () => {
           style={styles.gradient}
         >
           <View style={styles.emptyContainer}>
-            <EmptyState
-              title="No tienes un/a compañer@ aún"
-              message="Completa el onboarding para crear tu compañer@ virtual y comenzar a chatear."
-              icon="💬"
-            />
-            <View style={styles.emptyActions}>
+            <Animated.View entering={FadeIn.duration(500)}>
+              <EmptyState
+                title={genderedText.t('No tienes un/a compañer@ aún')}
+                message={genderedText.t('Completa el onboarding para crear tu compañer@ virtual y comenzar a chatear.')}
+                icon="💬"
+              />
+            </Animated.View>
+            <Animated.View 
+              style={styles.emptyActions}
+              entering={SlideInDown.delay(200).duration(400).springify()}
+            >
               <Button
-                title="Crear mi compañer@"
+                title={genderedText.t('Crear mi compañer@')}
                 onPress={handleStartOnboarding}
                 variant="primary"
                 style={styles.emptyButton}
               />
-            </View>
+            </Animated.View>
           </View>
         </LinearGradient>
       </Screen>
@@ -61,7 +74,10 @@ export const ChatScreen: React.FC = () => {
         style={styles.gradient}
       >
         <View style={styles.container}>
-          <View style={styles.header}>
+          <Animated.View 
+            style={styles.header}
+            entering={FadeInDown.duration(400)}
+          >
             <Text style={styles.title}>
               {companion.name}
             </Text>
@@ -70,13 +86,16 @@ export const ChatScreen: React.FC = () => {
                 {companion.personality}
               </Text>
             )}
-          </View>
+          </Animated.View>
 
           <ScrollView 
             style={styles.messagesContainer}
             contentContainerStyle={styles.messagesContent}
           >
-            <View style={styles.welcomeMessage}>
+            <Animated.View 
+              style={styles.welcomeMessage}
+              entering={FadeInUp.delay(200).duration(500)}
+            >
               <Text style={styles.welcomeText}>
                 ¡Hola! Soy {companion.name}. 👋
               </Text>
@@ -84,17 +103,22 @@ export const ChatScreen: React.FC = () => {
                 {companion.personality}
               </Text>
               <Text style={styles.welcomeSubtext}>
-                Estoy aquí para conversar contigo. ¿En qué puedo ayudarte hoy?
+                {genderedText.gender === 'femenino' 
+                  ? 'Estoy aquí para conversar contigo. ¿En qué puedo ayudarte hoy?'
+                  : 'Estoy aquí para conversar contigo. ¿En qué puedo ayudarte hoy?'}
               </Text>
-            </View>
+            </Animated.View>
           </ScrollView>
 
           {/* TODO: Agregar input de mensaje y funcionalidad de chat */}
-          <View style={styles.inputContainer}>
+          <Animated.View 
+            style={styles.inputContainer}
+            entering={SlideInDown.delay(400).duration(400).springify()}
+          >
             <Text style={styles.inputPlaceholder}>
               Próximamente: Envía un mensaje...
             </Text>
-          </View>
+          </Animated.View>
         </View>
       </LinearGradient>
     </Screen>

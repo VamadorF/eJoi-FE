@@ -10,12 +10,28 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+  SlideInDown,
+  SlideInRight,
+  ZoomIn,
+  Layout,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withSequence,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
+import { useGenderedText } from '@/shared/hooks/useGenderedText';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 // Tipos
 interface Message {
@@ -110,6 +126,10 @@ export const HomeScreen: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>(PLACEHOLDER_MESSAGES);
   const scrollViewRef = useRef<ScrollView>(null);
   const { companion } = useCompanionStore();
+  const genderedText = useGenderedText();
+  
+  // Animación para botón de enviar
+  const sendButtonScale = useSharedValue(1);
 
   // Obtener avatar según configuración
   const getAvatarImage = () => {
@@ -160,9 +180,23 @@ export const HomeScreen: React.FC = () => {
     setIsEditingConducta(false);
   };
 
-  const renderMessage = (message: Message) => (
-    <View
+  const sendButtonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: sendButtonScale.value }],
+  }));
+
+  const handleSendPress = () => {
+    sendButtonScale.value = withSequence(
+      withSpring(0.9, { damping: 15, stiffness: 400 }),
+      withSpring(1.1, { damping: 8, stiffness: 350 }),
+      withSpring(1, { damping: 12, stiffness: 300 })
+    );
+    handleSend();
+  };
+
+  const renderMessage = (message: Message, index: number) => (
+    <Animated.View
       key={message.id}
+      entering={FadeInDown.delay(index * 50).duration(300)}
       style={[
         styles.messageContainer,
         message.isUser ? styles.userMessageContainer : styles.companionMessageContainer,
@@ -191,7 +225,7 @@ export const HomeScreen: React.FC = () => {
       >
         {message.timestamp}
       </Text>
-    </View>
+    </Animated.View>
   );
 
   const renderDateSeparator = (date: string) => (
@@ -209,19 +243,30 @@ export const HomeScreen: React.FC = () => {
       showsVerticalScrollIndicator={false}
     >
       {/* Imagen grande del companion */}
-      <View style={styles.profileImageContainer}>
+      <Animated.View 
+        style={styles.profileImageContainer}
+        entering={ZoomIn.duration(500).springify()}
+      >
         <Image
           source={getAvatarImage()}
           style={styles.profileImage}
           resizeMode="cover"
         />
-      </View>
+      </Animated.View>
 
       {/* Nombre */}
-      <Text style={styles.profileName}>{companionName}</Text>
+      <Animated.Text 
+        style={styles.profileName}
+        entering={FadeInUp.delay(200).duration(400)}
+      >
+        {companionName}
+      </Animated.Text>
 
       {/* Card de atributos */}
-      <View style={styles.attributesCard}>
+      <Animated.View 
+        style={styles.attributesCard}
+        entering={FadeInUp.delay(300).duration(400)}
+      >
         {/* Sub-tabs Carácter / Físico */}
         <View style={styles.subTabContainer}>
           <Pressable
@@ -286,15 +331,17 @@ export const HomeScreen: React.FC = () => {
             ))
           )}
         </View>
-      </View>
+      </Animated.View>
 
       {/* Botón Editar conducta */}
-      <Pressable
-        style={styles.editConductaButton}
-        onPress={() => setIsEditingConducta(true)}
-      >
-        <Text style={styles.editConductaText}>Editar conducta</Text>
-      </Pressable>
+      <Animated.View entering={FadeInUp.delay(400).duration(400)}>
+        <Pressable
+          style={styles.editConductaButton}
+          onPress={() => setIsEditingConducta(true)}
+        >
+          <Text style={styles.editConductaText}>Editar conducta</Text>
+        </Pressable>
+      </Animated.View>
     </ScrollView>
   );
 
@@ -362,7 +409,10 @@ export const HomeScreen: React.FC = () => {
     >
       <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header con Tabs */}
-        <View style={styles.header}>
+        <Animated.View 
+          style={styles.header}
+          entering={FadeInDown.duration(400)}
+        >
           <View style={styles.tabContainer}>
             <Pressable
               onPress={() => {
@@ -410,17 +460,20 @@ export const HomeScreen: React.FC = () => {
               )}
             </Pressable>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Avatar pequeño del companion (solo en chat) */}
         {activeTab === 'chat' && (
-          <View style={styles.avatarContainer}>
+          <Animated.View 
+            style={styles.avatarContainer}
+            entering={ZoomIn.delay(200).duration(400).springify()}
+          >
             <Image
               source={getAvatarImage()}
               style={styles.avatar}
               resizeMode="cover"
             />
-          </View>
+          </Animated.View>
         )}
 
         {/* Content */}
@@ -437,16 +490,22 @@ export const HomeScreen: React.FC = () => {
               showsVerticalScrollIndicator={false}
               onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
             >
-              {groupMessagesByDate().map((group) => (
-                <View key={group.date}>
+              {groupMessagesByDate().map((group, groupIndex) => (
+                <Animated.View 
+                  key={group.date}
+                  entering={FadeIn.delay(groupIndex * 100).duration(300)}
+                >
                   {renderDateSeparator(group.date)}
-                  {group.messages.map(renderMessage)}
-                </View>
+                  {group.messages.map((msg, idx) => renderMessage(msg, idx))}
+                </Animated.View>
               ))}
             </ScrollView>
 
             {/* Input de mensaje */}
-            <View style={styles.inputContainer}>
+            <Animated.View 
+              style={styles.inputContainer}
+              entering={SlideInDown.delay(200).duration(400).springify()}
+            >
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={styles.textInput}
@@ -454,17 +513,17 @@ export const HomeScreen: React.FC = () => {
                   placeholderTextColor={Colors.text.light}
                   value={inputText}
                   onChangeText={setInputText}
-                  onSubmitEditing={handleSend}
+                  onSubmitEditing={handleSendPress}
                   returnKeyType="send"
                 />
               </View>
-              <Pressable
-                style={styles.sendButton}
-                onPress={handleSend}
+              <AnimatedPressable
+                style={[styles.sendButton, sendButtonAnimatedStyle]}
+                onPress={handleSendPress}
               >
                 <Ionicons name="add" size={28} color={Colors.text.white} />
-              </Pressable>
-            </View>
+              </AnimatedPressable>
+            </Animated.View>
           </KeyboardAvoidingView>
         ) : (
           isEditingConducta ? renderEditConductaContent() : renderPerfilContent()
