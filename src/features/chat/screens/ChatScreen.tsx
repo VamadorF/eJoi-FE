@@ -19,6 +19,7 @@ import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 import { Spacing } from '@/shared/theme/spacing';
 import { useGenderedText } from '@/shared/hooks/useGenderedText';
+import { generateGreeting, generateChatWelcome, generateAboutMe } from '@/shared/utils/companionTextGenerator';
 
 type ChatScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Chat'>;
 
@@ -97,15 +98,13 @@ export const ChatScreen: React.FC = () => {
               entering={FadeInUp.delay(200).duration(500)}
             >
               <Text style={styles.welcomeText}>
-                ¡Hola! Soy {companion.name}. 👋
+                {generateGreeting(companion)}
               </Text>
               <Text style={styles.welcomeSubtext}>
-                {companion.personality}
+                {generateAboutMe(companion)}
               </Text>
               <Text style={styles.welcomeSubtext}>
-                {genderedText.gender === 'femenino' 
-                  ? 'Estoy aquí para conversar contigo. ¿En qué puedo ayudarte hoy?'
-                  : 'Estoy aquí para conversar contigo. ¿En qué puedo ayudarte hoy?'}
+                {generateChatWelcome(companion)}
               </Text>
             </Animated.View>
           </ScrollView>

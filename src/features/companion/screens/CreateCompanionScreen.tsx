@@ -19,6 +19,7 @@ import {
 } from '@/shared/components';
 import { styles } from './CreateCompanionScreen.styles';
 import { useGenderedTextWithGender } from '@/shared/hooks/useGenderedText';
+import { generateAboutMePreview, generateGreetingPreview } from '@/shared/utils/companionTextGenerator';
 
 // Imágenes placeholder según género y estilo
 const PLACEHOLDER_IMAGES = {
@@ -30,18 +31,6 @@ const PLACEHOLDER_IMAGES = {
     femenino: require('../../../../public/IMG/anime/Anime_musa.png'),
     masculino: require('../../../../public/IMG/anime/anime_ejecutivo.png'),
   },
-};
-
-// Mapeo de personalidades a descripciones amigables
-const PERSONALITY_DESCRIPTIONS: Record<string, string> = {
-  'La Musa': 'Creativa y apasionada, inspiro a través del arte y la belleza. Me encanta explorar nuevas formas de expresión y conectar emocionalmente.',
-  'El Protector': 'Leal y confiable, siempre estoy aquí para apoyarte. Mi prioridad es tu bienestar y que te sientas seguro/a.',
-  'La Ejecutiva': 'Organizada y eficiente, te ayudo a alcanzar tus metas. Me motiva el éxito y la productividad.',
-  'El Ejecutivo': 'Estratégico y decidido, te guío hacia el logro de tus objetivos con determinación.',
-  'La Intelectual': 'Curiosa y analítica, disfruto de conversaciones profundas y el intercambio de ideas.',
-  'El Artesano': 'Práctico y creativo, me encanta construir y crear cosas con mis manos.',
-  'La Anfitriona': 'Cálida y acogedora, me aseguro de que todos se sientan bienvenidos y cómodos.',
-  'La Porrista': 'Entusiasta y motivadora, celebro tus logros y te animo a seguir adelante.',
 };
 
 // Mapeo de tonos a emojis
@@ -78,12 +67,16 @@ export const CreateCompanionScreen: React.FC = () => {
     return PLACEHOLDER_IMAGES[style]?.[gender] || PLACEHOLDER_IMAGES.realista.femenino;
   };
 
-  // Generar descripción "Sobre mí" basada en personalidad
+  // Generar descripción "Sobre mí" basada en personalidad usando el generador dinámico
   const getAboutText = () => {
     const persona = onboardingData?.persona || '';
-    const defaultDesc = PERSONALITY_DESCRIPTIONS[persona] || 
-      `Soy ${onboardingData?.companionName || 'tu companion'}, con un tono ${onboardingData?.tone?.toLowerCase() || 'amigable'} y estilo ${onboardingData?.interactionStyle?.toLowerCase() || 'conversacional'}.`;
-    return defaultDesc;
+    const tone = onboardingData?.tone || '';
+    const gender = (onboardingData?.gender || 'femenino') as 'femenino' | 'masculino';
+    const interests = onboardingData?.interests || [];
+    const interactionStyle = onboardingData?.interactionStyle;
+
+    // Usar el generador dinámico de textos
+    return generateAboutMePreview(persona, tone, gender, interests, interactionStyle);
   };
 
   const handleCreateCompanion = async () => {
