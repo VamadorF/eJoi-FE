@@ -5,7 +5,7 @@ import { Typography } from '@/shared/theme/typography';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CARD_IMAGE_HEIGHT = SCREEN_HEIGHT * 0.42;
+const CARD_IMAGE_HEIGHT = Math.min(SCREEN_HEIGHT * 0.38, 320);
 
 const lh = (fontSize?: number, mult = 1.25) =>
   Math.round((fontSize ?? 14) * mult);
@@ -19,8 +19,8 @@ export const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.lg,
-    paddingBottom: 120,
+    paddingTop: Spacing.md,
+    paddingBottom: 100,
     alignItems: 'center',
   },
 
@@ -42,11 +42,14 @@ export const styles = StyleSheet.create({
     width: '100%',
     height: CARD_IMAGE_HEIGHT,
     position: 'relative',
+    backgroundColor: Colors.background.light,
+    overflow: 'hidden',
   },
 
   companionImage: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
 
   imageGradient: {
@@ -86,9 +89,9 @@ export const styles = StyleSheet.create({
 
   // ============ HEADER (NOMBRE + BADGE) ============
   headerSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xs,
   },
 
   nameRow: {
@@ -146,9 +149,9 @@ export const styles = StyleSheet.create({
 
   // ============ SECCIÓN "SOBRE MÍ" ============
   aboutSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
   },
 
   sectionHeader: {
@@ -183,9 +186,9 @@ export const styles = StyleSheet.create({
 
   // ============ SECCIÓN INTERESES ============
   interestsSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.md,
   },
 
   interestChipsContainer: {
@@ -223,9 +226,9 @@ export const styles = StyleSheet.create({
 
   // ============ SECCIÓN LÍMITES ============
   boundariesSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border.light,
   },
@@ -248,9 +251,9 @@ export const styles = StyleSheet.create({
 
   // ============ SECCIÓN "MÁS SOBRE MÍ" ============
   moreSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border.light,
   },
