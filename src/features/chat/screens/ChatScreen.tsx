@@ -31,7 +31,7 @@ export const ChatScreen: React.FC = () => {
   const genderedText = useGenderedText();
   const isSubscribed = useSubscriptionStore((s) => s.isSubscribed);
 
-  // ✅ Guard: si hay companion pero no hay suscripción → manda al paywall
+  // Guard: si hay companion pero no hay suscripción -> manda al paywall
   useEffect(() => {
     if (companion && !isSubscribed) {
       navigation.replace('SubscriptionPaywall', { companion });
@@ -42,7 +42,7 @@ export const ChatScreen: React.FC = () => {
     navigation.navigate('Onboarding');
   };
 
-  // Sin companion → tu empty state original
+  // Sin companion 
   if (!companion) {
     return (
       <Screen>

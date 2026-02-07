@@ -19,7 +19,6 @@ export const MainTabs: React.FC = () => {
         name="SubscriptionPaywall"
         component={SubscriptionPaywallScreen}
         options={{
-          // opcional: que se vea más como paywall/modal
           presentation: 'modal',
           animation: 'slide_from_bottom',
         }}
