@@ -25,6 +25,9 @@ type Plan = {
   image: any; // require(...)
 };
 
+
+/// Estoy usando nombres de perks de Ko-fi, pero tenemos que discutir si estos nombres
+// Se mantienen en la version final o no. Como tambien los precios! 
 const PLANS: Plan[] = [
   {
     id: 'Amigo',

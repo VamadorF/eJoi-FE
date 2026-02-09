@@ -55,9 +55,11 @@ export const styles = StyleSheet.create({
   // =========================
   // ✅ HERO full-bleed
   hero: {
+    width: '100%',
+    aspectRatio: 3,
     height: 190,
     position: 'relative',
-    backgroundColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: 'transparent',
     overflow: 'hidden', // 
   },
   heroBg: {
@@ -65,8 +67,8 @@ export const styles = StyleSheet.create({
     height: '100%',
   },
   heroBgImg: {
-    
-    top: 18, 
+    width: '100%',
+    height: '100%', 
   },
   heroOverlay: {
     
@@ -158,7 +160,7 @@ export const styles = StyleSheet.create({
     color: '#FF2D87',
   },
   recoPillWrapper: {
-    alignItems: 'flex-end', // alinea el pill a la derecha
+    alignItems: 'flex-end',
     marginTop: 8,
     marginBottom: 4,
   },
