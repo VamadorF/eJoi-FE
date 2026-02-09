@@ -7,6 +7,7 @@ import { Companion } from '../types';
 import { GradientBackground, ReadyHero } from '@/shared/components';
 import { createGenderedTextHelper, GenderKey } from '@/shared/utils/genderedText';
 
+
 type CompanionReadyScreenRouteProp = RouteProp<RootStackParamList, 'CompanionReady'>;
 type CompanionReadyScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CompanionReady'>;
 
@@ -20,10 +21,13 @@ export const CompanionReadyScreen: React.FC = () => {
     (companion?.gender || '') as GenderKey
   );
 
+  // Crea acompañante y pasa al paywall.
   const handleStartChat = () => {
+    if (!companion) return;
+
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Chat' }],
+      routes: [{ name: 'SubscriptionPaywall', params: { companion } }],
     });
   };
 
@@ -56,4 +60,3 @@ export const CompanionReadyScreen: React.FC = () => {
     </GradientBackground>
   );
 };
-

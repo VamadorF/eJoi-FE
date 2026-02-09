@@ -8,6 +8,7 @@ import { CompanionReadyScreen } from '@/features/companion/screens/CompanionRead
 import { ChatScreen } from '@/features/chat/screens/ChatScreen';
 import { HomeScreen } from '@/features/main/screens/HomeScreen';
 import { RootStackParamList } from '@/shared/types/navigation';
+import { SubscriptionPaywallScreen } from '@/features/subscription/screens/SubscriptionPaywallScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -56,6 +57,14 @@ export const AuthNavigator: React.FC = () => {
         options={{
           animation: 'fade',
           animationDuration: 500,
+        }}
+      />
+      <Stack.Screen
+        name="SubscriptionPaywall"
+        component={SubscriptionPaywallScreen}
+        options={{
+          animation: 'slide_from_right',
+          animationDuration: 300,
         }}
       />
       <Stack.Screen name="Chat" component={ChatScreen} />
