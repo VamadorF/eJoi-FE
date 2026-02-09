@@ -698,7 +698,7 @@ export const OnboardingScreen: React.FC = () => {
                     pressed && { opacity: 0.6 },
                   ]}
                 >
-                  <Text style={localStyles.randomButtonText}>🎲 Generar nombre</Text>
+                  <Text style={localStyles.randomButtonText}> Generar nombre✨ </Text>
                 </Pressable>
               </Animated.View>
             </Animated.View>
