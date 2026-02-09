@@ -1,0 +1,34 @@
+{
+  "Amigable y empática": {
+    "femenino": ["Luna", "Emma", "Mia", "Clara", "Vera", "Sara", "Sofia", "Nina", "Maya", "Olivia", "Eva", "Ella"],
+    "masculino": ["Leo", "Noah", "Eli", "Luca", "Samuel", "Alex", "Liam", "Dylan", "Gael", "Enzo", "Daniel", "Rafael"]
+  },
+  "Divertida y desenfadada": {
+    "femenino": ["Zoe", "Kira", "Gala", "Lia", "Ava", "Nina", "Noa", "Aria", "Maya", "Iris", "Mila", "Cloe"],
+    "masculino": ["Max", "Dylan", "Enzo", "Milo", "Luca", "Axel", "Leo", "Ben", "Theo", "Kai", "Dante", "Gael"]
+  },
+  "Inteligente y curiosa": {
+    "femenino": ["Ada", "Iris", "Vera", "Maya", "Elena", "Olivia", "Sofia", "Emma", "Nina", "Alma", "Julia", "Mia"],
+    "masculino": ["Alan", "Oscar", "Ivan", "Dante", "Daniel", "Rafael", "Leo", "Axel", "Luca", "Noah", "Eli", "Adrian"]
+  },
+  "Cariñosa y comprensiva": {
+    "femenino": ["Olivia", "Julia", "Emma", "Clara", "Elena", "Sofia", "Luna", "Sara", "Vera", "Mia", "Eva", "Maya"],
+    "masculino": ["Samuel", "Lucas", "Daniel", "Gabriel", "Alex", "Leo", "Rafael", "Noah", "Eli", "Enzo", "Liam", "Bruno"]
+  },
+  "Energética y motivadora": {
+    "femenino": ["Aria", "Zoe", "Mia", "Noa", "Kira", "Luna", "Ava", "Maya", "Iris", "Mila", "Gala", "Emma"],
+    "masculino": ["Axel", "Enzo", "Max", "Leo", "Gael", "Dylan", "Luca", "Noah", "Theo", "Kai", "Bruno", "Dante"]
+  },
+  "Tranquila y reflexiva": {
+    "femenino": ["Vera", "Elena", "Nora", "Iris", "Clara", "Luna", "Emma", "Sofia", "Eva", "Alma", "Julia", "Nina"],
+    "masculino": ["Milo", "Luca", "Rafael", "Daniel", "Leo", "Noah", "Eli", "Liam", "Oscar", "Ivan", "Gabriel", "Samuel"]
+  },
+  "Analítica y lógica": {
+    "femenino": ["Ada", "Vera", "Clara", "Elena", "Emma", "Maya", "Iris", "Sofia", "Olivia", "Julia", "Nina", "Eva"],
+    "masculino": ["Alan", "Daniel", "Oscar", "Ivan", "Rafael", "Alex", "Liam", "Noah", "Luca", "Axel", "Marcos", "Dante"]
+  },
+  "Creativa y artística": {
+    "femenino": ["Aria", "Iris", "Nina", "Gala", "Maya", "Zoe", "Luna", "Mila", "Cloe", "Vera", "Noa", "Eva"],
+    "masculino": ["Milo", "Dante", "Luca", "Gael", "Axel", "Leo", "Theo", "Kai", "Enzo", "Dylan", "Rafael", "Oscar"]
+  }
+}
