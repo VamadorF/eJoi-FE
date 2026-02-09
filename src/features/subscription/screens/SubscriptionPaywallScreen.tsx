@@ -1,19 +1,18 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, ImageBackground, Dimensions, ScrollView } from 'react-native';import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { View, Text, Pressable, ImageBackground, Dimensions, ScrollView, ImageSourcePropType } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { RootStackParamList } from '@/shared/types/navigation';
 import { GradientBackground, PrimaryCTA, ContentContainer } from '@/shared/components';
-import { useSubscriptionStore } from '@/features/subscription/store/subscription.store';
+import { useSubscriptionStore, PlanId } from '@/features/subscription/store/subscription.store';
 
 import { styles } from './SubscriptionPaywallScreen.styles';
 
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'SubscriptionPaywall'>;
 type Rt = RouteProp<RootStackParamList, 'SubscriptionPaywall'>;
-
-type PlanId = 'Amigo' | 'Amigo Cercano' | 'Mejor Amigo';
 
 type Plan = {
   id: PlanId;
@@ -22,7 +21,7 @@ type Plan = {
   description: string;
   perks: string[];
   recommended?: boolean;
-  image: any; // require(...)
+  image: ImageSourcePropType;
 };
 
 
@@ -81,10 +80,11 @@ export const SubscriptionPaywallScreen: React.FC = () => {
 
   return (
     <GradientBackground variant="wizard" overlayOpacity={0.06}>
-      <ContentContainer style={{ flex: 1 }}>
+      <ContentContainer>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          style={{ flex: 1 }}
         >
           <Text style={styles.title}>Elige tu plan para continuar</Text>
           <Text style={styles.subtitle}>
@@ -146,13 +146,6 @@ export const SubscriptionPaywallScreen: React.FC = () => {
                         <View style={[styles.pricePill, active && styles.pricePillActive]}>
                           <Text style={styles.pricePillText}>{p.price}</Text>
                         </View>
-
-                        {/* Recomendado */}
-                        {p.recommended && (
-                          <View style={styles.recoPill}>
-                            <Text style={styles.recoPillText}>Recomendado</Text>
-                          </View>
-                        )}
                       </View>
 
                       <View style={styles.body}>

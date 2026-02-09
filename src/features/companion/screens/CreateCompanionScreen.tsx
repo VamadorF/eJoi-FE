@@ -84,6 +84,7 @@ export const CreateCompanionScreen: React.FC = () => {
       return;
     }
 
+    setIsCreating(true);
     navigation.navigate('CreandoCompanion', {
       onboardingData,
     });
