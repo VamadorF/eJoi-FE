@@ -16,6 +16,9 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 16,
   },
+  scrollContent: {
+    paddingBottom: 120, // espacio para el botón fijo inferior
+  },
   grid: {
     gap: 14,
     paddingBottom: 120, // espacio para el botón fijo inferior

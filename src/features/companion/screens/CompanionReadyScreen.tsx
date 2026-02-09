@@ -6,7 +6,6 @@ import { RootStackParamList } from '@/shared/types/navigation';
 import { Companion } from '../types';
 import { GradientBackground, ReadyHero } from '@/shared/components';
 import { createGenderedTextHelper, GenderKey } from '@/shared/utils/genderedText';
-import { useSubscriptionStore } from '@/features/subscription/store/subscription.store';
 
 
 type CompanionReadyScreenRouteProp = RouteProp<RootStackParamList, 'CompanionReady'>;
