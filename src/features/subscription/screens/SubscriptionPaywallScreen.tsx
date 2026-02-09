@@ -79,10 +79,11 @@ export const SubscriptionPaywallScreen: React.FC = () => {
 
   return (
     <GradientBackground variant="wizard" overlayOpacity={0.06}>
-      <ContentContainer style={{ flex: 1 }}>
+      <ContentContainer>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          style={{ flex: 1 }}
         >
           <Text style={styles.title}>Elige tu plan para continuar</Text>
           <Text style={styles.subtitle}>
