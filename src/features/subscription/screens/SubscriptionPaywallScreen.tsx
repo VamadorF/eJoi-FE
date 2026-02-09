@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, ImageBackground, Dimensions, ScrollView, ImageSourcePropType } from 'react-native';import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { View, Text, Pressable, ImageBackground, Dimensions, ScrollView, ImageSourcePropType } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 
