@@ -1,5 +1,24 @@
-import React, { useMemo } from 'react';
-import { View, Text, Pressable, ImageBackground, Dimensions, ScrollView, ImageSourcePropType } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  ImageBackground,
+  ScrollView,
+  ImageSourcePropType,
+  Animated as RNAnimated,
+} from 'react-native';
+
+import Animated, {
+  FadeInDown,
+  Layout,
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated';
+
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,7 +29,6 @@ import { useSubscriptionStore, PlanId } from '@/features/subscription/store/subs
 
 import { styles } from './SubscriptionPaywallScreen.styles';
 
-
 type Nav = NativeStackNavigationProp<RootStackParamList, 'SubscriptionPaywall'>;
 type Rt = RouteProp<RootStackParamList, 'SubscriptionPaywall'>;
 
@@ -18,43 +36,46 @@ type Plan = {
   id: PlanId;
   title: string;
   price: string;
-  description: string;
-  perks: string[];
   recommended?: boolean;
   image: ImageSourcePropType;
+  perks: { title: string; subtitle: string }[];
 };
 
-
-/// Estoy usando nombres de perks de Ko-fi, pero tenemos que discutir si estos nombres
-// Se mantienen en la version final o no. Como tambien los precios! 
 const PLANS: Plan[] = [
   {
     id: 'Amigo',
     title: 'Amigo',
-    price: '$14.990 / mes',
-    description:
-      'Este plan es la puerta de entrada al vínculo. Permite iniciar una relación continua con tu compañer@ virtual y empezar a construir una historia compartida.',
-    perks: ['Inicia la relación', 'Acceso al chat', 'Memoria básica'],
+    price: '$12.990 / mes',
     image: require('@/assets/images/paywall/amigo.png'),
+    perks: [
+      { title: 'Acceso al chat', subtitle: 'Habla con {name} y rompe el hielo.' },
+      { title: 'Memoria básica', subtitle: '{name} recuerda lo esencial para mantener contexto.' },
+      { title: 'Acceso 24/7', subtitle: 'Disponible cuando lo necesites.' },
+    ],
   },
   {
     id: 'Amigo Cercano',
     title: 'Amigo Cercano',
-    price: '$24.990 / mes',
-    description:
-      'Este nivel está pensado para quienes deciden quedarse. La relación gana estabilidad, coherencia y profundidad: más conversaciones, más memoria y mayor continuidad en el tiempo.',
-    perks: ['Más conversaciones', 'Memoria mejorada', 'Continuidad extendida'],
+    price: '$25.990  / mes',
     recommended: true,
     image: require('@/assets/images/paywall/amigo-cercano.png'),
+    perks: [
+      { title: 'Memoria emocional avanzada', subtitle: '{name} recuerda gustos y anécdotas importantes.' },
+      { title: 'Continuidad extendida', subtitle: 'Conversaciones más fluidas en el tiempo.' },
+      { title: 'Respuestas más profundas', subtitle: 'Más naturales y personalizadas.' },
+    ],
   },
   {
     id: 'Mejor Amigo',
     title: 'Mejor Amigo',
-    price: '$39.990 / mes',
-    description:
-      'Este es el nivel más alto de compromiso y cercanía. La relación se vuelve prioritaria, con la máxima continuidad, memoria ampliada y el mayor volumen de interacción disponible.',
-    perks: ['Máxima continuidad', 'Memoria ampliada', 'Prioridad y extras'],
+    price: '$64.990 / mes',
     image: require('@/assets/images/paywall/mejor-amigo.png'),
+    perks: [
+      { title: 'Memoria ilimitada', subtitle: '{name} recuerda detalles y evolución de la relación.' },
+      { title: 'Máxima continuidad', subtitle: 'Menos “reinicios”, más conexión real.' },
+      { title: 'Respuestas más rápidas', subtitle: 'Interacciones más ágiles.' },
+      { title: 'Acceso prioritario', subtitle: 'Sé de los primeros en probar nuevas funciones.' },
+    ],
   },
 ];
 
@@ -63,6 +84,7 @@ export const SubscriptionPaywallScreen: React.FC = () => {
   const route = useRoute<Rt>();
 
   const companion = route.params?.companion;
+  const companionName = companion?.name ?? 'tu compañer@';
 
   const selectedPlan = useSubscriptionStore((s) => s.selectedPlan);
   const selectPlan = useSubscriptionStore((s) => s.selectPlan);
@@ -70,13 +92,60 @@ export const SubscriptionPaywallScreen: React.FC = () => {
 
   const isDisabled = useMemo(() => !selectedPlan, [selectedPlan]);
 
+  const defaultPlan = useMemo(() => PLANS.find((p) => p.recommended) ?? PLANS[0], []);
+  const activePlan = useMemo(() => {
+    return PLANS.find((p) => p.id === selectedPlan) ?? defaultPlan;
+  }, [selectedPlan, defaultPlan]);
+
+  const perksToShow = useMemo(() => {
+    return activePlan.perks.map((x) => ({
+      title: x.title.replaceAll('{name}', companionName),
+      subtitle: x.subtitle.replaceAll('{name}', companionName),
+    }));
+  }, [activePlan, companionName]);
+
+  const heroImage = useMemo(() => activePlan.image, [activePlan]);
+
+  const perksAnim = useRef(new RNAnimated.Value(1)).current;
+  const perksSlide = useRef(new RNAnimated.Value(0)).current;
+
+  useEffect(() => {
+    perksAnim.setValue(0);
+    perksSlide.setValue(8);
+
+    RNAnimated.parallel([
+      RNAnimated.timing(perksAnim, {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      RNAnimated.timing(perksSlide, {
+        toValue: 0,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [activePlan.id, perksAnim, perksSlide]);
+
+  const recoPulse = useSharedValue(1);
+
+  useEffect(() => {
+    recoPulse.value = withSequence(
+      withTiming(1.06, { duration: 240 }),
+      withSpring(1, { damping: 12, stiffness: 200 }),
+      withTiming(1.04, { duration: 220 }),
+      withSpring(1, { damping: 12, stiffness: 200 })
+    );
+  }, []);
+
+  const recoPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: recoPulse.value }],
+  }));
+
   const handleContinue = () => {
     confirmSubscription();
     navigation.replace('Chat');
   };
-
-  const screenW = Dimensions.get('window').width;
-  const twoCols = screenW >= 520;
 
   return (
     <GradientBackground variant="wizard" overlayOpacity={0.06}>
@@ -86,101 +155,149 @@ export const SubscriptionPaywallScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           style={{ flex: 1 }}
         >
-          <Text style={styles.title}>Elige tu plan para continuar</Text>
-          <Text style={styles.subtitle}>
-            Para empezar a chatear con {companion?.name ?? 'tu compañer@'}, selecciona una opción.
-          </Text>
+          {/* HERO */}
+          <View style={styles.hero}>
+            <ImageBackground
+              source={heroImage}
+              style={styles.heroBg}
+              imageStyle={styles.heroBgImg}
+              resizeMode="cover"
+            >
+              <LinearGradient
+                colors={['rgba(0,0,0,0.08)', 'rgba(0,0,0,0.62)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={styles.heroOverlay}
+              />
 
-          <View style={styles.grid}>
-            {PLANS.map((p) => {
-              const active = selectedPlan === p.id;
+              <View style={styles.heroContent}>
+                <Text style={styles.heroTitle}>Desbloquea la experiencia completa</Text>
+                <Text style={styles.heroSubtitle}>
+                  Para seguir conversando con {companionName}, elige una suscripción.
+                </Text>
+              </View>
+            </ImageBackground>
+          </View>
 
-              return (
-                <Pressable
-                  key={p.id}
-                  onPress={() => selectPlan(p.id)}
-                  hitSlop={10}
-                  style={({ pressed }) => [pressed && { opacity: 0.97 }]}
-                >
-                  <LinearGradient
-                    colors={
-                      active
-                        ? ['#FF2D87', '#FF5FB4', '#C78BFF']
-                        : ['rgba(255,255,255,0.22)', 'rgba(255,255,255,0.12)']
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[styles.cardOuter, active && styles.cardOuterActive]}
-                  >
-                    <View style={[styles.cardInner, active && styles.cardInnerActive]}>
-                      <View style={styles.hero}>
-                        <ImageBackground
-                          source={p.image}
-                          style={styles.heroBg}
-                          imageStyle={styles.heroBgImg}
-                          resizeMode="cover"
-                        >
-                          <LinearGradient
-                            colors={['rgba(0,0,0,0.00)', 'rgba(0,0,0,0.48)']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 0, y: 1 }}
-                            style={styles.heroOverlay}
-                          />
+          {/* 'BENEFICIOS' */}
+          <View style={styles.benefitsCardOuter}>
+            <View style={styles.benefitsCard}>
+              <Text style={styles.benefitsHeader}>
+                Lo que hace especial a {activePlan.title}
+              </Text>
 
-                          <LinearGradient
-                            colors={['rgba(0,0,0,0.20)', 'transparent', 'rgba(0,0,0,0.20)']}
-                            start={{ x: 0, y: 0.5 }}
-                            end={{ x: 1, y: 0.5 }}
-                            style={styles.heroVignette}
-                          />
-                        </ImageBackground>
+              <View style={styles.headerDivider} />
 
-                        {/* Hint arriba */}
-                        <View style={[styles.tapPill, active && styles.tapPillActive]}>
-                          <Text style={[styles.tapPillText, active && styles.tapPillTextActive]}>
-                            {active ? 'Seleccionado' : 'Toca para elegir'}
-                          </Text>
-                        </View>
-
-                        {/* Badge precio */}
-                        <View style={[styles.pricePill, active && styles.pricePillActive]}>
-                          <Text style={styles.pricePillText}>{p.price}</Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.body}>
-                        <Text style={styles.planTitle}>{p.title}</Text>
-                        <Text style={styles.description}>{p.description}</Text>
-
-                        <View style={[styles.perks, twoCols && styles.perksTwoCols]}>
-                          {p.perks.map((perk) => (
-                            <View key={perk} style={[styles.perkRow, twoCols && styles.perkRowTwoCols]}>
-                              <View style={[styles.checkDot, active && styles.checkDotActive]} />
-                              <Text style={styles.perkText}>{perk}</Text>
-                              </View>
-                          ))}
-                        </View>
-
-                        {p.recommended && (
-                          <View style={styles.recoPillWrapper}>
-                            <View style={styles.recoPill}><Text style={styles.recoPillText}>Recomendado</Text></View>
-                          </View>
-                        )}
-
-                        {active && (
-                          <LinearGradient
-                            colors={['rgba(255,45,135,0.22)', 'rgba(199,139,255,0.14)', 'transparent']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={styles.bottomAccent}
-                          />
-                        )}
-                      </View>
+              <RNAnimated.View
+                style={[
+                  styles.benefitsList,
+                  { opacity: perksAnim, transform: [{ translateY: perksSlide }] },
+                ]}
+              >
+                {perksToShow.map((b) => (
+                  <View key={b.title} style={styles.benefitRow}>
+                    <View style={styles.checkCircle}>
+                      <Text style={styles.checkMark}>✓</Text>
                     </View>
-                  </LinearGradient>
-                </Pressable>
-              );
-            })}
+
+                    <View style={styles.benefitTextBlock}>
+                      <Text style={styles.benefitTitle}>{b.title}</Text>
+                      <Text style={styles.benefitSubtitle}>{b.subtitle}</Text>
+                    </View>
+                  </View>
+                ))}
+              </RNAnimated.View>
+
+              <Text style={styles.microNote}>Cancela cuando quieras · Pago seguro</Text>
+            </View>
+          </View>
+
+          {/* PLANES */}
+          <View style={styles.plansSection}>
+            <Text style={styles.plansTitle}>Elige tu plan</Text>
+
+            <View style={styles.planChipsRow}>
+              {PLANS.map((p, index) => {
+                const active = selectedPlan === p.id;
+                const isRecommendedVisual = !selectedPlan && p.recommended;
+
+                return (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => selectPlan(p.id)}
+                    hitSlop={10}
+                    style={({ pressed }) => [pressed && { opacity: 0.96 }]}
+                  >
+                    <Animated.View
+                      entering={FadeInDown.delay(140 + index * 90).duration(420).springify()}
+                      layout={Layout.springify().damping(14)}
+                    >
+                      {active ? (
+                        <LinearGradient
+                          colors={['#FF2D87', '#C78BFF']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.planChipOuterActive}
+                        >
+                          <View style={[styles.planChip, styles.planChipInnerActive]}>
+                            {p.recommended && (
+                              <Animated.View style={recoPulseStyle}>
+                                <View style={styles.recoMiniBadge}>
+                                  <Text style={styles.recoMiniBadgeText}>Recomendado</Text>
+                                </View>
+                              </Animated.View>
+                            )}
+
+                            <Text style={[styles.planChipTitle, styles.planChipTitleActive]}>
+                              {p.title}
+                            </Text>
+
+                            <Text style={styles.planChipPrice}>{p.price}</Text>
+
+                            <Text style={styles.planHint}>
+                              {p.id === 'Amigo' && 'Para empezar suave'}
+                              {p.id === 'Amigo Cercano' && 'Más conexión y continuidad'}
+                              {p.id === 'Mejor Amigo' && 'La experiencia completa'}
+                            </Text>
+                          </View>
+                        </LinearGradient>
+                      ) : (
+                        <View
+                          style={[
+                            styles.planChipOuter,
+                            isRecommendedVisual && styles.planChipOuterRecommended,
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.planChip,
+                              isRecommendedVisual && styles.planChipInnerRecommended,
+                            ]}
+                          >
+                            {p.recommended && (
+                              <Animated.View style={recoPulseStyle}>
+                                <View style={styles.recoMiniBadge}>
+                                  <Text style={styles.recoMiniBadgeText}>Recomendado</Text>
+                                </View>
+                              </Animated.View>
+                            )}
+
+                            <Text style={styles.planChipTitle}>{p.title}</Text>
+                            <Text style={styles.planChipPrice}>{p.price}</Text>
+
+                            <Text style={styles.planHint}>
+                              {p.id === 'Amigo' && 'Para empezar suave'}
+                              {p.id === 'Amigo Cercano' && 'Más conexión y continuidad'}
+                              {p.id === 'Mejor Amigo' && 'La experiencia completa'}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                    </Animated.View>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
         </ScrollView>
       </ContentContainer>
