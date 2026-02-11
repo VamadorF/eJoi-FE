@@ -145,7 +145,7 @@ export const CreateCompanionScreen: React.FC = () => {
             {/* Botón editar imagen */}
             <TouchableOpacity 
               style={styles.editImageButton}
-              onPress={() => handleEdit(1)}
+              onPress={() => handleEdit(2)}
             >
               <Text style={styles.editImageButtonText}>✏️ Editar</Text>
             </TouchableOpacity>

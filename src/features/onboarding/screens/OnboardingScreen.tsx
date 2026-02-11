@@ -7,11 +7,14 @@ import Animated, {
   FadeOut,
   SlideInRight,
   SlideOutLeft,
+  ZoomIn,
   Layout,
   useAnimatedStyle,
   useSharedValue,
+  SharedValue,
   withSpring,
   withTiming,
+  withSequence,
   interpolate,
 } from 'react-native-reanimated';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -39,10 +42,17 @@ import { validators } from '@/shared/utils/validators';
 import { getRandomCompanionName } from '../data/getRandomCompanionName';
 import { useGenderedTextWithGender } from '@/shared/hooks/useGenderedText';
 
-// Imágenes para los selectores de estilo visual
-// Usando imágenes reales de las carpetas anime/ y arquetipos/
-const REALISTA_IMAGE = require('../../../../public/IMG/arquetipos/La Musa.jpg');
-const ANIME_IMAGE = require('../../../../public/IMG/anime/Anime_musa.png');
+// Imágenes para los selectores de estilo visual, indexadas por género
+const STYLE_IMAGES = {
+  femenino: {
+    realista: require('../../../../public/IMG/arquetipos/La Musa.jpg'),
+    anime: require('../../../../public/IMG/anime/Anime_musa.png'),
+  },
+  masculino: {
+    realista: require('../../../../public/IMG/arquetipos/Ejecutivo.png'),
+    anime: require('../../../../public/IMG/anime/anime_ejecutivo.png'),
+  },
+};
 
 type OnboardingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
 type OnboardingScreenRouteProp = RouteProp<RootStackParamList, 'Onboarding'>;
@@ -129,6 +139,45 @@ const GENDER_OPTIONS = [
 
 const TOTAL_STEPS = 9;
 
+// Configuración de partículas sparkle para el botón "Generar nombre"
+const SPARKLE_CONFIGS = [
+  { angle: 20, distance: 70, emoji: '✨' },
+  { angle: 80, distance: 55, emoji: '⭐' },
+  { angle: 140, distance: 65, emoji: '💫' },
+  { angle: 200, distance: 60, emoji: '✨' },
+  { angle: 260, distance: 50, emoji: '🌟' },
+  { angle: 320, distance: 72, emoji: '⭐' },
+];
+
+// Componente de partícula sparkle animada
+const SparkleParticle: React.FC<{
+  progress: SharedValue<number>;
+  angle: number;
+  distance: number;
+  emoji: string;
+  index: number;
+}> = ({ progress, angle, distance, emoji, index }) => {
+  const radians = (angle * Math.PI) / 180;
+  const dx = Math.cos(radians) * distance;
+  const dy = Math.sin(radians) * distance;
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: interpolate(progress.value, [0, 1], [0, dx]) },
+      { translateY: interpolate(progress.value, [0, 1], [0, dy]) },
+      { scale: interpolate(progress.value, [0, 0.25, 0.55, 1], [0, 1.4, 1, 0]) },
+      { rotate: `${interpolate(progress.value, [0, 1], [0, 200 + index * 40])}deg` },
+    ],
+    opacity: interpolate(progress.value, [0, 0.15, 0.55, 1], [0, 1, 0.8, 0]),
+  }));
+
+  return (
+    <Animated.Text style={[sparkleStyles.particle, animStyle]}>
+      {emoji}
+    </Animated.Text>
+  );
+};
+
 // Componente animado para wraps
 const AnimatedView = Animated.createAnimatedComponent(View);
 
@@ -160,6 +209,52 @@ export const OnboardingScreen: React.FC = () => {
   
   // Hook para textos con género dinámico
   const genderedText = useGenderedTextWithGender(onboardingData.gender as Gender | '');
+
+  // === Glow effect for visual steps (1 & 2) ===
+  const glowScale = useSharedValue(0);
+  const glowOpacity = useSharedValue(0);
+  const ringScale = useSharedValue(0);
+  const ringOpacity = useSharedValue(0);
+
+  const triggerSelectionEffect = () => {
+    // Main glow orb: scale up then settle
+    glowScale.value = 0.3;
+    glowOpacity.value = 0;
+    glowScale.value = withSequence(
+      withSpring(1.5, { damping: 6, stiffness: 100 }),
+      withSpring(1, { damping: 12, stiffness: 80 })
+    );
+    glowOpacity.value = withSequence(
+      withTiming(0.5, { duration: 250 }),
+      withTiming(0.18, { duration: 1200 })
+    );
+    // Expanding ring: grows outward and fades
+    ringScale.value = 0.5;
+    ringOpacity.value = 0;
+    ringScale.value = withTiming(2.8, { duration: 900 });
+    ringOpacity.value = withSequence(
+      withTiming(0.4, { duration: 200 }),
+      withTiming(0, { duration: 700 })
+    );
+  };
+
+  useEffect(() => {
+    if (onboardingData.gender) triggerSelectionEffect();
+  }, [onboardingData.gender]);
+
+  useEffect(() => {
+    if (onboardingData.visualStyle) triggerSelectionEffect();
+  }, [onboardingData.visualStyle]);
+
+  const glowAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: glowScale.value }],
+    opacity: glowOpacity.value,
+  }));
+
+  const ringAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: ringScale.value }],
+    opacity: ringOpacity.value,
+  }));
 
   const handleNext = () => {
     setErrorMessage('');
@@ -245,6 +340,29 @@ export const OnboardingScreen: React.FC = () => {
     return validators.getNameError(name) || undefined;
   };
 
+  // === Sparkle effect for "Generar nombre" button ===
+  const sparkleProgress = useSharedValue(0);
+  const nameBounce = useSharedValue(1);
+
+  const triggerSparkleEffect = () => {
+    // Burst of sparkle particles
+    sparkleProgress.value = 0;
+    sparkleProgress.value = withSequence(
+      withTiming(1, { duration: 600 }),
+      withTiming(0, { duration: 1 })
+    );
+    // Bounce on the text field
+    nameBounce.value = withSequence(
+      withSpring(1.05, { damping: 4, stiffness: 400 }),
+      withSpring(0.97, { damping: 6, stiffness: 300 }),
+      withSpring(1, { damping: 10, stiffness: 200 })
+    );
+  };
+
+  const nameBounceStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: nameBounce.value }],
+  }));
+
   const handleRandomName = () => {
     const persona = onboardingData.persona;
     const gender = onboardingData.gender as 'femenino' | 'masculino';
@@ -252,15 +370,16 @@ export const OnboardingScreen: React.FC = () => {
       const newName = getRandomCompanionName(persona, gender);
       if (newName) {
         setOnboardingData({ ...onboardingData, companionName: newName });
+        triggerSparkleEffect();
       }
     }
   };
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return !!onboardingData.visualStyle;
-      case 2:
         return !!onboardingData.gender;
+      case 2:
+        return !!onboardingData.visualStyle;
       case 3:
         return !!onboardingData.persona;
       case 4:
@@ -286,9 +405,9 @@ export const OnboardingScreen: React.FC = () => {
   const getStepContext = (step: number): string => {
     switch (step) {
       case 1:
-        return 'Elige el estilo visual';
-      case 2:
         return 'Elige el género';
+      case 2:
+        return 'Elige el estilo visual';
       case 3:
         return genderedText.t('Define cómo quieres que sea tu compañer@');
       case 4:
@@ -326,38 +445,25 @@ export const OnboardingScreen: React.FC = () => {
             style={styles.stepContainer}
             entering={FadeInDown.duration(400).springify()}
           >
-            <Animated.View 
-              style={styles.visualStepHeader}
-              entering={FadeInUp.delay(100).duration(300)}
-            >
-              <Text style={styles.visualStepTitle}>
-                Elige tu <Text style={styles.highlightText}>{genderedText.companion()}</Text>
-              </Text>
-              <CategoryPill label="Estilo" />
-            </Animated.View>
-            <Animated.View 
-              style={styles.circleSelectorWrapper}
-              entering={FadeIn.delay(200).duration(400)}
-            >
-              <CircleSelector
-                options={[
-                  { id: 'realista', label: 'Realista', image: REALISTA_IMAGE },
-                  { id: 'anime', label: 'Anime', image: ANIME_IMAGE },
-                ]}
-                selectedId={onboardingData.visualStyle}
-                onSelect={(id) => handleVisualStyleSelect(id as 'realista' | 'anime')}
-              />
-            </Animated.View>
-          </Animated.View>
-        );
-
-      case 2:
-        return (
-          <Animated.View 
-            key={`step-2-${animationKey}`}
-            style={styles.stepContainer}
-            entering={FadeInDown.duration(400).springify()}
-          >
+            {/* Background glow on gender selection */}
+            {onboardingData.gender !== '' && (
+              <View style={localStyles.glowContainer} pointerEvents="none">
+                <Animated.View style={[
+                  localStyles.glowOrb,
+                  glowAnimatedStyle,
+                  { backgroundColor: onboardingData.gender === 'femenino'
+                      ? 'rgba(242, 10, 100, 0.28)'
+                      : 'rgba(123, 104, 238, 0.28)' },
+                ]} />
+                <Animated.View style={[
+                  localStyles.glowRing,
+                  ringAnimatedStyle,
+                  { borderColor: onboardingData.gender === 'femenino'
+                      ? 'rgba(242, 10, 100, 0.22)'
+                      : 'rgba(123, 104, 238, 0.22)' },
+                ]} />
+              </View>
+            )}
             <Animated.View 
               style={styles.visualStepHeader}
               entering={FadeInUp.delay(100).duration(300)}
@@ -378,6 +484,58 @@ export const OnboardingScreen: React.FC = () => {
                 ]}
                 selectedId={onboardingData.gender}
                 onSelect={(id) => handleGenderSelect(id as 'femenino' | 'masculino')}
+              />
+            </Animated.View>
+          </Animated.View>
+        );
+
+      case 2:
+        const selectedGender = (onboardingData.gender || 'femenino') as 'femenino' | 'masculino';
+        return (
+          <Animated.View 
+            key={`step-2-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            {/* Background glow on visual style selection */}
+            {onboardingData.visualStyle !== '' && (
+              <View style={localStyles.glowContainer} pointerEvents="none">
+                <Animated.View style={[
+                  localStyles.glowOrb,
+                  glowAnimatedStyle,
+                  { backgroundColor: onboardingData.visualStyle === 'realista'
+                      ? 'rgba(247, 191, 216, 0.4)'
+                      : 'rgba(186, 176, 237, 0.4)' },
+                ]} />
+                <Animated.View style={[
+                  localStyles.glowRing,
+                  ringAnimatedStyle,
+                  { borderColor: onboardingData.visualStyle === 'realista'
+                      ? 'rgba(247, 191, 216, 0.3)'
+                      : 'rgba(186, 176, 237, 0.3)' },
+                ]} />
+              </View>
+            )}
+            <Animated.View 
+              style={styles.visualStepHeader}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
+              <Text style={styles.visualStepTitle}>
+                Elige tu <Text style={styles.highlightText}>{genderedText.companion()}</Text>
+              </Text>
+              <CategoryPill label="Estilo" />
+            </Animated.View>
+            <Animated.View 
+              style={styles.circleSelectorWrapper}
+              entering={FadeIn.delay(200).duration(400)}
+            >
+              <CircleSelector
+                options={[
+                  { id: 'realista', label: 'Realista', image: STYLE_IMAGES[selectedGender].realista },
+                  { id: 'anime', label: 'Anime', image: STYLE_IMAGES[selectedGender].anime },
+                ]}
+                selectedId={onboardingData.visualStyle}
+                onSelect={(id) => handleVisualStyleSelect(id as 'realista' | 'anime')}
               />
             </Animated.View>
           </Animated.View>
@@ -676,30 +834,47 @@ export const OnboardingScreen: React.FC = () => {
               style={styles.inputContainer}
               entering={FadeIn.delay(200).duration(400)}
             >
-              <TextField
-                label={genderedText.t('Nombre de tu compañer@')}
-                placeholder="Ej: Luna, Alex, Maya..."
-                value={onboardingData.companionName || ''}
-                onChangeText={handleCompanionNameChange}
-                maxLength={20}
-                error={getCompanionNameError()}
-                helperText="Solo letras, sin números ni símbolos"
-              />
+              <Animated.View style={nameBounceStyle}>
+                <TextField
+                  label={genderedText.t('Nombre de tu compañer@')}
+                  placeholder="Ej: Luna, Alex, Maya..."
+                  value={onboardingData.companionName || ''}
+                  onChangeText={handleCompanionNameChange}
+                  maxLength={20}
+                  error={getCompanionNameError()}
+                  helperText="Solo letras, sin números ni símbolos"
+                />
+              </Animated.View>
               <Animated.View 
                 style={localStyles.randomRow}
                 entering={FadeInUp.delay(300).duration(300)}
               >
                 <Text style={localStyles.randomHint}>¿Sin ideas?</Text>
-                <Pressable
-                  onPress={handleRandomName}
-                  hitSlop={10}
-                  style={({ pressed }) => [
-                    localStyles.randomButton,
-                    pressed && { opacity: 0.6 },
-                  ]}
-                >
-                  <Text style={localStyles.randomButtonText}> Generar nombre✨ </Text>
-                </Pressable>
+                <View style={sparkleStyles.buttonWrapper}>
+                  {/* Sparkle particles */}
+                  <View style={sparkleStyles.particleContainer} pointerEvents="none">
+                    {SPARKLE_CONFIGS.map((config, i) => (
+                      <SparkleParticle
+                        key={i}
+                        progress={sparkleProgress}
+                        angle={config.angle}
+                        distance={config.distance}
+                        emoji={config.emoji}
+                        index={i}
+                      />
+                    ))}
+                  </View>
+                  <Pressable
+                    onPress={handleRandomName}
+                    hitSlop={10}
+                    style={({ pressed }) => [
+                      localStyles.randomButton,
+                      pressed && { opacity: 0.6 },
+                    ]}
+                  >
+                    <Text style={localStyles.randomButtonText}> Generar nombre✨ </Text>
+                  </Pressable>
+                </View>
               </Animated.View>
             </Animated.View>
           </Animated.View>
@@ -776,5 +951,48 @@ const localStyles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     textDecorationLine: 'underline',
+  },
+  // Glow effect styles for visual steps
+  glowContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    zIndex: 0,
+  },
+  glowOrb: {
+    position: 'absolute',
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+  },
+  glowRing: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    borderWidth: 2.5,
+    backgroundColor: 'transparent',
+  },
+});
+
+// Estilos para el efecto sparkle del botón "Generar nombre"
+const sparkleStyles = StyleSheet.create({
+  buttonWrapper: {
+    position: 'relative',
+  },
+  particleContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 0,
+    height: 0,
+    zIndex: 10,
+    overflow: 'visible',
+  },
+  particle: {
+    position: 'absolute',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
