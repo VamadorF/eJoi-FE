@@ -6,25 +6,15 @@ import {
   ImageBackground,
   ScrollView,
   ImageSourcePropType,
-  Animated as RNAnimated,
+  Animated,
 } from 'react-native';
-
-import Animated, {
-  FadeInDown,
-  Layout,
-  useSharedValue,
-  useAnimatedStyle,
-  withSequence,
-  withTiming,
-  withSpring,
-} from 'react-native-reanimated';
 
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { RootStackParamList } from '@/shared/types/navigation';
-import { GradientBackground, PrimaryCTA, ContentContainer } from '@/shared/components';
+import { GradientBackground, ContentContainer } from '@/shared/components';
 import { useSubscriptionStore, PlanId } from '@/features/subscription/store/subscription.store';
 
 import { styles } from './SubscriptionPaywallScreen.styles';
@@ -56,7 +46,7 @@ const PLANS: Plan[] = [
   {
     id: 'Amigo Cercano',
     title: 'Amigo Cercano',
-    price: '$25.990  / mes',
+    price: '$25.990 / mes',
     recommended: true,
     image: require('@/assets/images/paywall/amigo-cercano.png'),
     perks: [
@@ -73,7 +63,6 @@ const PLANS: Plan[] = [
     perks: [
       { title: 'Memoria ilimitada', subtitle: '{name} recuerda detalles y evolución de la relación.' },
       { title: 'Máxima continuidad', subtitle: 'Menos “reinicios”, más conexión real.' },
-      { title: 'Respuestas más rápidas', subtitle: 'Interacciones más ágiles.' },
       { title: 'Acceso prioritario', subtitle: 'Sé de los primeros en probar nuevas funciones.' },
     ],
   },
@@ -106,20 +95,21 @@ export const SubscriptionPaywallScreen: React.FC = () => {
 
   const heroImage = useMemo(() => activePlan.image, [activePlan]);
 
-  const perksAnim = useRef(new RNAnimated.Value(1)).current;
-  const perksSlide = useRef(new RNAnimated.Value(0)).current;
+  // Animación perks
+  const perksAnim = useRef(new Animated.Value(1)).current;
+  const perksSlide = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     perksAnim.setValue(0);
     perksSlide.setValue(8);
 
-    RNAnimated.parallel([
-      RNAnimated.timing(perksAnim, {
+    Animated.parallel([
+      Animated.timing(perksAnim, {
         toValue: 1,
         duration: 180,
         useNativeDriver: true,
       }),
-      RNAnimated.timing(perksSlide, {
+      Animated.timing(perksSlide, {
         toValue: 0,
         duration: 220,
         useNativeDriver: true,
@@ -127,110 +117,108 @@ export const SubscriptionPaywallScreen: React.FC = () => {
     ]).start();
   }, [activePlan.id, perksAnim, perksSlide]);
 
-  const recoPulse = useSharedValue(1);
-
-  useEffect(() => {
-    recoPulse.value = withSequence(
-      withTiming(1.06, { duration: 240 }),
-      withSpring(1, { damping: 12, stiffness: 200 }),
-      withTiming(1.04, { duration: 220 }),
-      withSpring(1, { damping: 12, stiffness: 200 })
-    );
-  }, []);
-
-  const recoPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: recoPulse.value }],
-  }));
-
   const handleContinue = () => {
     confirmSubscription();
-    navigation.replace('Chat');
+    navigation.replace('Home');
   };
 
   return (
     <GradientBackground variant="wizard" overlayOpacity={0.06}>
-      <ContentContainer>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          style={{ flex: 1 }}
-        >
-          {/* HERO */}
-          <View style={styles.hero}>
-            <ImageBackground
-              source={heroImage}
-              style={styles.heroBg}
-              imageStyle={styles.heroBgImg}
-              resizeMode="cover"
-            >
-              <LinearGradient
-                colors={['rgba(0,0,0,0.08)', 'rgba(0,0,0,0.62)']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={styles.heroOverlay}
-              />
-
-              <View style={styles.heroContent}>
-                <Text style={styles.heroTitle}>Desbloquea la experiencia completa</Text>
-                <Text style={styles.heroSubtitle}>
-                  Para seguir conversando con {companionName}, elige una suscripción.
-                </Text>
-              </View>
-            </ImageBackground>
-          </View>
-
-          {/* 'BENEFICIOS' */}
-          <View style={styles.benefitsCardOuter}>
-            <View style={styles.benefitsCard}>
-              <Text style={styles.benefitsHeader}>
-                Lo que hace especial a {activePlan.title}
-              </Text>
-
-              <View style={styles.headerDivider} />
-
-              <RNAnimated.View
-                style={[
-                  styles.benefitsList,
-                  { opacity: perksAnim, transform: [{ translateY: perksSlide }] },
-                ]}
+      <View style={styles.screen}>
+        <ContentContainer>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            style={{ flex: 1 }}
+          >
+            {/* HERO */}
+            <View style={styles.hero}>
+              <ImageBackground
+                source={heroImage}
+                style={styles.heroBg}
+                imageStyle={styles.heroBgImg}
+                resizeMode="cover"
               >
-                {perksToShow.map((b) => (
-                  <View key={b.title} style={styles.benefitRow}>
-                    <View style={styles.checkCircle}>
-                      <Text style={styles.checkMark}>✓</Text>
-                    </View>
+                <LinearGradient
+                  colors={['rgba(0,0,0,0.08)', 'rgba(0,0,0,0.62)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={styles.heroOverlay}
+                />
 
-                    <View style={styles.benefitTextBlock}>
-                      <Text style={styles.benefitTitle}>{b.title}</Text>
-                      <Text style={styles.benefitSubtitle}>{b.subtitle}</Text>
-                    </View>
-                  </View>
-                ))}
-              </RNAnimated.View>
-
-              <Text style={styles.microNote}>Cancela cuando quieras · Pago seguro</Text>
+                <View style={styles.heroContent}>
+                  <Text style={styles.heroTitle}>Desbloquea la experiencia completa</Text>
+                  <Text style={styles.heroSubtitle}>
+                    Para seguir conversando con {companionName}, elige una suscripción.
+                  </Text>
+                </View>
+              </ImageBackground>
             </View>
-          </View>
 
-          {/* PLANES */}
-          <View style={styles.plansSection}>
-            <Text style={styles.plansTitle}>Elige tu plan</Text>
+            {/* BENEFICIOS */}
+            <View style={styles.benefitsCardOuter}>
+              <View style={styles.benefitsCard}>
+                <Text style={styles.benefitsHeader}>
+                  Lo que hace especial a {activePlan.title}
+                </Text>
 
-            <View style={styles.planChipsRow}>
-              {PLANS.map((p, index) => {
-                const active = selectedPlan === p.id;
-                const isRecommendedVisual = !selectedPlan && p.recommended;
+                <View style={styles.headerDivider} />
 
-                return (
-                  <Pressable
-                    key={p.id}
-                    onPress={() => selectPlan(p.id)}
-                    hitSlop={10}
-                    style={({ pressed }) => [pressed && { opacity: 0.96 }]}
-                  >
-                    <Animated.View
-                      entering={FadeInDown.delay(140 + index * 90).duration(420).springify()}
-                      layout={Layout.springify().damping(14)}
+                <Animated.View
+                  style={[
+                    styles.benefitsList,
+                    { opacity: perksAnim, transform: [{ translateY: perksSlide }] },
+                  ]}
+                >
+                  {perksToShow.map((b) => (
+                    <View key={b.title} style={styles.benefitRow}>
+                      <View style={styles.checkCircle}>
+                        <Text style={styles.checkMark}>✓</Text>
+                      </View>
+
+                      <View style={styles.benefitTextBlock}>
+                        <Text style={styles.benefitTitle}>{b.title}</Text>
+                        <Text style={styles.benefitSubtitle}>{b.subtitle}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </Animated.View>
+
+                <Text style={styles.microNote}>Cancela cuando quieras · Pago seguro</Text>
+              </View>
+            </View>
+
+            {/* PLANES */}
+            <View style={styles.plansSection}>
+              <Text style={styles.plansTitle}>Elige tu plan</Text>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.planChipsRow}
+              >
+                {PLANS.map((p) => {
+                  const active = selectedPlan === p.id;
+                  const isRecommendedVisual = !selectedPlan && p.recommended;
+
+                  const Badge = () => (
+                    <View style={styles.badgeSlot}>
+                      {p.recommended ? (
+                        <View style={styles.recoMiniBadge}>
+                          <Text style={styles.recoMiniBadgeText}>Recomendado</Text>
+                        </View>
+                      ) : (
+                        <View style={styles.recoMiniBadgePlaceholder} />
+                      )}
+                    </View>
+                  );
+
+                  return (
+                    <Pressable
+                      key={p.id}
+                      onPress={() => selectPlan(p.id)}
+                      hitSlop={10}
+                      style={({ pressed }) => [pressed && { opacity: 0.96 }]}
                     >
                       {active ? (
                         <LinearGradient
@@ -240,13 +228,7 @@ export const SubscriptionPaywallScreen: React.FC = () => {
                           style={styles.planChipOuterActive}
                         >
                           <View style={[styles.planChip, styles.planChipInnerActive]}>
-                            {p.recommended && (
-                              <Animated.View style={recoPulseStyle}>
-                                <View style={styles.recoMiniBadge}>
-                                  <Text style={styles.recoMiniBadgeText}>Recomendado</Text>
-                                </View>
-                              </Animated.View>
-                            )}
+                            <Badge />
 
                             <Text style={[styles.planChipTitle, styles.planChipTitleActive]}>
                               {p.title}
@@ -274,13 +256,7 @@ export const SubscriptionPaywallScreen: React.FC = () => {
                               isRecommendedVisual && styles.planChipInnerRecommended,
                             ]}
                           >
-                            {p.recommended && (
-                              <Animated.View style={recoPulseStyle}>
-                                <View style={styles.recoMiniBadge}>
-                                  <Text style={styles.recoMiniBadgeText}>Recomendado</Text>
-                                </View>
-                              </Animated.View>
-                            )}
+                            <Badge />
 
                             <Text style={styles.planChipTitle}>{p.title}</Text>
                             <Text style={styles.planChipPrice}>{p.price}</Text>
@@ -293,16 +269,45 @@ export const SubscriptionPaywallScreen: React.FC = () => {
                           </View>
                         </View>
                       )}
-                    </Animated.View>
-                  </Pressable>
-                );
-              })}
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
-          </View>
-        </ScrollView>
-      </ContentContainer>
+          </ScrollView>
+        </ContentContainer>
 
-      <PrimaryCTA label="Continuar" onPress={handleContinue} disabled={isDisabled} />
+        {/* CTA LOCAL */}
+        <View style={styles.ctaDock} pointerEvents="box-none">
+          <LinearGradient
+            colors={[
+              'rgba(232, 208, 245, 0.00)',
+              'rgba(232, 208, 245, 0.92)',
+              'rgba(232, 208, 245, 1.00)',
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.ctaFade}
+            pointerEvents="none"
+          />
+
+          <Pressable
+            onPress={handleContinue}
+            disabled={isDisabled}
+            style={({ pressed }) => [
+              styles.ctaButton,
+              isDisabled && styles.ctaButtonDisabled,
+              pressed && !isDisabled && { transform: [{ scale: 0.99 }], opacity: 0.95 },
+            ]}
+          >
+            <Text style={[styles.ctaText, isDisabled && styles.ctaTextDisabled]}>
+              Continuar
+            </Text>
+          </Pressable>
+        </View>
+      </View>
     </GradientBackground>
   );
 };
+
+export default SubscriptionPaywallScreen;
