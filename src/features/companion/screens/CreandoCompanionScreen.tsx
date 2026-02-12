@@ -1,16 +1,23 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { RootStackParamList } from '@/shared/types/navigation';
 import { useCompanionStore } from '../store/companion.store';
 import { Companion } from '../types';
 import { Gender } from '@/features/onboarding/types';
 import { CreatingAnimation } from '@/shared/components';
 
-type CreandoCompanionScreenRouteProp = RouteProp<RootStackParamList, 'CreandoCompanion'>;
-type CreandoCompanionScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CreandoCompanion'>;
+type CreandoCompanionScreenRouteProp = RouteProp<
+  RootStackParamList,
+  'CreandoCompanion'
+>;
+type CreandoCompanionScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'CreandoCompanion'
+>;
 
 export const CreandoCompanionScreen: React.FC = () => {
   const navigation = useNavigation<CreandoCompanionScreenNavigationProp>();
@@ -19,42 +26,34 @@ export const CreandoCompanionScreen: React.FC = () => {
   const onboardingData = route.params?.onboardingData;
 
   const handleDone = async () => {
-    if (onboardingData) {
-      // TODO: Llamar a API para crear el/la compañer@
-      // const response = await createCompanionAPI(onboardingData);
-      
-      // Por ahora, crear compañer@ mock
-      const newCompanion: Companion = {
-        id: `companion-${Date.now()}`,
-        name: onboardingData.companionName || 'Tu Compañer@',
-        visualStyle: onboardingData.visualStyle || 'realista',
-        gender: onboardingData.gender as Gender || 'femenino',
-        personality: onboardingData.persona,
-        tone: onboardingData.tone,
-        interactionStyle: onboardingData.interactionStyle,
-        conversationDepth: onboardingData.conversationDepth,
-        interests: onboardingData.interests,
-        traits: onboardingData.boundaries,
-        avatar: onboardingData.avatar,
-      };
+    if (!onboardingData) return;
 
-      // Guardar en el store (esto también persiste en almacenamiento local)
-      await setCompanion(newCompanion);
+    const newCompanion: Companion = {
+      id: `companion-${Date.now()}`,
+      name: onboardingData.companionName || 'Tu Compañer@',
+      visualStyle: onboardingData.visualStyle || 'realista',
+      gender: (onboardingData.gender as Gender) || 'femenino',
+      personality: onboardingData.persona,
+      tone: onboardingData.tone,
+      interactionStyle: onboardingData.interactionStyle,
+      conversationDepth: onboardingData.conversationDepth,
+      interests: onboardingData.interests,
+      traits: onboardingData.boundaries,
+      avatar: onboardingData.avatar,
+    };
 
-      // TODO: Guardar en el backend
-      // await saveCompanionToAPI(newCompanion);
+    await setCompanion(newCompanion);
 
-      // Navegar a la pantalla de compañer@ list@
-      navigation.replace('CompanionReady', { companion: newCompanion });
-    }
+    // ✅ Ir directo al paywall (sin pasar por CompanionReady)
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'SubscriptionPaywall', params: { companion: newCompanion } }],
+    });
   };
 
   return (
     <SafeAreaView style={localStyles.container} edges={['top']}>
-      <CreatingAnimation
-        durationMs={4000}
-        onDone={handleDone}
-      />
+      <CreatingAnimation durationMs={4000} onDone={handleDone} />
     </SafeAreaView>
   );
 };
@@ -65,4 +64,3 @@ const localStyles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
 });
-
