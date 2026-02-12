@@ -146,12 +146,12 @@ const TOTAL_STEPS = 9;
 
 // Configuración de partículas sparkle para el botón "Generar nombre"
 const SPARKLE_CONFIGS = [
-  { angle: 20, distance: 70, emoji: '✨' },
-  { angle: 80, distance: 55, emoji: '⭐' },
-  { angle: 140, distance: 65, emoji: '💫' },
-  { angle: 200, distance: 60, emoji: '✨' },
-  { angle: 260, distance: 50, emoji: '🌟' },
-  { angle: 320, distance: 72, emoji: '⭐' },
+  { angle: 20, distance: 14, emoji: '✨' },
+  { angle: 70, distance: 16, emoji: '⭐' },
+  { angle: 140, distance: 14, emoji: '💫' },
+  { angle: 210, distance: 16, emoji: '✨' },
+  { angle: 290, distance: 14, emoji: '🌟' },
+  { angle: 340, distance: 16, emoji: '⭐' },
 ];
 
 // Componente de partícula sparkle animada
@@ -223,15 +223,15 @@ export const OnboardingScreen: React.FC = () => {
 
   const triggerSelectionEffect = () => {
     // Main glow orb: scale up then settle
-    glowScale.value = 0.3;
+    glowScale.value = 0.92;
     glowOpacity.value = 0;
     glowScale.value = withSequence(
-      withSpring(1.5, { damping: 6, stiffness: 100 }),
-      withSpring(1, { damping: 12, stiffness: 80 })
+      withSpring(1.10, { damping: 14, stiffness: 200, mass: 0.6 }),
+      withSpring(1.00, { damping: 16, stiffness: 180, mass: 0.7 })
     );
     glowOpacity.value = withSequence(
-      withTiming(0.5, { duration: 250 }),
-      withTiming(0.18, { duration: 1200 })
+      withTiming(0.28, { duration: 120 }),
+      withTiming(0.16, { duration: 520 })
     );
     // Expanding ring: grows outward and fades
     ringScale.value = 0.5;
@@ -345,7 +345,7 @@ export const OnboardingScreen: React.FC = () => {
     return validators.getNameError(name) || undefined;
   };
 
-  // === Sparkle effect for "Generar nombre" button ===
+  // === Sparkle effect for "Generar nombre" button === QUE GRINGO VICENTE POR DIOS
   const sparkleProgress = useSharedValue(0);
   const nameBounce = useSharedValue(1);
 
@@ -568,7 +568,7 @@ export const OnboardingScreen: React.FC = () => {
               style={styles.stepTitle}
               entering={FadeInUp.delay(100).duration(300)}
             >
-              Elige la personalidad
+              Elige su personalidad
             </Animated.Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
@@ -613,7 +613,7 @@ export const OnboardingScreen: React.FC = () => {
               style={styles.stepTitle}
               entering={FadeInUp.delay(100).duration(300)}
             >
-              Elige el tono
+              Elige su tono
             </Animated.Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
@@ -834,7 +834,7 @@ export const OnboardingScreen: React.FC = () => {
               style={styles.stepTitle}
               entering={FadeInUp.delay(100).duration(300)}
             >
-              Elige un nombre
+              Elige su nombre
             </Animated.Text>
             <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
             <Text style={styles.stepSubtitle}>
