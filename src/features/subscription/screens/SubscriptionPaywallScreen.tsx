@@ -7,11 +7,14 @@ import {
   ScrollView,
   ImageSourcePropType,
   Animated,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RootStackParamList } from '@/shared/types/navigation';
 import { GradientBackground, ContentContainer } from '@/shared/components';
@@ -68,9 +71,17 @@ const PLANS: Plan[] = [
   },
 ];
 
+// helper clamp
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
 export const SubscriptionPaywallScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Rt>();
+  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+
+  const isXS = height <= 700 || width <= 360;
+  const isSM = !isXS && (height <= 780 || width <= 390);
 
   const companion = route.params?.companion;
   const companionName = companion?.name ?? 'tu compañer@';
@@ -80,11 +91,11 @@ export const SubscriptionPaywallScreen: React.FC = () => {
   const confirmSubscription = useSubscriptionStore((s) => s.confirmSubscription);
 
   const isDisabled = useMemo(() => !selectedPlan, [selectedPlan]);
-
   const defaultPlan = useMemo(() => PLANS.find((p) => p.recommended) ?? PLANS[0], []);
-  const activePlan = useMemo(() => {
-    return PLANS.find((p) => p.id === selectedPlan) ?? defaultPlan;
-  }, [selectedPlan, defaultPlan]);
+  const activePlan = useMemo(() => PLANS.find((p) => p.id === selectedPlan) ?? defaultPlan, [
+    selectedPlan,
+    defaultPlan,
+  ]);
 
   const perksToShow = useMemo(() => {
     return activePlan.perks.map((x) => ({
@@ -95,7 +106,18 @@ export const SubscriptionPaywallScreen: React.FC = () => {
 
   const heroImage = useMemo(() => activePlan.image, [activePlan]);
 
-  // Animación perks
+  const heroHeight = clamp(Math.round(height * (isXS ? 0.26 : isSM ? 0.28 : 0.30)), 160, 240);
+
+  const planGap = isXS ? 8 : 10;
+  const planPadV = isXS ? 8 : 10;
+  const planMinH = isXS ? 96 : 108;
+
+  const planTitleSize = isXS ? 11.5 : 12;
+  const planHintSize = isXS ? 10 : 10.5;
+
+  const titleSize = isXS ? 19 : 20;
+  const subSize = isXS ? 12 : 12.5;
+
   const perksAnim = useRef(new Animated.Value(1)).current;
   const perksSlide = useRef(new Animated.Value(0)).current;
 
@@ -104,16 +126,8 @@ export const SubscriptionPaywallScreen: React.FC = () => {
     perksSlide.setValue(8);
 
     Animated.parallel([
-      Animated.timing(perksAnim, {
-        toValue: 1,
-        duration: 180,
-        useNativeDriver: true,
-      }),
-      Animated.timing(perksSlide, {
-        toValue: 0,
-        duration: 220,
-        useNativeDriver: true,
-      }),
+      Animated.timing(perksAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
+      Animated.timing(perksSlide, { toValue: 0, duration: 220, useNativeDriver: true }),
     ]).start();
   }, [activePlan.id, perksAnim, perksSlide]);
 
@@ -122,20 +136,45 @@ export const SubscriptionPaywallScreen: React.FC = () => {
     navigation.replace('Home');
   };
 
+  const CTA_TOTAL_HEIGHT = 44 + 8 + 12 + 64 + 16;
+
+  const heroBgStyle = { height: heroHeight };
+  const plansRowStyle = { gap: planGap };
+  const planCardStyle = { minHeight: planMinH, paddingVertical: planPadV };
+
+  const heroTitleStyle = { fontSize: titleSize, lineHeight: Math.round(titleSize * 1.18) };
+  const heroSubtitleStyle = { fontSize: subSize, lineHeight: Math.round(subSize * 1.35) };
+
+  const planTitleStyle = { fontSize: planTitleSize, lineHeight: Math.round(planTitleSize * 1.35) };
+  const planHintStyle = { fontSize: planHintSize, lineHeight: Math.round(planHintSize * 1.35) };
+
   return (
     <GradientBackground variant="wizard" overlayOpacity={0.06}>
       <View style={styles.screen}>
         <ContentContainer>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
             style={{ flex: 1 }}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: CTA_TOTAL_HEIGHT + insets.bottom },
+            ]}
+            contentInset={
+              Platform.OS === 'ios'
+                ? { bottom: CTA_TOTAL_HEIGHT + insets.bottom }
+                : undefined
+            }
+            scrollIndicatorInsets={
+              Platform.OS === 'ios'
+                ? { bottom: CTA_TOTAL_HEIGHT + insets.bottom }
+                : undefined
+            }
           >
             {/* HERO */}
             <View style={styles.hero}>
               <ImageBackground
                 source={heroImage}
-                style={styles.heroBg}
+                style={[styles.heroBg, heroBgStyle]}
                 imageStyle={styles.heroBgImg}
                 resizeMode="cover"
               >
@@ -147,12 +186,79 @@ export const SubscriptionPaywallScreen: React.FC = () => {
                 />
 
                 <View style={styles.heroContent}>
-                  <Text style={styles.heroTitle}>Desbloquea la experiencia completa</Text>
-                  <Text style={styles.heroSubtitle}>
+                  <Text style={[styles.heroTitle, heroTitleStyle]}>
+                    Desbloquea la experiencia completa
+                  </Text>
+                  <Text style={[styles.heroSubtitle, heroSubtitleStyle]}>
                     Para seguir conversando con {companionName}, elige una suscripción.
                   </Text>
                 </View>
               </ImageBackground>
+            </View>
+
+            {/* PLANES (3 visibles) */}
+            <View style={styles.plansSection}>
+              <Text style={styles.plansTitle}>Elige tu plan</Text>
+
+              <View style={[styles.plansRow, plansRowStyle]}>
+                {PLANS.map((p) => {
+                  const active = selectedPlan === p.id;
+                  const isRecommendedVisual = !selectedPlan && p.recommended;
+
+                  const content = (
+                    <View
+                      style={[
+                        styles.planCard,
+                        planCardStyle,
+                        active && styles.planCardActive,
+                        isRecommendedVisual && styles.planCardRecommended,
+                      ]}
+                    >
+                      <View>
+                        <Text style={[styles.planTitle, planTitleStyle, active && styles.planTitleActive]}>
+                          {p.title}
+                        </Text>
+                        <Text style={styles.planPrice}>{p.price}</Text>
+
+                        <Text style={[styles.planHint, planHintStyle]}>
+                          {p.id === 'Amigo' && 'Para empezar suave'}
+                          {p.id === 'Amigo Cercano' && 'Más conexión y continuidad'}
+                          {p.id === 'Mejor Amigo' && 'La experiencia completa'}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+
+                  return (
+                    <Pressable
+                      key={p.id}
+                      onPress={() => selectPlan(p.id)}
+                      hitSlop={10}
+                      style={({ pressed }) => [{ flex: 1 }, pressed && { opacity: 0.96 }]}
+                    >
+                      {active ? (
+                        <LinearGradient
+                          colors={['#FF2D87', '#C78BFF']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.planOuterActive}
+                        >
+                          {content}
+                        </LinearGradient>
+                      ) : (
+                        <View
+                          style={[
+                            styles.planOuter,
+                            isRecommendedVisual && styles.planOuterRecommended,
+                          ]}
+                        >
+                          {content}
+                        </View>
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
 
             {/* BENEFICIOS */}
@@ -187,98 +293,11 @@ export const SubscriptionPaywallScreen: React.FC = () => {
                 <Text style={styles.microNote}>Cancela cuando quieras · Pago seguro</Text>
               </View>
             </View>
-
-            {/* PLANES */}
-            <View style={styles.plansSection}>
-              <Text style={styles.plansTitle}>Elige tu plan</Text>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.planChipsRow}
-              >
-                {PLANS.map((p) => {
-                  const active = selectedPlan === p.id;
-                  const isRecommendedVisual = !selectedPlan && p.recommended;
-
-                  const Badge = () => (
-                    <View style={styles.badgeSlot}>
-                      {p.recommended ? (
-                        <View style={styles.recoMiniBadge}>
-                          <Text style={styles.recoMiniBadgeText}>Recomendado</Text>
-                        </View>
-                      ) : (
-                        <View style={styles.recoMiniBadgePlaceholder} />
-                      )}
-                    </View>
-                  );
-
-                  return (
-                    <Pressable
-                      key={p.id}
-                      onPress={() => selectPlan(p.id)}
-                      hitSlop={10}
-                      style={({ pressed }) => [pressed && { opacity: 0.96 }]}
-                    >
-                      {active ? (
-                        <LinearGradient
-                          colors={['#FF2D87', '#C78BFF']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={styles.planChipOuterActive}
-                        >
-                          <View style={[styles.planChip, styles.planChipInnerActive]}>
-                            <Badge />
-
-                            <Text style={[styles.planChipTitle, styles.planChipTitleActive]}>
-                              {p.title}
-                            </Text>
-
-                            <Text style={styles.planChipPrice}>{p.price}</Text>
-
-                            <Text style={styles.planHint}>
-                              {p.id === 'Amigo' && 'Para empezar suave'}
-                              {p.id === 'Amigo Cercano' && 'Más conexión y continuidad'}
-                              {p.id === 'Mejor Amigo' && 'La experiencia completa'}
-                            </Text>
-                          </View>
-                        </LinearGradient>
-                      ) : (
-                        <View
-                          style={[
-                            styles.planChipOuter,
-                            isRecommendedVisual && styles.planChipOuterRecommended,
-                          ]}
-                        >
-                          <View
-                            style={[
-                              styles.planChip,
-                              isRecommendedVisual && styles.planChipInnerRecommended,
-                            ]}
-                          >
-                            <Badge />
-
-                            <Text style={styles.planChipTitle}>{p.title}</Text>
-                            <Text style={styles.planChipPrice}>{p.price}</Text>
-
-                            <Text style={styles.planHint}>
-                              {p.id === 'Amigo' && 'Para empezar suave'}
-                              {p.id === 'Amigo Cercano' && 'Más conexión y continuidad'}
-                              {p.id === 'Mejor Amigo' && 'La experiencia completa'}
-                            </Text>
-                          </View>
-                        </View>
-                      )}
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
           </ScrollView>
         </ContentContainer>
 
-        {/* CTA LOCAL */}
-        <View style={styles.ctaDock} pointerEvents="box-none">
+        {/* CTA */}
+        <View style={[styles.ctaDock, { paddingBottom: 12 + insets.bottom }]} pointerEvents="box-none">
           <LinearGradient
             colors={[
               'rgba(232, 208, 245, 0.00)',
