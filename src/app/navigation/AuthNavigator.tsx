@@ -4,7 +4,6 @@ import { LoginScreen } from '@/features/auth/screens/LoginScreen';
 import { OnboardingScreen } from '@/features/onboarding/screens/OnboardingScreen';
 import { CreateCompanionScreen } from '@/features/companion/screens/CreateCompanionScreen';
 import { CreandoCompanionScreen } from '@/features/companion/screens/CreandoCompanionScreen';
-import { CompanionReadyScreen } from '@/features/companion/screens/CompanionReadyScreen';
 import { ChatScreen } from '@/features/chat/screens/ChatScreen';
 import { HomeScreen } from '@/features/main/screens/HomeScreen';
 import { RootStackParamList } from '@/shared/types/navigation';
@@ -49,14 +48,6 @@ export const AuthNavigator: React.FC = () => {
         options={{
           animation: 'fade',
           animationDuration: 400,
-        }}
-      />
-      <Stack.Screen
-        name="CompanionReady"
-        component={CompanionReadyScreen}
-        options={{
-          animation: 'fade',
-          animationDuration: 500,
         }}
       />
       <Stack.Screen
