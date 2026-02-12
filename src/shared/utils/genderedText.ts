@@ -10,21 +10,21 @@ export type GenderKey = Gender | '';
 /**
  * Diccionario de términos con variaciones de género
  */
-const GENDERED_TERMS: Record<string, { femenino: string; masculino: string }> = {
-  'compañer@': { femenino: 'compañera', masculino: 'compañero' },
-  'compañero/a': { femenino: 'compañera', masculino: 'compañero' },
-  'list@': { femenino: 'lista', masculino: 'listo' },
-  'listo/a': { femenino: 'lista', masculino: 'listo' },
-  'un/a': { femenino: 'una', masculino: 'un' },
-  'el/la': { femenino: 'la', masculino: 'el' },
-  'tu': { femenino: 'tu', masculino: 'tu' },
-  'virtual': { femenino: 'virtual', masculino: 'virtual' },
+const GENDERED_TERMS: Record<string, { femenino: string; masculino: string; neutro: string }> = {
+  'compañer@': { femenino: 'compañera', masculino: 'compañero', neutro: 'compañere' },
+  'compañero/a': { femenino: 'compañera', masculino: 'compañero', neutro: 'compañere' },
+  'list@': { femenino: 'lista', masculino: 'listo', neutro: 'liste' },
+  'listo/a': { femenino: 'lista', masculino: 'listo', neutro: 'liste' },
+  'un/a': { femenino: 'una', masculino: 'un', neutro: 'une' },
+  'el/la': { femenino: 'la', masculino: 'el', neutro: 'le' },
+  'tu': { femenino: 'tu', masculino: 'tu', neutro: 'tu' },
+  'virtual': { femenino: 'virtual', masculino: 'virtual', neutro: 'virtual' },
 };
 
 /**
  * Reemplaza términos con @ o / por su variación de género
  * @param text - Texto con términos neutros (ej: "tu compañer@")
- * @param gender - Género seleccionado ('femenino' | 'masculino' | '')
+ * @param gender - Género seleccionado ('femenino' | 'masculino' | 'neutro' | '')
  * @returns Texto con género aplicado
  */
 export const applyGender = (text: string, gender: GenderKey): string => {
@@ -47,24 +47,27 @@ export const applyGender = (text: string, gender: GenderKey): string => {
  */
 export const getArticle = (gender: GenderKey, type: 'el' | 'un' = 'el'): string => {
   if (!gender) return type === 'el' ? 'el/la' : 'un/a';
+  if (gender === 'neutro') return type === 'el' ? 'le' : 'une';
   return type === 'el' 
     ? (gender === 'femenino' ? 'la' : 'el')
     : (gender === 'femenino' ? 'una' : 'un');
 };
 
 /**
- * Genera "compañero" o "compañera" según el género
+ * Genera "compañero" o "compañera" o "compañere" según el género
  */
 export const getCompanionWord = (gender: GenderKey): string => {
   if (!gender) return 'compañer@';
+  if (gender === 'neutro') return 'compañere';
   return gender === 'femenino' ? 'compañera' : 'compañero';
 };
 
 /**
- * Genera sufijo de género para adjetivos (-o/-a)
+ * Genera sufijo de género para adjetivos (-o/-a/-e)
  */
 export const getGenderSuffix = (gender: GenderKey): string => {
   if (!gender) return '@';
+  if (gender === 'neutro') return 'e';
   return gender === 'femenino' ? 'a' : 'o';
 };
 
@@ -79,7 +82,7 @@ export const createGenderedTextHelper = (gender: GenderKey) => ({
   /** Obtiene el artículo correcto */
   article: (type: 'el' | 'un' = 'el') => getArticle(gender, type),
   
-  /** Obtiene "compañero" o "compañera" */
+  /** Obtiene "compañero" o "compañera" o "compañere" */
   companion: () => getCompanionWord(gender),
   
   /** Obtiene el sufijo de género */
@@ -91,4 +94,3 @@ export const createGenderedTextHelper = (gender: GenderKey) => ({
   /** Si hay un género seleccionado */
   hasGender: !!gender,
 });
-

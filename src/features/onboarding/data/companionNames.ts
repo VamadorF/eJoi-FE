@@ -1,10 +1,11 @@
 import raw from './companionNames.json';
 
-export type GenderId = 'femenino' | 'masculino';
+export type GenderId = 'femenino' | 'masculino' | 'neutro';
 
 export type NamesBucket = {
   femenino: string[];
   masculino: string[];
+  neutro: string[];
 };
 
 export type NamesByPersonality = Record<string, NamesBucket>;

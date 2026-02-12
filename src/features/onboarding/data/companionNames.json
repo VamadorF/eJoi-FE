@@ -1,34 +1,42 @@
 {
   "Amigable y empática": {
     "femenino": ["Luna", "Emma", "Mia", "Clara", "Vera", "Sara", "Sofia", "Nina", "Maya", "Olivia", "Eva", "Ella"],
-    "masculino": ["Leo", "Noah", "Eli", "Luca", "Samuel", "Alex", "Liam", "Dylan", "Gael", "Enzo", "Daniel", "Rafael"]
+    "masculino": ["Leo", "Noah", "Eli", "Luca", "Samuel", "Alex", "Liam", "Dylan", "Gael", "Enzo", "Daniel", "Rafael"],
+    "neutro": ["Alex", "Ari", "Noa", "Quinn", "Robin", "Sam", "Jules", "Kai", "Remy", "Eden", "Sky", "Drew"]
   },
   "Divertida y desenfadada": {
     "femenino": ["Zoe", "Kira", "Gala", "Lia", "Ava", "Nina", "Noa", "Aria", "Maya", "Iris", "Mila", "Cloe"],
-    "masculino": ["Max", "Dylan", "Enzo", "Milo", "Luca", "Axel", "Leo", "Ben", "Theo", "Kai", "Dante", "Gael"]
+    "masculino": ["Max", "Dylan", "Enzo", "Milo", "Luca", "Axel", "Leo", "Ben", "Theo", "Kai", "Dante", "Gael"],
+    "neutro": ["Kai", "Noa", "Max", "Sky", "Ari", "Quinn", "Robin", "Jules", "Sam", "Remy", "Drew", "Alex"]
   },
   "Inteligente y curiosa": {
     "femenino": ["Ada", "Iris", "Vera", "Maya", "Elena", "Olivia", "Sofia", "Emma", "Nina", "Alma", "Julia", "Mia"],
-    "masculino": ["Alan", "Oscar", "Ivan", "Dante", "Daniel", "Rafael", "Leo", "Axel", "Luca", "Noah", "Eli", "Adrian"]
+    "masculino": ["Alan", "Oscar", "Ivan", "Dante", "Daniel", "Rafael", "Leo", "Axel", "Luca", "Noah", "Eli", "Adrian"],
+    "neutro": ["Ari", "Eden", "Quinn", "Sam", "Robin", "Jules", "Noa", "Sky", "Remy", "Alex", "Kai", "Drew"]
   },
   "Cariñosa y comprensiva": {
     "femenino": ["Olivia", "Julia", "Emma", "Clara", "Elena", "Sofia", "Luna", "Sara", "Vera", "Mia", "Eva", "Maya"],
-    "masculino": ["Samuel", "Lucas", "Daniel", "Gabriel", "Alex", "Leo", "Rafael", "Noah", "Eli", "Enzo", "Liam", "Bruno"]
+    "masculino": ["Samuel", "Lucas", "Daniel", "Gabriel", "Alex", "Leo", "Rafael", "Noah", "Eli", "Enzo", "Liam", "Bruno"],
+    "neutro": ["Eden", "Remy", "Sam", "Noa", "Ari", "Quinn", "Robin", "Jules", "Sky", "Alex", "Kai", "Drew"]
   },
   "Energética y motivadora": {
     "femenino": ["Aria", "Zoe", "Mia", "Noa", "Kira", "Luna", "Ava", "Maya", "Iris", "Mila", "Gala", "Emma"],
-    "masculino": ["Axel", "Enzo", "Max", "Leo", "Gael", "Dylan", "Luca", "Noah", "Theo", "Kai", "Bruno", "Dante"]
+    "masculino": ["Axel", "Enzo", "Max", "Leo", "Gael", "Dylan", "Luca", "Noah", "Theo", "Kai", "Bruno", "Dante"],
+    "neutro": ["Kai", "Sky", "Quinn", "Max", "Ari", "Robin", "Sam", "Drew", "Remy", "Noa", "Jules", "Alex"]
   },
   "Tranquila y reflexiva": {
     "femenino": ["Vera", "Elena", "Nora", "Iris", "Clara", "Luna", "Emma", "Sofia", "Eva", "Alma", "Julia", "Nina"],
-    "masculino": ["Milo", "Luca", "Rafael", "Daniel", "Leo", "Noah", "Eli", "Liam", "Oscar", "Ivan", "Gabriel", "Samuel"]
+    "masculino": ["Milo", "Luca", "Rafael", "Daniel", "Leo", "Noah", "Eli", "Liam", "Oscar", "Ivan", "Gabriel", "Samuel"],
+    "neutro": ["Eden", "Noa", "Remy", "Quinn", "Ari", "Sky", "Jules", "Sam", "Robin", "Drew", "Alex", "Kai"]
   },
   "Analítica y lógica": {
     "femenino": ["Ada", "Vera", "Clara", "Elena", "Emma", "Maya", "Iris", "Sofia", "Olivia", "Julia", "Nina", "Eva"],
-    "masculino": ["Alan", "Daniel", "Oscar", "Ivan", "Rafael", "Alex", "Liam", "Noah", "Luca", "Axel", "Marcos", "Dante"]
+    "masculino": ["Alan", "Daniel", "Oscar", "Ivan", "Rafael", "Alex", "Liam", "Noah", "Luca", "Axel", "Marcos", "Dante"],
+    "neutro": ["Quinn", "Ari", "Sam", "Robin", "Jules", "Eden", "Noa", "Sky", "Drew", "Remy", "Alex", "Kai"]
   },
   "Creativa y artística": {
     "femenino": ["Aria", "Iris", "Nina", "Gala", "Maya", "Zoe", "Luna", "Mila", "Cloe", "Vera", "Noa", "Eva"],
-    "masculino": ["Milo", "Dante", "Luca", "Gael", "Axel", "Leo", "Theo", "Kai", "Enzo", "Dylan", "Rafael", "Oscar"]
+    "masculino": ["Milo", "Dante", "Luca", "Gael", "Axel", "Leo", "Theo", "Kai", "Enzo", "Dylan", "Rafael", "Oscar"],
+    "neutro": ["Sky", "Ari", "Jules", "Quinn", "Robin", "Kai", "Remy", "Eden", "Noa", "Drew", "Sam", "Alex"]
   }
 }

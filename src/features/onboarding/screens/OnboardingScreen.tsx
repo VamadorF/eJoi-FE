@@ -52,6 +52,10 @@ const STYLE_IMAGES = {
     realista: require('../../../../public/IMG/arquetipos/Ejecutivo.png'),
     anime: require('../../../../public/IMG/anime/anime_ejecutivo.png'),
   },
+  neutro: {
+    realista: require('../../../../public/IMG/arquetipos/Intelectual.png'),
+    anime: require('../../../../public/IMG/anime/Anime_intelectual.png'),
+  },
 };
 
 type OnboardingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
@@ -135,6 +139,7 @@ const VISUAL_STYLE_OPTIONS = [
 const GENDER_OPTIONS = [
   { id: 'femenino', label: 'Femenino', icon: '♀' },
   { id: 'masculino', label: 'Masculino', icon: '♂' },
+  { id: 'neutro', label: 'Neutro', icon: '⚧' },
 ] as const;
 
 const TOTAL_STEPS = 9;
@@ -291,7 +296,7 @@ export const OnboardingScreen: React.FC = () => {
     setOnboardingData({ ...onboardingData, visualStyle: style });
   };
 
-  const handleGenderSelect = (gender: 'femenino' | 'masculino') => {
+  const handleGenderSelect = (gender: Gender) => {
     setOnboardingData({ ...onboardingData, gender: gender });
   };
 
@@ -365,7 +370,7 @@ export const OnboardingScreen: React.FC = () => {
 
   const handleRandomName = () => {
     const persona = onboardingData.persona;
-    const gender = onboardingData.gender as 'femenino' | 'masculino';
+    const gender = onboardingData.gender as Gender;
     if (persona && gender) {
       const newName = getRandomCompanionName(persona, gender);
       if (newName) {
@@ -453,6 +458,8 @@ export const OnboardingScreen: React.FC = () => {
                   glowAnimatedStyle,
                   { backgroundColor: onboardingData.gender === 'femenino'
                       ? 'rgba(242, 10, 100, 0.28)'
+                      : onboardingData.gender === 'neutro'
+                      ? 'rgba(107, 191, 138, 0.28)'
                       : 'rgba(123, 104, 238, 0.28)' },
                 ]} />
                 <Animated.View style={[
@@ -460,6 +467,8 @@ export const OnboardingScreen: React.FC = () => {
                   ringAnimatedStyle,
                   { borderColor: onboardingData.gender === 'femenino'
                       ? 'rgba(242, 10, 100, 0.22)'
+                      : onboardingData.gender === 'neutro'
+                      ? 'rgba(107, 191, 138, 0.22)'
                       : 'rgba(123, 104, 238, 0.22)' },
                 ]} />
               </View>
@@ -481,16 +490,17 @@ export const OnboardingScreen: React.FC = () => {
                 options={[
                   { id: 'femenino', label: 'Femenino', icon: '♀' },
                   { id: 'masculino', label: 'Masculino', icon: '♂' },
+                  { id: 'neutro', label: 'Neutro', icon: '⚧' },
                 ]}
                 selectedId={onboardingData.gender}
-                onSelect={(id) => handleGenderSelect(id as 'femenino' | 'masculino')}
+                onSelect={(id) => handleGenderSelect(id as Gender)}
               />
             </Animated.View>
           </Animated.View>
         );
 
       case 2:
-        const selectedGender = (onboardingData.gender || 'femenino') as 'femenino' | 'masculino';
+        const selectedGender = (onboardingData.gender || 'femenino') as Gender;
         return (
           <Animated.View 
             key={`step-2-${animationKey}`}

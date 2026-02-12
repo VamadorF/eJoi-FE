@@ -3,7 +3,7 @@
  */
 
 export type VisualStyle = 'realista' | 'anime';
-export type Gender = 'femenino' | 'masculino';
+export type Gender = 'femenino' | 'masculino' | 'neutro';
 
 export interface OnboardingData {
   visualStyle: VisualStyle | '';
