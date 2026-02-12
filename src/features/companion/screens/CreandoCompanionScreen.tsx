@@ -25,6 +25,9 @@ export const CreandoCompanionScreen: React.FC = () => {
   const { setCompanion } = useCompanionStore();
   const onboardingData = route.params?.onboardingData;
 
+    // TODO: Llamar a API para crear el/la compañer@
+    // const response = await createCompanionAPI(onboardingData);
+
   const handleDone = async () => {
     if (!onboardingData) return;
 
@@ -42,9 +45,15 @@ export const CreandoCompanionScreen: React.FC = () => {
       avatar: onboardingData.avatar,
     };
 
+    // Guardar en el store 
     await setCompanion(newCompanion);
 
-    // ✅ Ir directo al paywall (sin pasar por CompanionReady)
+  // TODO: Guardar en el backend
+  // await saveCompanionToAPI(newCompanion);
+
+
+
+    // Ir directo al paywall (sin pasar por CompanionReady)
     navigation.reset({
       index: 0,
       routes: [{ name: 'SubscriptionPaywall', params: { companion: newCompanion } }],
