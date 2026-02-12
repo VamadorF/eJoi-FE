@@ -24,6 +24,9 @@ const getIconColor = (id: string, isSelected: boolean): string => {
   if (id === 'masculino') {
     return isSelected ? Colors.base.primary : Colors.base.secondary; // Púrpura claro o rosa si seleccionado
   }
+  if (id === 'neutro') {
+    return isSelected ? Colors.base.primary : '#6BBF8A'; // Verde suave para neutro
+  }
   return isSelected ? Colors.base.primary : Colors.base.secondary;
 };
 

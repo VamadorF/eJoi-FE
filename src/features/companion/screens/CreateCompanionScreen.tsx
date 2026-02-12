@@ -26,10 +26,12 @@ const PLACEHOLDER_IMAGES = {
   realista: {
     femenino: require('../../../../public/IMG/arquetipos/La Musa.jpg'),
     masculino: require('../../../../public/IMG/arquetipos/Ejecutivo.png'),
+    neutro: require('../../../../public/IMG/arquetipos/Intelectual.png'),
   },
   anime: {
     femenino: require('../../../../public/IMG/anime/Anime_musa.png'),
     masculino: require('../../../../public/IMG/anime/anime_ejecutivo.png'),
+    neutro: require('../../../../public/IMG/anime/Anime_intelectual.png'),
   },
 };
 
@@ -71,7 +73,7 @@ export const CreateCompanionScreen: React.FC = () => {
   const getAboutText = () => {
     const persona = onboardingData?.persona || '';
     const tone = onboardingData?.tone || '';
-    const gender = (onboardingData?.gender || 'femenino') as 'femenino' | 'masculino';
+    const gender = (onboardingData?.gender || 'femenino') as Gender;
     const interests = onboardingData?.interests || [];
     const interactionStyle = onboardingData?.interactionStyle;
 
@@ -248,10 +250,10 @@ export const CreateCompanionScreen: React.FC = () => {
               {/* Género */}
               <View style={styles.moreChip}>
                 <Text style={styles.moreChipIcon}>
-                  {onboardingData.gender === 'femenino' ? '♀️' : '♂️'}
+                  {onboardingData.gender === 'femenino' ? '♀️' : onboardingData.gender === 'neutro' ? '⚧️' : '♂️'}
                 </Text>
                 <Text style={styles.moreChipText}>
-                  {onboardingData.gender === 'femenino' ? 'Femenino' : 'Masculino'}
+                  {onboardingData.gender === 'femenino' ? 'Femenino' : onboardingData.gender === 'neutro' ? 'Neutro' : 'Masculino'}
                 </Text>
               </View>
               {/* Tono */}

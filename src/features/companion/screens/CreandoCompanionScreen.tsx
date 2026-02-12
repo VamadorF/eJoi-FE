@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '@/shared/types/navigation';
 import { useCompanionStore } from '../store/companion.store';
 import { Companion } from '../types';
+import { Gender } from '@/features/onboarding/types';
 import { CreatingAnimation } from '@/shared/components';
 
 type CreandoCompanionScreenRouteProp = RouteProp<RootStackParamList, 'CreandoCompanion'>;
@@ -27,7 +28,7 @@ export const CreandoCompanionScreen: React.FC = () => {
         id: `companion-${Date.now()}`,
         name: onboardingData.companionName || 'Tu Compañer@',
         visualStyle: onboardingData.visualStyle || 'realista',
-        gender: onboardingData.gender || 'femenino',
+        gender: onboardingData.gender as Gender || 'femenino',
         personality: onboardingData.persona,
         tone: onboardingData.tone,
         interactionStyle: onboardingData.interactionStyle,

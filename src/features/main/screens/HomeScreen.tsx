@@ -232,10 +232,12 @@ const AVATAR_IMAGES = {
   realista: {
     femenino: require('../../../../public/IMG/arquetipos/La Musa.jpg'),
     masculino: require('../../../../public/IMG/arquetipos/Ejecutivo.png'),
+    neutro: require('../../../../public/IMG/arquetipos/Intelectual.png'),
   },
   anime: {
     femenino: require('../../../../public/IMG/anime/Anime_musa.png'),
     masculino: require('../../../../public/IMG/anime/anime_ejecutivo.png'),
+    neutro: require('../../../../public/IMG/anime/Anime_intelectual.png'),
   },
 };
 
@@ -425,7 +427,7 @@ export const HomeScreen: React.FC = () => {
   // Obtener avatar según configuración
   const getAvatarImage = () => {
     const style = (companion?.visualStyle as 'realista' | 'anime') || 'realista';
-    const gender = (companion?.gender as 'femenino' | 'masculino') || 'femenino';
+    const gender = (companion?.gender as 'femenino' | 'masculino' | 'neutro') || 'femenino';
     return AVATAR_IMAGES[style]?.[gender] || AVATAR_IMAGES.realista.femenino;
   };
 
@@ -476,7 +478,7 @@ export const HomeScreen: React.FC = () => {
     // Añadir género
     if (companion.gender) {
       attrs.push({ 
-        label: companion.gender === 'femenino' ? 'Femenino' : 'Masculino' 
+        label: companion.gender === 'femenino' ? 'Femenino' : companion.gender === 'neutro' ? 'Neutro' : 'Masculino' 
       });
     }
     

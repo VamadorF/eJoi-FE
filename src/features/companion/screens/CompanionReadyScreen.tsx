@@ -40,6 +40,8 @@ export const CompanionReadyScreen: React.FC = () => {
     ? `¡${companion.name} está lista!`
     : genderedText.gender === 'masculino'
     ? `¡${companion.name} está listo!`
+    : genderedText.gender === 'neutro'
+    ? `¡${companion.name} está liste!`
     : `¡${companion.name} está list@!`;
 
   return (
