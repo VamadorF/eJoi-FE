@@ -13,7 +13,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 import { GoogleAuthResult, AppleAuthResult } from '../types';
-import { getGoogleAuthUrl, getAppleAuthUrl, exchangeGoogleCode, exchangeAppleCode } from './auth.api';
+import { getGoogleAuthUrl, getAppleAuthUrl, exchangeGoogleCode, exchangeAppleCode } from '../api/auth.api';
 import { API_URL } from '@/app/config/env';
 
 // Cierra el navegador después de la autenticación

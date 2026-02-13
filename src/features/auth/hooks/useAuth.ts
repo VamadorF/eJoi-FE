@@ -1,12 +1,13 @@
 /**
  * Hook para manejo de autenticación
- * Consume el store de Zustand y los servicios de auth
+ * Combina Zustand (client state) con React Query (server state)
  */
 
 import { useCallback } from 'react';
 import { useAuthStore } from '../store/auth.store';
 import { signInWithGoogle, signInWithApple } from '../services/auth.providers';
-import { loginWithGoogle as loginWithGoogleAPI, loginWithApple as loginWithAppleAPI } from '../services/auth.api';
+import { useLogout as useLogoutMutation } from './useAuthMutations';
+import { useCurrentUser } from './useCurrentUser';
 import { logger } from '@/shared/utils/logger';
 
 export const useAuth = () => {
@@ -21,6 +22,12 @@ export const useAuth = () => {
     setError,
     checkAuth,
   } = useAuthStore();
+
+  // React Query: mutation para logout en backend
+  const logoutMutation = useLogoutMutation();
+
+  // React Query: query para obtener usuario actual del servidor
+  const currentUserQuery = useCurrentUser(isAuthenticated);
 
   /**
    * Inicia sesión con Google
@@ -121,29 +128,37 @@ export const useAuth = () => {
 
   /**
    * Cierra sesión
+   * Usa React Query mutation para notificar al backend + Zustand para limpiar estado local
    */
   const logout = useCallback(async () => {
     try {
       setLoading(true);
+      // Notificar al backend via React Query mutation
+      await logoutMutation.mutateAsync();
+      // Limpiar estado local (Zustand + SecureStore)
       await logoutStore();
       logger.info('Logout exitoso');
     } catch (error) {
+      // Aún si falla el backend, limpiar estado local
+      await logoutStore();
       logger.error('Error en logout:', error);
-      throw error;
     } finally {
       setLoading(false);
     }
-  }, [logoutStore, setLoading]);
+  }, [logoutStore, logoutMutation, setLoading]);
 
   return {
-    user,
+    // Estado combinado: Zustand (client) + React Query (server)
+    user: currentUserQuery.data ?? user,
     isAuthenticated,
-    isLoading,
-    error,
+    isLoading: isLoading || currentUserQuery.isLoading,
+    error: error || (currentUserQuery.error ? currentUserQuery.error.message : null),
+    // Acciones
     loginWithGoogle,
     loginWithApple,
     logout,
     checkAuth,
+    // React Query extras
+    currentUserQuery,
   };
 };
-
