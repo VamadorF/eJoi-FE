@@ -5,20 +5,23 @@ import { Spacing } from '@/shared/theme/spacing';
 
 export const styles = StyleSheet.create({
   container: {
+    width: '100%',
+    alignSelf: 'stretch',
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: Spacing['2xl'],
+    justifyContent: 'center', 
   },
+
   optionContainer: {
     alignItems: 'center',
   },
+
   circleWrapper: {
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+
   circle: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -29,33 +32,32 @@ export const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.8)',
+    overflow: 'hidden',
   },
+
   circleSelected: {
     borderWidth: 2,
     borderColor: Colors.base.primary,
     shadowColor: Colors.base.primary,
     shadowOpacity: 0.15,
   },
+
   iconText: {
-    fontSize: 56,
     color: Colors.base.secondary,
-    lineHeight: 64, // 56 * 1.15
+    fontFamily: Typography.fontFamily.medium,
   },
+
   iconTextSelected: {
     color: Colors.base.primary,
   },
-  image: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
+
   checkBadge: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    bottom: -6,
+    right: -6,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: Colors.background.white,
     justifyContent: 'center',
     alignItems: 'center',
@@ -65,23 +67,26 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
+
   checkIcon: {
     fontSize: 18,
     color: Colors.base.primary,
     fontWeight: 'bold',
-    lineHeight: 22, // 18 * 1.2
+    lineHeight: 22,
   },
+
   label: {
     marginTop: Spacing.lg,
     fontSize: 16,
     fontFamily: Typography.fontFamily.medium,
     color: Colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 20, // 16 * 1.25
+    lineHeight: 20,
+    maxWidth: 120,
   },
+
   labelSelected: {
     color: Colors.base.primary,
     fontFamily: Typography.fontFamily.bold,
   },
 });
-
