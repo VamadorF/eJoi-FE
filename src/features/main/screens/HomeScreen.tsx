@@ -440,8 +440,8 @@ export const HomeScreen: React.FC = () => {
     const attrs: string[] = [];
     
     // Añadir personalidad
-    if (companion.personality) {
-      attrs.push(companion.personality);
+    if (companion.persona) {
+      attrs.push(companion.persona);
     }
     
     // Añadir tono

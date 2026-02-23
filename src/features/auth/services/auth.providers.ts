@@ -1,139 +1,84 @@
 /**
- * Wrappers para expo-web-browser
- * Manejo de OAuth flows para Google y Apple usando WebBrowser.openAuthSessionAsync()
- * 
- * Flujo:
- * 1. Backend genera la URL de OAuth
- * 2. Se abre una sesión de autenticación con WebBrowser.openAuthSessionAsync()
- * 3. El usuario autentica en el navegador
- * 4. El proveedor redirige con un código
- * 5. Se extrae el código y se intercambia por un token en el backend
+ * Servicios de autenticaci?n con proveedores OAuth
+ *
+ * Flujo actual:
+ * 1. El SDK del proveedor (Google/Apple) resuelve el OAuth en el cliente
+ * 2. Se obtiene providerUserId, email y name del usuario
+ * 3. Estos datos se env?an al backend via POST /auth/provider (en useAuth)
  */
 
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 import { GoogleAuthResult, AppleAuthResult } from '../types';
-import { getGoogleAuthUrl, getAppleAuthUrl, exchangeGoogleCode, exchangeAppleCode } from '../api/auth.api';
-import { API_URL } from '@/app/config/env';
+import { GOOGLE_CLIENT_ID } from '@/app/config/env';
 
-// Cierra el navegador después de la autenticación
 WebBrowser.maybeCompleteAuthSession();
 
-// Deep link scheme para la redirección
 const REDIRECT_SCHEME = 'ejoi://';
 
 /**
- * Inicia el flujo de autenticación con Google
- * 
- * Flujo:
- * 1. Obtiene la URL de OAuth del backend
- * 2. Abre WebBrowser.openAuthSessionAsync() con la URL
- * 3. Extrae el código de la URL de redirección
- * 4. Intercambia el código por un token en el backend
- * 
- * @returns Promise con el resultado de la autenticación
+ * Inicia Google Sign-In y obtiene la informaci?n del usuario.
+ * Retorna providerUserId (sub del token), email y name.
  */
 export const signInWithGoogle = async (): Promise<GoogleAuthResult> => {
   try {
-    // 1. Obtener URL de OAuth del backend
-    let authUrl: string;
-    try {
-      authUrl = await getGoogleAuthUrl();
-    } catch (error) {
-      // Si el backend no está disponible, usar flujo directo como fallback
-      console.warn('Backend no disponible, usando flujo OAuth directo');
-      return {
-        type: 'error',
-        error: 'Backend no disponible. El backend debe generar la URL de OAuth.',
-      };
-    }
+    const discoveryUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+    const redirectUri = REDIRECT_SCHEME;
 
-    // 2. Abrir sesión de autenticación
-    const result = await WebBrowser.openAuthSessionAsync(
-      authUrl,           // URL de OAuth del proveedor
-      REDIRECT_SCHEME    // URL de redirección (deep link)
-    );
+    const authUrl =
+      `${discoveryUrl}?` +
+      `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `response_type=id_token&` +
+      `scope=${encodeURIComponent('openid email profile')}&` +
+      `nonce=${Date.now()}`;
+
+    const result = await WebBrowser.openAuthSessionAsync(authUrl, REDIRECT_SCHEME);
 
     if (result.type === 'cancel') {
-      return {
-        type: 'error',
-        error: 'El usuario canceló la autenticación',
-      };
+      return { type: 'error', error: 'El usuario cancel? la autenticaci?n' };
     }
 
     if (result.type === 'success' && result.url) {
-      // 3. Extraer código de la URL de redirección
-      // La URL viene como: ejoi://?code=XXX o ejoi://callback?code=XXX
-      let code: string | null = null;
-      try {
-        // Intentar parsear como URL completa
-        if (result.url.includes('://')) {
-          const url = new URL(result.url);
-          code = url.searchParams.get('code');
-        } else {
-          // Si no es una URL completa, buscar el parámetro code manualmente
-          const match = result.url.match(/[?&]code=([^&]+)/);
-          code = match ? match[1] : null;
-        }
-      } catch (e) {
-        // Si falla el parsing, intentar extraer manualmente
-        const match = result.url.match(/[?&]code=([^&]+)/);
-        code = match ? match[1] : null;
-      }
-      
-      if (!code) {
-        return {
-          type: 'error',
-          error: 'No se pudo obtener el código de autorización de la URL: ' + result.url,
-        };
+      const idToken = extractParam(result.url, 'id_token');
+
+      if (!idToken) {
+        return { type: 'error', error: 'No se pudo obtener el id_token de Google' };
       }
 
-      // 4. Intercambiar código por token en el backend
-      try {
-        const loginResponse = await exchangeGoogleCode(code);
-        
-        return {
-          type: 'success',
-          accessToken: loginResponse.tokens.accessToken,
-          idToken: '', // El backend maneja esto
-          user: loginResponse.user,
-        };
-      } catch (exchangeError) {
-        return {
-          type: 'error',
-          error: exchangeError instanceof Error ? exchangeError.message : 'Error al intercambiar código por token',
-        };
-      }
+      const payload = decodeJwtPayload(idToken);
+
+      return {
+        type: 'success',
+        idToken,
+        user: {
+          id: payload.sub,
+          email: payload.email || '',
+          name: payload.name || '',
+        },
+      };
     }
 
-    return {
-      type: 'error',
-      error: 'Error desconocido en la autenticación',
-    };
+    return { type: 'error', error: 'Error desconocido en la autenticaci?n' };
   } catch (error) {
     return {
       type: 'error',
-      error: error instanceof Error ? error.message : 'Error desconocido en autenticación Google',
+      error: error instanceof Error ? error.message : 'Error desconocido en autenticaci?n Google',
     };
   }
 };
 
 /**
- * Inicia el flujo de autenticación con Apple
- * 
- * Flujo:
- * 1. Para iOS: usar expo-apple-authentication nativo
- * 2. Para web/Android: obtener URL del backend → abrir WebBrowser → extraer código → intercambiar por token
- * 
- * @returns Promise con el resultado de la autenticación
+ * Inicia Apple Sign-In y obtiene la informaci?n del usuario.
+ * En iOS usa expo-apple-authentication nativo.
+ * En otras plataformas usa WebBrowser como fallback.
  */
 export const signInWithApple = async (): Promise<AppleAuthResult> => {
   try {
-    // Para iOS nativo, usar expo-apple-authentication
     if (Platform.OS === 'ios') {
       try {
         const AppleAuthentication = require('expo-apple-authentication');
-        
+
         const credential = await AppleAuthentication.AppleAuthentication.signInAsync({
           requestedScopes: [
             AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -153,95 +98,71 @@ export const signInWithApple = async (): Promise<AppleAuthResult> => {
         };
       } catch (appleError: any) {
         if (appleError.code === 'ERR_REQUEST_CANCELED') {
-          return {
-            type: 'error',
-            error: 'El usuario canceló la autenticación',
-          };
+          return { type: 'error', error: 'El usuario cancel? la autenticaci?n' };
         }
         throw appleError;
       }
     }
 
-    // Para web y Android, usar el flujo con backend
-    // 1. Obtener URL de OAuth del backend
-    let authUrl: string;
-    try {
-      authUrl = await getAppleAuthUrl();
-    } catch (error) {
-      return {
-        type: 'error',
-        error: 'Backend no disponible. El backend debe generar la URL de OAuth.',
-      };
-    }
-
-    // 2. Abrir sesión de autenticación
-    const result = await WebBrowser.openAuthSessionAsync(
-      authUrl,           // URL de OAuth del proveedor
-      REDIRECT_SCHEME    // URL de redirección (deep link)
-    );
-
-    if (result.type === 'cancel') {
-      return {
-        type: 'error',
-        error: 'El usuario canceló la autenticación',
-      };
-    }
-
-    if (result.type === 'success' && result.url) {
-      // 3. Extraer código de la URL de redirección
-      // La URL viene como: ejoi://?code=XXX o ejoi://callback?code=XXX
-      let code: string | null = null;
-      try {
-        // Intentar parsear como URL completa
-        if (result.url.includes('://')) {
-          const url = new URL(result.url);
-          code = url.searchParams.get('code');
-        } else {
-          // Si no es una URL completa, buscar el parámetro code manualmente
-          const match = result.url.match(/[?&]code=([^&]+)/);
-          code = match ? match[1] : null;
-        }
-      } catch (e) {
-        // Si falla el parsing, intentar extraer manualmente
-        const match = result.url.match(/[?&]code=([^&]+)/);
-        code = match ? match[1] : null;
-      }
-      
-      if (!code) {
-        return {
-          type: 'error',
-          error: 'No se pudo obtener el código de autorización de la URL: ' + result.url,
-        };
-      }
-
-      // 4. Intercambiar código por token en el backend
-      try {
-        const loginResponse = await exchangeAppleCode(code);
-        
-        return {
-          type: 'success',
-          identityToken: '', // El backend maneja esto
-          authorizationCode: code,
-          accessToken: loginResponse.tokens.accessToken, // Token del backend
-          user: loginResponse.user,
-        };
-      } catch (exchangeError) {
-        return {
-          type: 'error',
-          error: exchangeError instanceof Error ? exchangeError.message : 'Error al intercambiar código por token',
-        };
-      }
-    }
-
+    // Web / Android: Apple Sign-In via WebBrowser
+    // TODO: Implementar flujo Apple Sign-In web cuando sea necesario
     return {
       type: 'error',
-      error: 'Error desconocido en la autenticación',
+      error: 'Apple Sign-In no disponible en esta plataforma',
     };
   } catch (error) {
     return {
       type: 'error',
-      error: error instanceof Error ? error.message : 'Error desconocido en autenticación Apple',
+      error: error instanceof Error ? error.message : 'Error desconocido en autenticaci?n Apple',
     };
   }
 };
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function extractParam(url: string, param: string): string | null {
+  // Los id_tokens vienen en el fragment (#) o en query params (?)
+  const hashPart = url.split('#')[1] || '';
+  const queryPart = url.split('?')[1]?.split('#')[0] || '';
+  const combined = `${queryPart}&${hashPart}`;
+
+  const match = combined.match(new RegExp(`${param}=([^&]+)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function decodeJwtPayload(token: string): Record<string, any> {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = atob(base64);
+    return JSON.parse(jsonPayload);
+  } catch {
+    return {};
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Flujo legacy via WebBrowser + backend code exchange (mantenido como referencia)
+// ---------------------------------------------------------------------------
+/*
+import { getGoogleAuthUrl, getAppleAuthUrl, exchangeGoogleCode, exchangeAppleCode } from '../api/auth.api';
+
+export const signInWithGoogleLegacy = async (): Promise<GoogleAuthResult> => {
+  const authUrl = await getGoogleAuthUrl();
+  const result = await WebBrowser.openAuthSessionAsync(authUrl, REDIRECT_SCHEME);
+  if (result.type === 'success' && result.url) {
+    const code = extractParam(result.url, 'code');
+    if (code) {
+      const loginResponse = await exchangeGoogleCode(code);
+      return {
+        type: 'success',
+        accessToken: loginResponse.tokens.accessToken,
+        user: loginResponse.user,
+      };
+    }
+  }
+  return { type: 'error', error: 'Flujo cancelado o fallido' };
+};
+*/

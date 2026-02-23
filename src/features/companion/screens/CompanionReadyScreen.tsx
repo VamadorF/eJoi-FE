@@ -51,13 +51,13 @@ export const CompanionReadyScreen: React.FC = () => {
       overlayOpacity={0.12}
     >
       <ReadyHero
-        avatar={{ name: companion.name, uri: companion.avatar }}
+        avatar={{ name: companion.name }}
         title={readyTitle}
-        subtitle={companion.personality}
+        subtitle={companion.persona}
         ctaLabel="Iniciar conversación"
         onCTA={handleStartChat}
         interests={companion.interests}
-        boundaries={companion.traits}
+        boundaries={companion.boundaries}
       />
     </GradientBackground>
   );
