@@ -1,6 +1,5 @@
 import { StyleSheet, Dimensions, Platform } from 'react-native';
 import { Colors } from '@/shared/theme/colors';
-import { Typography } from '@/shared/theme/typography';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.75;
@@ -44,7 +43,7 @@ export const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 18,
-        fontFamily: Typography.fontFamily.bold,
+        fontWeight: '700',
         color: Colors.text.primary,
     },
     closeButton: {
@@ -63,93 +62,18 @@ export const styles = StyleSheet.create({
         flex: 1,
     },
     sectionTitle: {
-        fontSize: 11,
-        fontFamily: Typography.fontFamily.medium,
+        fontSize: 12,
+        fontWeight: '600',
         color: Colors.text.secondary,
         textTransform: 'uppercase',
         letterSpacing: 1,
         marginBottom: 8,
         marginTop: 4,
     },
-    interestsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 6,
-        marginBottom: 20,
-    },
-    interestChip: {
-        backgroundColor: Colors.auxiliary.secondary,
-        paddingHorizontal: 12,
-        paddingVertical: 5,
-        borderRadius: 14,
-    },
-    interestChipText: {
-        fontSize: 12,
-        fontFamily: Typography.fontFamily.medium,
-        color: Colors.text.primary,
-    },
-    companionInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.background.light,
-        padding: 12,
-        borderRadius: 12,
-        marginBottom: 20,
-        gap: 10,
-    },
-    companionAvatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: Colors.auxiliary.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    companionAvatarText: {
-        fontSize: 18,
-    },
-    companionTextContainer: {
-        flex: 1,
-    },
-    companionName: {
-        fontSize: 15,
-        fontFamily: Typography.fontFamily.bold,
-        color: Colors.text.primary,
-    },
-    companionPersonality: {
-        fontSize: 12,
-        fontFamily: Typography.fontFamily.regular,
-        color: Colors.text.secondary,
-        marginTop: 2,
-    },
-    divider: {
-        height: 1,
-        backgroundColor: Colors.border.light,
-        marginVertical: 8,
-    },
     footer: {
         borderTopWidth: 1,
         borderTopColor: Colors.border.light,
         paddingTop: 14,
-    },
-    detailRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.background.light,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        borderRadius: 10,
-        marginBottom: 16,
-        gap: 8,
-    },
-    detailEmoji: {
-        fontSize: 16,
-    },
-    detailText: {
-        fontSize: 14,
-        fontFamily: Typography.fontFamily.regular,
-        color: Colors.text.primary,
-        flex: 1,
     },
     logoutButton: {
         flexDirection: 'row',
@@ -165,7 +89,7 @@ export const styles = StyleSheet.create({
     },
     logoutText: {
         fontSize: 15,
-        fontFamily: Typography.fontFamily.bold,
+        fontWeight: '700',
         color: Colors.error,
     },
 });

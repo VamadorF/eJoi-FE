@@ -52,8 +52,7 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
 
                     {/* Mensaje */}
                     <Text style={styles.message}>
-                        ¿Seguro que quieres cerrar sesión? Se perderán tus datos en este
-                        dispositivo.
+                        Podrás volver a iniciar sesión cuando quieras.
                     </Text>
 
                     {/* Acciones */}

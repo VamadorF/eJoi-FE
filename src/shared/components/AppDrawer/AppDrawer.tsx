@@ -77,9 +77,8 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
 
             {/* Drawer */}
             <Animated.View style={[styles.drawer, drawerAnimatedStyle]}>
-                {/* Header */}
+
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Menú</Text>
                     <TouchableOpacity
                         style={styles.closeButton}
                         onPress={onClose}

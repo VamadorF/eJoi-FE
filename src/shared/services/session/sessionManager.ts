@@ -12,7 +12,7 @@
  * Preparado para BE: agregar llamada a endpoint sin cambiar UI.
  */
 
-import { clearAllStorage } from '@/shared/services/storage/secure';
+import { clearAuthStorage } from '@/shared/services/storage/secure';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
 import { useSubscriptionStore } from '@/features/subscription/store/subscription.store';
@@ -51,10 +51,10 @@ export const logout = async (): Promise<void> => {
     // }
     // ──────────────────────────────────────────────
 
-    // 1. Limpiar storage persistente (todas las keys)
+    // 1. Limpiar storage persistente (auth + user, NO companion)
     try {
-      await clearAllStorage();
-      console.log('[SessionManager] Storage limpiado');
+      await clearAuthStorage();
+      console.log('[SessionManager] Auth storage limpiado (companion preservado)');
     } catch (error) {
       console.warn('[SessionManager] Error limpiando storage:', error);
     }
@@ -74,12 +74,7 @@ export const logout = async (): Promise<void> => {
       console.warn('[SessionManager] Error reseteando auth store:', error);
     }
 
-    try {
-      useCompanionStore.getState().clearCompanion();
-      console.log('[SessionManager] Companion store reseteado');
-    } catch (error) {
-      console.warn('[SessionManager] Error reseteando companion store:', error);
-    }
+    // Nota: companion store NO se resetea — se preserva para re-login
 
     try {
       useSubscriptionStore.getState().reset();
