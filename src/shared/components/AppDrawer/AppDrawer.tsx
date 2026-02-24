@@ -95,57 +95,6 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                     showsVerticalScrollIndicator={false}
                     bounces={false}
                 >
-                    {/* Info del companion */}
-                    {companion && (
-                        <View style={styles.companionInfo}>
-                            <View style={styles.companionAvatar}>
-                                <Text style={styles.companionAvatarText}>
-                                    {companion.avatar || '🤖'}
-                                </Text>
-                            </View>
-                            <View style={styles.companionTextContainer}>
-                                <Text style={styles.companionName} numberOfLines={1}>{companion.name}</Text>
-                            </View>
-                        </View>
-                    )}
-
-
-
-                    {/* Personalidad */}
-                    {companion?.personality && (
-                        <>
-                            <Text style={styles.sectionTitle}>Personalidad</Text>
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailEmoji}>✨</Text>
-                                <Text style={styles.detailText}>{companion.personality}</Text>
-                            </View>
-                        </>
-                    )}
-
-                    {/* Intereses */}
-                    {companion?.interests && companion.interests.length > 0 && (
-                        <>
-                            <Text style={styles.sectionTitle}>Tus Intereses</Text>
-                            <View style={styles.interestsContainer}>
-                                {companion.interests.map((interest, index) => (
-                                    <View key={`${interest}-${index}`} style={styles.interestChip}>
-                                        <Text style={styles.interestChipText}>{interest}</Text>
-                                    </View>
-                                ))}
-                            </View>
-                        </>
-                    )}
-
-                    {/* Tono */}
-                    {companion?.tone && (
-                        <>
-                            <Text style={styles.sectionTitle}>Tono</Text>
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailEmoji}>🎭</Text>
-                                <Text style={styles.detailText}>{companion.tone}</Text>
-                            </View>
-                        </>
-                    )}
                 </ScrollView>
 
                 {/* Footer con Logout */}
