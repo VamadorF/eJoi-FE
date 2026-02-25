@@ -31,7 +31,6 @@ export const LoginScreen: React.FC = () => {
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
   const [isAppleLoading, setIsAppleLoading] = React.useState(false);
   const [modalContent, setModalContent] = React.useState<{ title: string; content: string } | null>(null);
-  const [foundCompanion, setFoundCompanion] = React.useState<string | null>(null);
 
   // Animaciones
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -139,27 +138,14 @@ export const LoginScreen: React.FC = () => {
     await checkCompanion();
     const companionState = useCompanionStore.getState();
 
-    if (companionState.hasCompanion && companionState.companion) {
-      // Mostrar modal de confirmación con nombre del companion
-      setFoundCompanion(companionState.companion.name);
+    if (companionState.hasCompanion) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
     } else {
       navigation.navigate('Onboarding');
     }
-  };
-
-  const handleContinueWithCompanion = () => {
-    setFoundCompanion(null);
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Home' }],
-    });
-  };
-
-  const handleCreateNew = async () => {
-    setFoundCompanion(null);
-    // Limpiar companion existente antes de ir a Onboarding
-    await useCompanionStore.getState().clearCompanion();
-    navigation.navigate('Onboarding');
   };
 
   return (
@@ -269,78 +255,6 @@ export const LoginScreen: React.FC = () => {
             </View>
           </View>
         </SafeAreaView>
-      </Modal>
-
-      {/* Modal de confirmación: companion encontrado */}
-      <Modal
-        transparent
-        visible={foundCompanion !== null}
-        animationType="fade"
-        onRequestClose={() => setFoundCompanion(null)}
-      >
-        <Pressable
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          onPress={() => setFoundCompanion(null)}
-        >
-          <Pressable
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: 20,
-              padding: 24,
-              width: '85%',
-              maxWidth: 340,
-              alignItems: 'center',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.15,
-              shadowRadius: 16,
-              elevation: 12,
-            }}
-            onPress={() => { }}
-          >
-            <Text style={{ fontSize: 36, marginBottom: 12 }}>👋</Text>
-            <Text style={{ fontSize: 20, fontWeight: '700', textAlign: 'center', marginBottom: 8, color: '#1a1a2e' }}>
-              ¡Bienvenido de vuelta!
-            </Text>
-            <Text style={{ fontSize: 15, color: '#666', textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
-              Ya tienes a <Text style={{ fontWeight: '700', color: '#1a1a2e' }}>{foundCompanion}</Text> esperándote.{"\n"}¿Quieres continuar o crear un nuevo compañero?
-            </Text>
-
-            <TouchableOpacity
-              onPress={handleContinueWithCompanion}
-              style={{
-                backgroundColor: '#E91E63',
-                borderRadius: 14,
-                paddingVertical: 14,
-                width: '100%',
-                alignItems: 'center',
-                marginBottom: 10,
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Continuar con {foundCompanion}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleCreateNew}
-              style={{
-                backgroundColor: '#f5f5f5',
-                borderRadius: 14,
-                paddingVertical: 14,
-                width: '100%',
-                alignItems: 'center',
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={{ color: '#1a1a2e', fontSize: 16, fontWeight: '600' }}>Crear nuevo compañero</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
       </Modal>
     </View>
   );
