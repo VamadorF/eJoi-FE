@@ -1,38 +1,21 @@
 /**
  * Hooks React Query para mutations de autenticación
- * Login (Google/Apple) y Logout
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { loginWithGoogle, loginWithApple, logout } from '../api/auth.api';
+import { loginWithProvider, logout } from '../api/auth.api';
 import { queryKeys } from '@/shared/lib/queryKeys';
+import { AuthProviderRequest } from '../types';
 
 /**
- * Mutation para login con Google
- * Invalida la query de currentUser al tener éxito
+ * Mutation para login con proveedor OAuth (Google/Apple)
+ * Envía los datos del proveedor al backend unificado POST /auth/provider
  */
-export const useLoginWithGoogle = () => {
+export const useLoginWithProvider = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ accessToken, idToken }: { accessToken: string; idToken: string }) =>
-      loginWithGoogle(accessToken, idToken),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.currentUser });
-    },
-  });
-};
-
-/**
- * Mutation para login con Apple
- * Invalida la query de currentUser al tener éxito
- */
-export const useLoginWithApple = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ identityToken, authorizationCode }: { identityToken: string; authorizationCode: string }) =>
-      loginWithApple(identityToken, authorizationCode),
+    mutationFn: (data: AuthProviderRequest) => loginWithProvider(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.currentUser });
     },
@@ -53,4 +36,3 @@ export const useLogout = () => {
     },
   });
 };
-

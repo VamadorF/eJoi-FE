@@ -1,14 +1,16 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RootStackParamList } from '@/shared/types/navigation';
 import { useCompanionStore } from '../store/companion.store';
-import { Companion } from '../types';
+import { CreateCompanionRequest } from '../types';
 import { Gender } from '@/features/onboarding/types';
 import { CreatingAnimation } from '@/shared/components';
+import { createCompanion } from '../api/companion.api';
+import { logger } from '@/shared/utils/logger';
 
 type CreandoCompanionScreenRouteProp = RouteProp<
   RootStackParamList,
@@ -25,39 +27,37 @@ export const CreandoCompanionScreen: React.FC = () => {
   const { setCompanion } = useCompanionStore();
   const onboardingData = route.params?.onboardingData;
 
-    // TODO: Llamar a API para crear el/la compañer@
-    // const response = await createCompanionAPI(onboardingData);
-
   const handleDone = async () => {
     if (!onboardingData) return;
 
-    const newCompanion: Companion = {
-      id: `companion-${Date.now()}`,
+    const requestData: CreateCompanionRequest = {
       name: onboardingData.companionName || 'Tu Compañer@',
       visualStyle: onboardingData.visualStyle || 'realista',
       gender: (onboardingData.gender as Gender) || 'femenino',
-      personality: onboardingData.persona,
+      persona: onboardingData.persona,
       tone: onboardingData.tone,
       interactionStyle: onboardingData.interactionStyle,
       conversationDepth: onboardingData.conversationDepth,
       interests: onboardingData.interests,
-      traits: onboardingData.boundaries,
-      avatar: onboardingData.avatar,
+      boundaries: onboardingData.boundaries,
     };
 
-    // Guardar en el store 
-    await setCompanion(newCompanion);
+    try {
+      const companion = await createCompanion(requestData);
+      await setCompanion(companion);
 
-  // TODO: Guardar en el backend
-  // await saveCompanionToAPI(newCompanion);
-
-
-
-    // Ir directo al paywall (sin pasar por CompanionReady)
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'SubscriptionPaywall', params: { companion: newCompanion } }],
-    });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'SubscriptionPaywall', params: { companion } }],
+      });
+    } catch (error) {
+      logger.error('Error creando companion:', error);
+      Alert.alert(
+        'Error',
+        'No se pudo crear tu compañer@. Inténtalo de nuevo.',
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   return (

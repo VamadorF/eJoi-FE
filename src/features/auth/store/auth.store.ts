@@ -5,13 +5,11 @@
 
 import { create } from 'zustand';
 import { User, AuthState } from '../types';
-import { setAuthToken, removeAuthToken, getAuthToken } from '@/shared/services/storage/secure';
+import { setAuthToken, removeAuthToken, getAuthToken, clearAuthData } from '@/shared/services/storage/secure';
 
 interface AuthStore extends AuthState {
-  // Actions
   setUser: (user: User | null) => void;
-  setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
-  login: (user: User, accessToken: string, refreshToken: string) => Promise<void>;
+  login: (user: User, accessToken: string) => Promise<void>;
   logout: () => Promise<void>;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
@@ -19,13 +17,11 @@ interface AuthStore extends AuthState {
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
-  // Initial state
   user: null,
   isAuthenticated: false,
   isLoading: true,
   error: null,
 
-  // Actions
   setUser: (user) => {
     set({
       user,
@@ -33,20 +29,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     });
   },
 
-  setTokens: async (accessToken, refreshToken) => {
+  login: async (user, accessToken) => {
     try {
       await setAuthToken(accessToken);
-      // TODO: Guardar refreshToken cuando esté disponible
-      // await setRefreshToken(refreshToken);
-    } catch (error) {
-      console.error('Error saving tokens:', error);
-      throw error;
-    }
-  },
-
-  login: async (user, accessToken, refreshToken) => {
-    try {
-      await get().setTokens(accessToken, refreshToken);
       set({
         user,
         isAuthenticated: true,
@@ -64,10 +49,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   logout: async () => {
     try {
-      await removeAuthToken();
-      // TODO: Llamar a logout del backend cuando esté disponible
-      // await logout();
-      
+      await clearAuthData();
       set({
         user: null,
         isAuthenticated: false,
@@ -76,7 +58,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
     } catch (error) {
       console.error('Error logging out:', error);
-      // Aún así, limpiar el estado local
       set({
         user: null,
         isAuthenticated: false,
@@ -95,31 +76,20 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   checkAuth: async () => {
     try {
-      console.log('checkAuth: Starting...');
       const token = await getAuthToken();
-      console.log('checkAuth: Token retrieved:', token ? 'exists' : 'not found');
-      
+
       if (token) {
-        // TODO: Validar token con el backend cuando esté disponible
-        // const user = await getCurrentUser();
-        // get().setUser(user);
-        
-        // Por ahora, solo verificar que existe el token
-        console.log('checkAuth: Setting authenticated state');
         set({
           isAuthenticated: true,
           isLoading: false,
         });
       } else {
-        console.log('checkAuth: No token, setting unauthenticated state');
         set({
           isAuthenticated: false,
           isLoading: false,
         });
       }
     } catch (error) {
-      console.error('checkAuth: Error occurred:', error);
-      // Si hay error, asumir que no está autenticado
       set({
         isAuthenticated: false,
         isLoading: false,
@@ -128,4 +98,3 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 }));
-

@@ -1,10 +1,10 @@
 /**
  * Cliente HTTP centralizado
- * Preparado para conexión con backend NestJS
- * TODO: Agregar interceptores para tokens cuando el backend esté disponible
+ * Conexión con backend NestJS
  */
 
 import { API_URL } from '@/app/config/env';
+import { getAuthToken } from '@/shared/services/storage/secure';
 
 export interface RequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -30,31 +30,17 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Cliente HTTP base usando fetch
- * TODO: Cuando el backend esté disponible, agregar:
- * - Interceptor para Authorization header: headers: { Authorization: `Bearer ${token}` }
- * - Manejo de refresh tokens
- * - Retry logic para requests fallidos
- */
 export const httpClient = {
-  /**
-   * Realiza una petición HTTP
-   * @param endpoint - Endpoint relativo (se concatena con API_URL)
-   * @param config - Configuración de la petición
-   * @returns Promise con la respuesta
-   */
   async request<T = any>(
     endpoint: string,
     config: RequestConfig = {}
   ): Promise<ApiResponse<T>> {
     const { method = 'GET', headers = {}, body } = config;
 
-    // TODO: Agregar token de autenticación cuando esté disponible
-    // const token = await getAuthToken();
-    // if (token) {
-    //   headers['Authorization'] = `Bearer ${token}`;
-    // }
+    const token = await getAuthToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
 
     const url = `${API_URL}${endpoint}`;
 

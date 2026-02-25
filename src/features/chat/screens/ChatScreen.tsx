@@ -98,8 +98,8 @@ export const ChatScreen: React.FC = () => {
           <Animated.View style={styles.header} entering={FadeInDown.duration(400)}>
             <Text style={styles.title}>{companion.name}</Text>
 
-            {companion.personality && (
-              <Text style={styles.subtitle}>{companion.personality}</Text>
+            {companion.persona && (
+              <Text style={styles.subtitle}>{companion.persona}</Text>
             )}
           </Animated.View>
 

@@ -73,6 +73,17 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
         }
       }
 
+      try {
+        const companion = await getMyCompanion();
+        if (companion) {
+          await get().setCompanion(companion);
+          set({ isLoading: false });
+          return;
+        }
+      } catch (apiError) {
+        console.error('Error fetching companion from API:', apiError);
+      }
+
       // TODO: Llamar a API para verificar si tiene compañer@
       // const response = await fetch(`${API_URL}/companion`, {
       //   headers: { Authorization: `Bearer ${token}` }

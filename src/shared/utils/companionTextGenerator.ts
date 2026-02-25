@@ -201,7 +201,7 @@ const SHORT_DESC_BY_INTERACTION: Record<string, GenderVariants> = {
  */
 export function generateAboutMe(companion: Companion): string {
   const gender = companion.gender || 'femenino';
-  const persona = companion.personality;
+  const persona = companion.persona;
   const tone = companion.tone;
   const interactionStyle = companion.interactionStyle;
   const interests = companion.interests || [];
@@ -248,7 +248,7 @@ export function generateGreeting(companion: Companion): string {
  */
 export function generateChatWelcome(companion: Companion): string {
   const gender = companion.gender || 'femenino';
-  const persona = companion.personality;
+  const persona = companion.persona;
   const name = companion.name;
 
   const welcomeBase = CHAT_WELCOME_TEMPLATES[persona]?.[gender] || 
@@ -263,7 +263,7 @@ export function generateChatWelcome(companion: Companion): string {
 export function generateShortDescription(companion: Companion): string {
   const gender = companion.gender || 'femenino';
   const interactionStyle = companion.interactionStyle;
-  const persona = companion.personality;
+  const persona = companion.persona;
 
   if (interactionStyle) {
     return SHORT_DESC_BY_INTERACTION[interactionStyle]?.[gender] || persona;

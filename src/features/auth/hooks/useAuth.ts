@@ -5,10 +5,9 @@
 
 import { useCallback } from 'react';
 import { useAuthStore } from '../store/auth.store';
-import { signInWithGoogle, signInWithApple } from '../services/auth.providers';
-import { useLogout as useLogoutMutation } from './useAuthMutations';
-import { useCurrentUser } from './useCurrentUser';
+import { useLoginWithProvider, useLogout as useLogoutMutation } from './useAuthMutations';
 import { logger } from '@/shared/utils/logger';
+import { AuthProviderRequest } from '../types';
 
 export const useAuth = () => {
   const {
@@ -23,49 +22,67 @@ export const useAuth = () => {
     checkAuth,
   } = useAuthStore();
 
-  // React Query: mutation para logout en backend
+  const loginWithProviderMutation = useLoginWithProvider();
   const logoutMutation = useLogoutMutation();
 
-  // React Query: query para obtener usuario actual del servidor
-  const currentUserQuery = useCurrentUser(isAuthenticated);
+  /**
+   * Login genérico con proveedor OAuth.
+   * El caller es responsable de obtener providerUserId, email y name
+   * desde el SDK del proveedor (Google Sign-In, Apple Sign-In).
+   */
+  const loginWithProviderData = useCallback(async (data: AuthProviderRequest) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await loginWithProviderMutation.mutateAsync(data);
+
+      const userFromResponse = {
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
+        provider: data.provider,
+      };
+
+      await login(userFromResponse, response.access_token);
+
+      logger.info(`Login exitoso con ${data.provider}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error
+        ? error.message
+        : `Error al iniciar sesión con ${data.provider}`;
+      setError(errorMessage);
+      logger.error(`Error en login con ${data.provider}:`, error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [login, loginWithProviderMutation, setLoading, setError]);
 
   /**
-   * Inicia sesión con Google
-   * Flujo: Backend genera URL → WebBrowser abre sesión → Extrae código → Intercambia por token
+   * Inicia sesión con Google.
+   * Obtiene los datos del usuario via Google Sign-In SDK
+   * y los envía al backend via POST /auth/provider.
    */
   const loginWithGoogle = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // El flujo completo se maneja en signInWithGoogle:
-      // 1. Obtiene URL del backend
-      // 2. Abre WebBrowser.openAuthSessionAsync()
-      // 3. Extrae código de la redirección
-      // 4. Intercambia código por token en el backend
+      // Importar dinámicamente para evitar problemas en plataformas sin soporte
+      const { signInWithGoogle } = await import('../services/auth.providers');
       const googleResult = await signInWithGoogle();
 
-      if (googleResult.type === 'error' || !googleResult.accessToken) {
+      if (googleResult.type === 'error' || !googleResult.user) {
         throw new Error(googleResult.error || 'Error en autenticación Google');
       }
 
-      // El backend ya procesó todo, solo necesitamos guardar los datos
-      const user = googleResult.user || {
-        id: '1',
-        email: 'user@example.com',
-        name: 'Usuario Google',
-        provider: 'google' as const,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      await login(
-        user,
-        googleResult.accessToken,
-        'refresh-token' // El backend debería proporcionar esto
-      );
-
-      logger.info('Login exitoso con Google');
+      await loginWithProviderData({
+        provider: 'google',
+        providerUserId: googleResult.user.id,
+        email: googleResult.user.email || '',
+        name: googleResult.user.name || '',
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión con Google';
       setError(errorMessage);
@@ -74,48 +91,31 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, [login, setLoading, setError]);
+  }, [loginWithProviderData, setLoading, setError]);
 
   /**
-   * Inicia sesión con Apple
-   * Flujo: 
-   * - iOS: expo-apple-authentication nativo
-   * - Web/Android: Backend genera URL → WebBrowser abre sesión → Extrae código → Intercambia por token
+   * Inicia sesión con Apple.
+   * Obtiene los datos del usuario via Apple Sign-In SDK
+   * y los envía al backend via POST /auth/provider.
    */
   const loginWithApple = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // El flujo completo se maneja en signInWithApple:
-      // Para iOS: usa expo-apple-authentication directamente
-      // Para Web/Android: Backend genera URL → WebBrowser → Extrae código → Intercambia por token
+      const { signInWithApple } = await import('../services/auth.providers');
       const appleResult = await signInWithApple();
 
-      if (appleResult.type === 'error') {
+      if (appleResult.type === 'error' || !appleResult.user) {
         throw new Error(appleResult.error || 'Error en autenticación Apple');
       }
 
-      // Para iOS, tenemos identityToken directamente
-      // Para Web/Android, el backend ya procesó el código y devolvió el token
-      const accessToken = appleResult.accessToken || appleResult.identityToken || appleResult.authorizationCode || 'apple-token';
-
-      const user = appleResult.user || {
-        id: '2',
-        email: 'user@example.com',
-        name: 'Usuario Apple',
-        provider: 'apple' as const,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      await login(
-        user,
-        accessToken,
-        'refresh-token' // El backend debería proporcionar esto
-      );
-
-      logger.info('Login exitoso con Apple');
+      await loginWithProviderData({
+        provider: 'apple',
+        providerUserId: appleResult.user.id,
+        email: appleResult.user.email || '',
+        name: appleResult.user.name || '',
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión con Apple';
       setError(errorMessage);
@@ -124,22 +124,19 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, [login, setLoading, setError]);
+  }, [loginWithProviderData, setLoading, setError]);
 
   /**
-   * Cierra sesión
-   * Usa React Query mutation para notificar al backend + Zustand para limpiar estado local
+   * Cierra sesión.
+   * Notifica al backend via React Query mutation + limpia estado local.
    */
   const logout = useCallback(async () => {
     try {
       setLoading(true);
-      // Notificar al backend via React Query mutation
       await logoutMutation.mutateAsync();
-      // Limpiar estado local (Zustand + SecureStore)
       await logoutStore();
       logger.info('Logout exitoso');
     } catch (error) {
-      // Aún si falla el backend, limpiar estado local
       await logoutStore();
       logger.error('Error en logout:', error);
     } finally {
@@ -148,17 +145,14 @@ export const useAuth = () => {
   }, [logoutStore, logoutMutation, setLoading]);
 
   return {
-    // Estado combinado: Zustand (client) + React Query (server)
-    user: currentUserQuery.data ?? user,
+    user,
     isAuthenticated,
-    isLoading: isLoading || currentUserQuery.isLoading,
-    error: error || (currentUserQuery.error ? currentUserQuery.error.message : null),
-    // Acciones
+    isLoading,
+    error,
     loginWithGoogle,
     loginWithApple,
+    loginWithProviderData,
     logout,
     checkAuth,
-    // React Query extras
-    currentUserQuery,
   };
 };

@@ -1,17 +1,15 @@
 /**
- * Hook React Query para obtener el usuario actual
- * Consume getCurrentUser de auth.api.ts
+ * Hook para obtener el usuario actual.
+ * El backend no tiene endpoint GET /auth/me, asi que el usuario
+ * se obtiene del store de Zustand (guardado durante login).
+ *
+ * Este hook se mantiene como wrapper por si en el futuro
+ * el backend agrega un endpoint de usuario actual.
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { getCurrentUser } from '../api/auth.api';
-import { queryKeys } from '@/shared/lib/queryKeys';
+import { useAuthStore } from '../store/auth.store';
 
-export const useCurrentUser = (enabled = true) => {
-  return useQuery({
-    queryKey: queryKeys.auth.currentUser,
-    queryFn: getCurrentUser,
-    enabled,
-  });
+export const useCurrentUser = () => {
+  const { user, isAuthenticated } = useAuthStore();
+  return { data: user, isLoading: false, error: null, isAuthenticated };
 };
-

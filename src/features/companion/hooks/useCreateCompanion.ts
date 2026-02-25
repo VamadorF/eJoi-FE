@@ -5,16 +5,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createCompanion } from '../api/companion.api';
 import { queryKeys } from '@/shared/lib/queryKeys';
-import { Companion } from '../types';
+import { CreateCompanionRequest } from '../types';
 
 export const useCreateCompanion = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<Companion>) => createCompanion(data),
+    mutationFn: (data: CreateCompanionRequest) => createCompanion(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.companion.list });
+      queryClient.invalidateQueries({ queryKey: queryKeys.companion.me });
     },
   });
 };
-

@@ -7,14 +7,31 @@ export interface User {
   email: string;
   name: string;
   picture?: string;
+  provider?: 'google' | 'apple';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AuthProviderRequest {
   provider: 'google' | 'apple';
-  createdAt: string;
-  updatedAt: string;
+  providerUserId: string;
+  email: string;
+  name: string;
+}
+
+export interface AuthProviderResponse {
+  code: number;
+  access_token: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface AuthTokens {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   expiresIn?: number;
 }
 
@@ -34,7 +51,7 @@ export interface GoogleAuthResult {
   type: 'success' | 'error';
   accessToken?: string;
   idToken?: string;
-  user?: User; // Usar el tipo User completo
+  user?: User;
   error?: string;
 }
 
@@ -42,8 +59,7 @@ export interface AppleAuthResult {
   type: 'success' | 'error';
   identityToken?: string;
   authorizationCode?: string;
-  accessToken?: string; // Token obtenido del backend después del intercambio
-  user?: User; // Usar el tipo User completo
+  accessToken?: string;
+  user?: User;
   error?: string;
 }
-

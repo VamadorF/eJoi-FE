@@ -8,7 +8,7 @@ export const queryKeys = {
     currentUser: ['auth', 'currentUser'] as const,
   },
   companion: {
-    detail: (id: string) => ['companion', id] as const,
+    me: ['companion', 'me'] as const,
     list: ['companions'] as const,
   },
   chat: {
