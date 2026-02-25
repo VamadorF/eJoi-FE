@@ -80,7 +80,7 @@ export const ChatScreen: React.FC = () => {
     );
   }
 
-  // ✅ Evita “flash” del chat si va a redirigir al paywall
+  // ✅ Evita "flash" del chat si va a redirigir al paywall
   if (!isSubscribed) {
     return null;
   }

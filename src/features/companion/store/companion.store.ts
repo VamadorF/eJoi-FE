@@ -5,8 +5,7 @@
 
 import { create } from 'zustand';
 import { Companion } from '../types';
-import { getAuthToken, getCompanionData, setCompanionData, removeCompanionData } from '@/shared/services/storage/secure';
-import { getMyCompanion } from '../api/companion.api';
+import { getCompanionData, setCompanionData, removeCompanionData } from '@/shared/services/storage/secure';
 
 interface CompanionStore {
   // State
@@ -36,7 +35,7 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
       companion,
       hasCompanion: !!companion,
     });
-    
+
     // Persistir en almacenamiento local
     if (companion) {
       try {
@@ -56,20 +55,8 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
   checkCompanion: async () => {
     try {
       set({ isLoading: true, error: null });
-      
-      const token = await getAuthToken();
-      
-      if (!token) {
-        // Si no hay token, no hay compañer@
-        set({
-          companion: null,
-          hasCompanion: false,
-          isLoading: false,
-        });
-        return;
-      }
 
-      // Primero verificar en almacenamiento local
+      // Verificar en almacenamiento local (no depende de token)
       const storedCompanionData = await getCompanionData();
       if (storedCompanionData) {
         try {
@@ -97,6 +84,18 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
         console.error('Error fetching companion from API:', apiError);
       }
 
+      // TODO: Llamar a API para verificar si tiene compañer@
+      // const response = await fetch(`${API_URL}/companion`, {
+      //   headers: { Authorization: `Bearer ${token}` }
+      // });
+      // if (response.ok) {
+      //   const companion = await response.json();
+      //   get().setCompanion(companion);
+      //   set({ hasCompanion: true, isLoading: false });
+      //   return;
+      // }
+
+      // Si no hay compañer@ en almacenamiento ni en API
       set({
         companion: null,
         hasCompanion: false,
