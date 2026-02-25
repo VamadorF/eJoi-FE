@@ -1,14 +1,26 @@
 /**
  * Tipos para feature Chat
- * TODO: Implementar cuando la feature esté disponible
  */
+
+export type MessageRole = 'user' | 'assistant' | 'system';
 
 export interface Message {
   id: string;
-  content: string;
-  senderId: string;
-  roomId: string;
+  companionId: string;
+  role: MessageRole;
+  message: string;
   createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ChatHistoryParams {
+  companionId: string;
+  limit?: number;
+}
+
+export interface SendMessageRequest {
+  companionId: string;
+  message: string;
 }
 
 export interface ChatRoom {

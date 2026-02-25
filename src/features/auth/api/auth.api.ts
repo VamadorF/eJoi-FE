@@ -1,90 +1,93 @@
 /**
- * Servicio de API para autenticación
- * Endpoint principal: POST /auth/provider
+ * Servicio de API para autenticación.
+ * Soporta login local, OAuth directo y verificación de sesión.
  */
 
 import { httpClient } from '@/shared/services/http/client';
-import { AuthProviderRequest, AuthProviderResponse, LoginResponse } from '../types';
+import {
+  AppleLoginRequest,
+  AuthLoginResponse,
+  AuthProviderRequest,
+  AuthProviderResponse,
+  AuthSessionResponse,
+  GoogleLoginRequest,
+  LoginCredentialsRequest,
+  User,
+} from '../types';
+
+type RawAuthResponse = {
+  code?: number;
+  access_token?: string;
+  accessToken?: string;
+  token?: string;
+  user?: User | null;
+};
+
+type RawSessionResponse = {
+  isAuthenticated?: boolean;
+  authenticated?: boolean;
+  user?: User | null;
+};
+
+const normalizeAuthResponse = (data: RawAuthResponse): AuthLoginResponse => {
+  const accessToken = data.accessToken || data.access_token || data.token;
+
+  if (!accessToken) {
+    throw new Error('El backend no devolvio un access token valido');
+  }
+
+  if (!data.user) {
+    throw new Error('El backend no devolvio informacion del usuario');
+  }
+
+  return {
+    code: data.code,
+    accessToken,
+    access_token: data.access_token,
+    user: data.user,
+  };
+};
+
+const normalizeSessionResponse = (data: RawSessionResponse): AuthSessionResponse => {
+  const isAuthenticated = data.isAuthenticated ?? data.authenticated ?? !!data.user;
+  return {
+    isAuthenticated,
+    user: isAuthenticated ? data.user ?? null : null,
+  };
+};
+
+export const loginWithCredentials = async (
+  credentials: LoginCredentialsRequest
+): Promise<AuthLoginResponse> => {
+  const response = await httpClient.post<RawAuthResponse>('/auth/login', credentials);
+  return normalizeAuthResponse(response.data);
+};
+
+export const loginWithGoogle = async (data: GoogleLoginRequest): Promise<AuthLoginResponse> => {
+  const response = await httpClient.post<RawAuthResponse>('/auth/google', data);
+  return normalizeAuthResponse(response.data);
+};
+
+export const loginWithApple = async (data: AppleLoginRequest): Promise<AuthLoginResponse> => {
+  const response = await httpClient.post<RawAuthResponse>('/auth/apple', data);
+  return normalizeAuthResponse(response.data);
+};
 
 /**
- * Autentica al usuario mediante un proveedor OAuth.
- * El frontend resuelve el flujo OAuth con el SDK del proveedor (Google/Apple)
- * y envia los datos resultantes al backend.
- *
- * Endpoint: POST /auth/provider
+ * Endpoint legacy mantenido por compatibilidad con backend previos.
  */
 export const loginWithProvider = async (
   data: AuthProviderRequest
 ): Promise<AuthProviderResponse> => {
-  const response = await httpClient.post<AuthProviderResponse>('/auth/provider', data);
-  return response.data;
+  const response = await httpClient.post<RawAuthResponse>('/auth/provider', data);
+  return normalizeAuthResponse(response.data);
 };
 
-/**
- * Cierra sesión.
- * El backend no tiene endpoint de logout, el estado se limpia solo en el cliente
- * (borrar token de SecureStore + limpiar Zustand).
- */
+export const getAuthSession = async (): Promise<AuthSessionResponse> => {
+  const response = await httpClient.get<RawSessionResponse>('/auth');
+  return normalizeSessionResponse(response.data);
+};
+
 export const logout = async (): Promise<void> => {
-  // No-op: el backend no tiene endpoint de logout.
-  // La limpieza se hace en auth.store.logout()
+  // No-op: el backend no expone logout por ahora.
 };
-
-// ---------------------------------------------------------------------------
-// Funciones legacy de OAuth via WebBrowser (mantenidas como fallback)
-// El backend actual usa POST /auth/provider como endpoint unificado.
-// ---------------------------------------------------------------------------
-
-/*
-export const getGoogleAuthUrl = async (): Promise<string> => {
-  const response = await httpClient.get<{ authUrl: string }>('/auth/google/url');
-  return response.data.authUrl;
-};
-
-export const getAppleAuthUrl = async (): Promise<string> => {
-  const response = await httpClient.get<{ authUrl: string }>('/auth/apple/url');
-  return response.data.authUrl;
-};
-
-export const exchangeGoogleCode = async (code: string): Promise<LoginResponse> => {
-  const response = await httpClient.post<LoginResponse>('/auth/google/callback', { code });
-  return response.data;
-};
-
-export const exchangeAppleCode = async (code: string): Promise<LoginResponse> => {
-  const response = await httpClient.post<LoginResponse>('/auth/apple/callback', { code });
-  return response.data;
-};
-
-export const loginWithGoogle = async (
-  accessToken: string,
-  idToken: string
-): Promise<LoginResponse> => {
-  const response = await httpClient.post<LoginResponse>('/auth/google', {
-    token: accessToken,
-    idToken,
-  });
-  return response.data;
-};
-
-export const loginWithApple = async (
-  identityToken: string,
-  authorizationCode: string
-): Promise<LoginResponse> => {
-  const response = await httpClient.post<LoginResponse>('/auth/apple', {
-    identityToken,
-    authorizationCode,
-  });
-  return response.data;
-};
-
-export const refreshToken = async (
-  refreshToken: string
-): Promise<{ accessToken: string; refreshToken: string }> => {
-  const response = await httpClient.post<{ accessToken: string; refreshToken: string }>(
-    '/auth/refresh',
-    { refreshToken }
-  );
-  return response.data;
-};
-*/

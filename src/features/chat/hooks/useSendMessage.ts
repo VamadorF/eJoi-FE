@@ -10,10 +10,15 @@ export const useSendMessage = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ roomId, content }: { roomId: string; content: string }) =>
-      sendMessage(roomId, content),
+    mutationFn: ({
+      companionId,
+      message,
+    }: {
+      companionId: string;
+      message: string;
+    }) => sendMessage({ companionId, message }),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.chat.messages(variables.roomId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.chat.messages(variables.companionId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.chat.rooms });
     },
   });

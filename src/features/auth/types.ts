@@ -12,6 +12,11 @@ export interface User {
   updatedAt?: string;
 }
 
+export interface LoginCredentialsRequest {
+  username: string;
+  password: string;
+}
+
 export interface AuthProviderRequest {
   provider: 'google' | 'apple';
   providerUserId: string;
@@ -19,14 +24,32 @@ export interface AuthProviderRequest {
   name: string;
 }
 
-export interface AuthProviderResponse {
-  code: number;
-  access_token: string;
+export interface GoogleLoginRequest {
+  idToken: string;
+  accessToken?: string;
+}
+
+export interface AppleLoginRequest {
+  identityToken: string;
+  authorizationCode?: string;
+}
+
+export interface AuthLoginResponse {
+  code?: number;
+  accessToken: string;
+  access_token?: string;
   user: {
     id: string;
     name: string;
     email: string;
   };
+}
+
+export type AuthProviderResponse = AuthLoginResponse;
+
+export interface AuthSessionResponse {
+  isAuthenticated: boolean;
+  user: User | null;
 }
 
 export interface AuthTokens {

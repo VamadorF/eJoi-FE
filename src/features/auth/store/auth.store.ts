@@ -5,7 +5,8 @@
 
 import { create } from 'zustand';
 import { User, AuthState } from '../types';
-import { setAuthToken, removeAuthToken, getAuthToken, clearAuthData } from '@/shared/services/storage/secure';
+import { setAuthToken, getAuthToken, clearAuthData } from '@/shared/services/storage/secure';
+import { getAuthSession } from '../api/auth.api';
 
 interface AuthStore extends AuthState {
   setUser: (user: User | null) => void;
@@ -16,7 +17,7 @@ interface AuthStore extends AuthState {
   checkAuth: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
@@ -78,19 +79,35 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const token = await getAuthToken();
 
-      if (token) {
+      if (!token) {
         set({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+        return;
+      }
+
+      const session = await getAuthSession();
+
+      if (session.isAuthenticated) {
+        set({
+          user: session.user,
           isAuthenticated: true,
           isLoading: false,
         });
       } else {
+        await clearAuthData();
         set({
+          user: null,
           isAuthenticated: false,
           isLoading: false,
         });
       }
     } catch (error) {
+      await clearAuthData();
       set({
+        user: null,
         isAuthenticated: false,
         isLoading: false,
         error: error instanceof Error ? error.message : 'Error al verificar autenticación',

@@ -13,7 +13,8 @@ export const queryKeys = {
   },
   chat: {
     rooms: ['chat', 'rooms'] as const,
-    messages: (roomId: string) => ['chat', 'messages', roomId] as const,
+    messages: (companionId: string, limit?: number) =>
+      ['chat', 'messages', companionId, limit ?? 'all'] as const,
   },
   onboarding: {
     data: ['onboarding'] as const,
