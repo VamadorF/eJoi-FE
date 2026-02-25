@@ -3,9 +3,20 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { loginWithProvider, logout } from '../api/auth.api';
+import {
+  loginWithApple,
+  loginWithCredentials,
+  loginWithGoogle,
+  loginWithProvider,
+  logout,
+} from '../api/auth.api';
 import { queryKeys } from '@/shared/lib/queryKeys';
-import { AuthProviderRequest } from '../types';
+import {
+  AppleLoginRequest,
+  AuthProviderRequest,
+  GoogleLoginRequest,
+  LoginCredentialsRequest,
+} from '../types';
 
 /**
  * Mutation para login con proveedor OAuth (Google/Apple)
@@ -16,6 +27,39 @@ export const useLoginWithProvider = () => {
 
   return useMutation({
     mutationFn: (data: AuthProviderRequest) => loginWithProvider(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.currentUser });
+    },
+  });
+};
+
+export const useLoginWithCredentials = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (credentials: LoginCredentialsRequest) => loginWithCredentials(credentials),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.currentUser });
+    },
+  });
+};
+
+export const useLoginWithGoogle = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: GoogleLoginRequest) => loginWithGoogle(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.currentUser });
+    },
+  });
+};
+
+export const useLoginWithApple = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: AppleLoginRequest) => loginWithApple(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.currentUser });
     },

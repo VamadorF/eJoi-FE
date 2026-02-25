@@ -1,124 +1,121 @@
 # eJoi Frontend
 
-Aplicación frontend para eJoi desarrollada con React Native, Expo y TypeScript.
+Aplicación frontend de eJoi desarrollada con React Native, Expo y TypeScript.
 
-## 🚀 Características
+## Estado actual
 
-- **React Native con Expo**: Desarrollo multiplataforma (iOS, Android, Web)
-- **TypeScript**: Tipado estático para mayor robustez
-- **Arquitectura Modular**: Estructura orientada a componentes por dominio
-- **Autenticación OAuth**: Login con Google y Apple
-- **Segregación de Estilos**: Todos los estilos en archivos externos
-- **Animaciones**: Interfaz con animaciones fluidas
+- Autenticación con Google y Apple activa, más soporte para login local.
+- Verificación de sesión integrada contra backend.
+- Flujo de onboarding y creación de companion implementado en UI.
+- Chat conectado parcialmente a backend (`history` y `message`), con partes de UI todavía en transición.
+- Paywall/suscripción implementado en frontend con lógica local.
 
-## 📁 Estructura del Proyecto
+## Stack principal
 
-```
+- React Native `0.74`
+- Expo `51`
+- TypeScript `5`
+- React Navigation `6`
+- Zustand `4`
+- TanStack React Query `5`
+- Expo Secure Store
+- Expo WebBrowser / Apple Authentication
+
+## Estructura del proyecto
+
+```text
 src/
-  app/                      # Arranque de la app: providers, navegación, bootstrap
+  app/                      # bootstrap, providers y navegación
+    config/
     navigation/
     providers/
-    config/
-    index.tsx
 
-  features/                 # Features por dominio
-    auth/                   # Autenticación (implementado)
-    chat/                   # Chat (placeholder)
-    companion/              # Companion (placeholder)
-    onboarding/             # Onboarding (placeholder)
+  features/                 # módulos por dominio
+    auth/
+    onboarding/
+    companion/
+    chat/
+    main/
+    subscription/
 
-  shared/                   # Componentes y utilidades compartidas
+  shared/                   # componentes, servicios y utilidades compartidas
     components/
     hooks/
     services/
     theme/
-    utils/
     types/
-
-  assets/                   # Recursos estáticos
-    images/
-    icons/
-    fonts/
+    utils/
 ```
 
-## 🛠️ Instalación
+## Instalación
 
 1. Clona el repositorio:
+
 ```bash
 git clone https://github.com/VamadorF/eJoi-FE.git
 cd eJoi-FE
 ```
 
-2. Instala las dependencias:
+2. Instala dependencias:
+
 ```bash
 npm install
 ```
 
-3. Configura las variables de entorno (opcional):
-```bash
-# Copia .env.example a .env y agrega tus credenciales
-cp .env.example .env
+3. Crea un archivo `.env` en la raíz (actualmente no hay `.env.example`) y define al menos:
+
+```env
+EXPO_PUBLIC_API_URL=http://localhost:3000
+EXPO_PUBLIC_SOCKET_URL=ws://localhost:3001
+EXPO_PUBLIC_GOOGLE_CLIENT_ID=tu_google_client_id
 ```
 
-4. Inicia el servidor de desarrollo:
+4. Levanta la app:
+
 ```bash
 npm start
-# O para web específicamente:
-npm run web
 ```
 
-## 🔐 Configuración OAuth
+## Scripts
 
-Para configurar la autenticación OAuth, consulta el archivo [OAUTH_SETUP.md](./OAUTH_SETUP.md).
+- `npm start` - inicia Expo
+- `npm run web` - ejecuta en web
+- `npm run android` - ejecuta en Android
+- `npm run ios` - ejecuta en iOS
 
-El backend debe implementar los siguientes endpoints:
-- `GET /auth/google/url` - Genera URL de OAuth de Google
-- `POST /auth/google/callback` - Intercambia código por token
-- `GET /auth/apple/url` - Genera URL de OAuth de Apple
-- `POST /auth/apple/callback` - Intercambia código por token
+## Endpoints backend usados por el frontend
 
-## 📱 Scripts Disponibles
+### Auth
 
-- `npm start` - Inicia el servidor de desarrollo Expo
-- `npm run web` - Inicia en modo web
-- `npm run android` - Inicia en Android
-- `npm run ios` - Inicia en iOS
+- `POST /auth/login`
+- `POST /auth/google`
+- `POST /auth/apple`
+- `GET /auth` (validación de sesión)
+- `POST /auth/provider` (compatibilidad legacy)
 
-## 🎨 Características de Diseño
+### Chat
 
-- **Fondo con gradiente azul**: Diseño moderno y atractivo
-- **Logo grande**: 180x180 píxeles
-- **Iconos**: Usando @expo/vector-icons (FontAwesome5)
-- **Animaciones**: Transiciones suaves en todos los elementos
+- `GET /chat/history?companionId=...&limit=...`
+- `POST /chat/message`
 
-## 🔧 Tecnologías Utilizadas
+### Companion
 
-- React Native 0.74.0
-- Expo ~51.0.0
-- TypeScript 5.3.0
-- React Navigation 6.x
-- Zustand 4.5.0 (State Management)
-- Expo Auth Session (OAuth)
-- React Native Reanimated (Animaciones)
-- Expo Linear Gradient (Gradientes)
+- `GET /companion/me`
+- `POST /companion/me`
+- `PUT /companion/me`
 
-## 📝 Notas
+### Onboarding
 
-- El proyecto está configurado para funcionar en localhost web
-- Los estilos están completamente segregados en archivos `.styles.ts`
-- La arquitectura está preparada para escalar con nuevas features
-- Comentarios en el código indican dónde conectar con el backend
+- Definido en frontend, pero la integración backend sigue pendiente en esta rama.
 
-## 🤝 Contribuir
+## Notas
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+- `SocketProvider` está preparado, pero todavía en modo placeholder.
+- Hay hooks React Query en varios dominios; no todo el flujo de UI ya consume esos hooks.
+- Chat y suscripción tienen partes funcionales y partes aún mock/pendientes de integración completa.
 
-## 📄 Licencia
+## Licencia
 
-Este proyecto es privado.
+Proyecto privado.
 
 

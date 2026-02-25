@@ -5,9 +5,15 @@
 
 import { useCallback } from 'react';
 import { useAuthStore } from '../store/auth.store';
-import { useLoginWithProvider, useLogout as useLogoutMutation } from './useAuthMutations';
+import {
+  useLoginWithApple,
+  useLoginWithCredentials,
+  useLoginWithGoogle,
+  useLoginWithProvider,
+  useLogout as useLogoutMutation,
+} from './useAuthMutations';
 import { logger } from '@/shared/utils/logger';
-import { AuthProviderRequest } from '../types';
+import { AuthProviderRequest, LoginCredentialsRequest } from '../types';
 
 export const useAuth = () => {
   const {
@@ -23,6 +29,9 @@ export const useAuth = () => {
   } = useAuthStore();
 
   const loginWithProviderMutation = useLoginWithProvider();
+  const loginWithCredentialsMutation = useLoginWithCredentials();
+  const loginWithGoogleMutation = useLoginWithGoogle();
+  const loginWithAppleMutation = useLoginWithApple();
   const logoutMutation = useLogoutMutation();
 
   /**
@@ -44,7 +53,7 @@ export const useAuth = () => {
         provider: data.provider,
       };
 
-      await login(userFromResponse, response.access_token);
+      await login(userFromResponse, response.accessToken);
 
       logger.info(`Login exitoso con ${data.provider}`);
     } catch (error) {
@@ -58,6 +67,31 @@ export const useAuth = () => {
       setLoading(false);
     }
   }, [login, loginWithProviderMutation, setLoading, setError]);
+
+  const loginWithCredentials = useCallback(async (credentials: LoginCredentialsRequest) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await loginWithCredentialsMutation.mutateAsync(credentials);
+
+      const userFromResponse = {
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
+      };
+
+      await login(userFromResponse, response.accessToken);
+      logger.info('Login local exitoso');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesion';
+      setError(errorMessage);
+      logger.error('Error en login local:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [login, loginWithCredentialsMutation, setError, setLoading]);
 
   /**
    * Inicia sesión con Google.
@@ -77,12 +111,24 @@ export const useAuth = () => {
         throw new Error(googleResult.error || 'Error en autenticación Google');
       }
 
-      await loginWithProviderData({
-        provider: 'google',
-        providerUserId: googleResult.user.id,
-        email: googleResult.user.email || '',
-        name: googleResult.user.name || '',
+      if (!googleResult.idToken) {
+        throw new Error('No se recibio idToken de Google');
+      }
+
+      const response = await loginWithGoogleMutation.mutateAsync({
+        idToken: googleResult.idToken,
+        accessToken: googleResult.accessToken,
       });
+
+      await login(
+        {
+          id: response.user.id,
+          email: response.user.email,
+          name: response.user.name,
+          provider: 'google',
+        },
+        response.accessToken
+      );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión con Google';
       setError(errorMessage);
@@ -91,7 +137,7 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, [loginWithProviderData, setLoading, setError]);
+  }, [login, loginWithGoogleMutation, setError, setLoading]);
 
   /**
    * Inicia sesión con Apple.
@@ -110,12 +156,24 @@ export const useAuth = () => {
         throw new Error(appleResult.error || 'Error en autenticación Apple');
       }
 
-      await loginWithProviderData({
-        provider: 'apple',
-        providerUserId: appleResult.user.id,
-        email: appleResult.user.email || '',
-        name: appleResult.user.name || '',
+      if (!appleResult.identityToken) {
+        throw new Error('No se recibio identityToken de Apple');
+      }
+
+      const response = await loginWithAppleMutation.mutateAsync({
+        identityToken: appleResult.identityToken,
+        authorizationCode: appleResult.authorizationCode,
       });
+
+      await login(
+        {
+          id: response.user.id,
+          email: response.user.email,
+          name: response.user.name,
+          provider: 'apple',
+        },
+        response.accessToken
+      );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión con Apple';
       setError(errorMessage);
@@ -124,7 +182,7 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, [loginWithProviderData, setLoading, setError]);
+  }, [login, loginWithAppleMutation, setError, setLoading]);
 
   /**
    * Cierra sesión.
@@ -149,6 +207,7 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading,
     error,
+    loginWithCredentials,
     loginWithGoogle,
     loginWithApple,
     loginWithProviderData,

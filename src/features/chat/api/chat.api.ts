@@ -1,11 +1,55 @@
 /**
  * Servicio de API para Chat
  * Funciones puras para llamadas al backend NestJS
- * TODO: Conectar con backend cuando esté disponible
  */
 
 import { httpClient } from '@/shared/services/http/client';
-import { ChatRoom, Message } from '../types';
+import { ChatHistoryParams, ChatRoom, Message, MessageRole, SendMessageRequest } from '../types';
+
+type RawMessage = {
+  id?: string;
+  companionId?: string;
+  role?: string;
+  message?: string;
+  content?: string;
+  text?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type RawHistoryResponse = RawMessage[] | { messages?: RawMessage[]; data?: RawMessage[] };
+
+const toMessageRole = (role?: string): MessageRole => {
+  if (role === 'assistant' || role === 'system') {
+    return role;
+  }
+  return 'user';
+};
+
+const normalizeMessage = (message: RawMessage, fallbackCompanionId: string): Message => ({
+  id: message.id ?? `${fallbackCompanionId}-${Date.now()}`,
+  companionId: message.companionId ?? fallbackCompanionId,
+  role: toMessageRole(message.role),
+  message: message.message ?? message.content ?? message.text ?? '',
+  createdAt: message.createdAt ?? new Date().toISOString(),
+  updatedAt: message.updatedAt,
+});
+
+const extractHistory = (data: RawHistoryResponse): RawMessage[] => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data.messages)) {
+    return data.messages;
+  }
+
+  if (Array.isArray(data.data)) {
+    return data.data;
+  }
+
+  return [];
+};
 
 /**
  * Obtiene la lista de salas de chat del usuario
@@ -14,44 +58,37 @@ import { ChatRoom, Message } from '../types';
  * Response: ChatRoom[]
  */
 export const getChatRooms = async (): Promise<ChatRoom[]> => {
-  // TODO: Descomentar cuando el backend esté disponible
-  // const response = await httpClient.get<ChatRoom[]>('/chat/rooms');
-  // return response.data;
-
-  throw new Error('Backend no disponible. Conectar con NestJS cuando esté listo.');
+  throw new Error('GET /chat/rooms no existe en backend actual.');
 };
 
 /**
- * Obtiene los mensajes de una sala de chat
- * 
- * Endpoint: GET ${API_URL}/chat/rooms/:roomId/messages
+ * Obtiene historial de chat de un companion.
+ *
+ * Endpoint: GET /chat/history?companionId=...&limit=...
  * Response: Message[]
- * 
- * @param roomId - ID de la sala de chat
  */
-export const getChatMessages = async (roomId: string): Promise<Message[]> => {
-  // TODO: Descomentar cuando el backend esté disponible
-  // const response = await httpClient.get<Message[]>(`/chat/rooms/${roomId}/messages`);
-  // return response.data;
+export const getChatMessages = async ({
+  companionId,
+  limit,
+}: ChatHistoryParams): Promise<Message[]> => {
+  const params = new URLSearchParams({ companionId });
+  if (typeof limit === 'number') {
+    params.append('limit', String(limit));
+  }
 
-  throw new Error('Backend no disponible. Conectar con NestJS cuando esté listo.');
+  const response = await httpClient.get<RawHistoryResponse>(`/chat/history?${params.toString()}`);
+  return extractHistory(response.data).map((item) => normalizeMessage(item, companionId));
 };
 
 /**
- * Envía un mensaje a una sala de chat
- * 
- * Endpoint: POST ${API_URL}/chat/rooms/:roomId/messages
- * Body: { content: string }
+ * Envía un mensaje al companion.
+ *
+ * Endpoint: POST /chat/message
+ * Body: { companionId, message }
  * Response: Message
- * 
- * @param roomId - ID de la sala de chat
- * @param content - Contenido del mensaje
  */
-export const sendMessage = async (roomId: string, content: string): Promise<Message> => {
-  // TODO: Descomentar cuando el backend esté disponible
-  // const response = await httpClient.post<Message>(`/chat/rooms/${roomId}/messages`, { content });
-  // return response.data;
-
-  throw new Error('Backend no disponible. Conectar con NestJS cuando esté listo.');
+export const sendMessage = async (data: SendMessageRequest): Promise<Message> => {
+  const response = await httpClient.post<RawMessage>('/chat/message', data);
+  return normalizeMessage(response.data, data.companionId);
 };
 
