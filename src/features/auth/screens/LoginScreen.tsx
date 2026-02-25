@@ -1,14 +1,14 @@
 import React, { useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  Image, 
-  TouchableOpacity, 
-  Alert, 
-  Animated, 
-  Modal, 
-  Pressable, 
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Alert,
+  Animated,
+  Modal,
+  Pressable,
   SafeAreaView,
   StatusBar,
 } from 'react-native';
@@ -31,14 +31,14 @@ export const LoginScreen: React.FC = () => {
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
   const [isAppleLoading, setIsAppleLoading] = React.useState(false);
   const [modalContent, setModalContent] = React.useState<{ title: string; content: string } | null>(null);
-  
+
   // Animaciones
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const logoScale = React.useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     StatusBar.setBarStyle('dark-content');
-    
+
     // Animación de entrada
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -100,7 +100,7 @@ export const LoginScreen: React.FC = () => {
 
   const renderLegalText = (raw: string) => {
     const blocks = raw.split('\n\n').map(s => s.trim()).filter(Boolean);
-  
+
     return blocks.map((block, idx) => {
       if (block.includes('•')) {
         const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
@@ -125,7 +125,7 @@ export const LoginScreen: React.FC = () => {
           </View>
         );
       }
-  
+
       return (
         <Text key={idx} style={styles.sheetParagraph}>
           {block}
@@ -137,11 +137,11 @@ export const LoginScreen: React.FC = () => {
   const handleSkip = async () => {
     await checkCompanion();
     const companionState = useCompanionStore.getState();
-    
+
     if (companionState.hasCompanion) {
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Chat' }],
+        routes: [{ name: 'Home' }],
       });
     } else {
       navigation.navigate('Onboarding');
@@ -151,7 +151,7 @@ export const LoginScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      
+
       {/* Sección superior con imagen de fondo y logo */}
       <View style={styles.imageSection}>
         <Image
@@ -160,18 +160,18 @@ export const LoginScreen: React.FC = () => {
           resizeMode="cover"
           accessibilityLabel="Background"
         />
-        
-        
+
+
       </View>
 
       {/* Sección inferior con botones */}
       <Animated.View style={[styles.bottomSection, { opacity: fadeAnim }]}>
-        
-        
+
+
         {/* Botones de Apple y Google */}
         <View style={styles.buttonsContainer}>
           <View style={styles.buttonsRow}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.socialButton}
               onPress={handleAppleLogin}
               disabled={isLoading || isAppleLoading}
@@ -185,7 +185,7 @@ export const LoginScreen: React.FC = () => {
               <Text style={styles.socialButtonText}>Apple</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.socialButton}
               onPress={handleGoogleLogin}
               disabled={isLoading || isGoogleLoading}

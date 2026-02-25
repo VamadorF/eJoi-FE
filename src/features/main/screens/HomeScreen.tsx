@@ -1,4 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { HeaderMenuButton } from '@/shared/components/HeaderMenuButton/HeaderMenuButton';
+import { AppDrawer } from '@/shared/components/AppDrawer/AppDrawer';
+import { LogoutConfirmModal } from '@/shared/components/LogoutConfirmModal/LogoutConfirmModal';
+import { logout } from '@/shared/services/session/sessionManager';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -343,7 +348,12 @@ export const HomeScreen: React.FC = () => {
   const [lastSentMessageId, setLastSentMessageId] = useState<string | null>(null);
   const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
   const [expandedMemory, setExpandedMemory] = useState<string | null>(null);
+  // Drawer & logout states
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const navigation = useNavigation();
   const { companion } = useCompanionStore();
   const genderedText = useGenderedText();
   const lastInteractionTime = useRef(Date.now());
@@ -436,52 +446,52 @@ export const HomeScreen: React.FC = () => {
   // Generar atributos de carácter basados en el companion
   const characterAttributes = useMemo(() => {
     if (!companion) return CHARACTER_ATTRIBUTES_FALLBACK;
-    
+
     const attrs: string[] = [];
-    
+
     // Añadir personalidad
     if (companion.personality) {
       attrs.push(companion.personality);
     }
-    
+
     // Añadir tono
     if (companion.tone) {
       attrs.push(companion.tone);
     }
-    
+
     // Añadir estilo de interacción
     if (companion.interactionStyle) {
       attrs.push(companion.interactionStyle);
     }
-    
+
     // Añadir profundidad de conversación
     if (companion.conversationDepth) {
       attrs.push(companion.conversationDepth);
     }
-    
+
     return attrs.length > 0 ? attrs : CHARACTER_ATTRIBUTES_FALLBACK;
   }, [companion]);
 
   // Generar atributos físicos basados en el companion
   const physicalAttributes = useMemo(() => {
     if (!companion) return PHYSICAL_ATTRIBUTES;
-    
+
     const attrs: PhysicalAttribute[] = [];
-    
+
     // Añadir estilo visual
     if (companion.visualStyle) {
-      attrs.push({ 
-        label: companion.visualStyle === 'realista' ? 'Realista' : 'Anime' 
+      attrs.push({
+        label: companion.visualStyle === 'realista' ? 'Realista' : 'Anime'
       });
     }
-    
+
     // Añadir género
     if (companion.gender) {
-      attrs.push({ 
-        label: companion.gender === 'femenino' ? 'Femenino' : companion.gender === 'neutro' ? 'Neutro' : 'Masculino' 
+      attrs.push({
+        label: companion.gender === 'femenino' ? 'Femenino' : companion.gender === 'neutro' ? 'Neutro' : 'Masculino'
       });
     }
-    
+
     return attrs.length > 0 ? attrs : PHYSICAL_ATTRIBUTES;
   }, [companion]);
 
@@ -607,6 +617,43 @@ export const HomeScreen: React.FC = () => {
       return newSet;
     });
   };
+
+  // ============ HANDLERS: Drawer & Logout ============
+  const handleOpenDrawer = useCallback(() => {
+    setDrawerVisible(true);
+  }, []);
+
+  const handleCloseDrawer = useCallback(() => {
+    setDrawerVisible(false);
+  }, []);
+
+  const handleLogoutPress = useCallback(() => {
+    setLogoutModalVisible(true);
+  }, []);
+
+  const handleLogoutCancel = useCallback(() => {
+    setLogoutModalVisible(false);
+  }, []);
+
+  const handleLogoutConfirm = useCallback(async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      // Resetear el stack de navegación a Login
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        })
+      );
+    } catch (error) {
+      console.error('[HomeScreen] Error en logout:', error);
+    } finally {
+      setIsLoggingOut(false);
+      setLogoutModalVisible(false);
+      setDrawerVisible(false);
+    }
+  }, [navigation]);
 
   const handleInputContentSizeChange = (
     event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>
@@ -857,7 +904,7 @@ export const HomeScreen: React.FC = () => {
             <Ionicons name="calendar-outline" size={18} color={Colors.text.secondary} />
             <Text style={memoryStyles.sectionTitle}>Esta semana</Text>
           </View>
-          {groupedMemories.week.map((memory, index) => 
+          {groupedMemories.week.map((memory, index) =>
             renderMemoryCard(memory, index, expandedMemory === memory.id)
           )}
         </Animated.View>
@@ -873,7 +920,7 @@ export const HomeScreen: React.FC = () => {
             <Ionicons name="time-outline" size={18} color={Colors.text.secondary} />
             <Text style={memoryStyles.sectionTitle}>Este mes</Text>
           </View>
-          {groupedMemories.month.map((memory, index) => 
+          {groupedMemories.month.map((memory, index) =>
             renderMemoryCard(memory, index, expandedMemory === memory.id)
           )}
         </Animated.View>
@@ -889,7 +936,7 @@ export const HomeScreen: React.FC = () => {
             <Ionicons name="archive-outline" size={18} color={Colors.text.secondary} />
             <Text style={memoryStyles.sectionTitle}>Hace tiempo</Text>
           </View>
-          {groupedMemories.older.map((memory, index) => 
+          {groupedMemories.older.map((memory, index) =>
             renderMemoryCard(memory, index, expandedMemory === memory.id)
           )}
         </Animated.View>
@@ -1191,6 +1238,9 @@ export const HomeScreen: React.FC = () => {
           </View>
         </Animated.View>
 
+        {/* Botón ☰ para abrir drawer */}
+        <HeaderMenuButton onPress={handleOpenDrawer} />
+
         {/* Avatar pequeño del companion (solo en chat) */}
         {activeTab === 'chat' && (
           <Animated.View
@@ -1279,6 +1329,21 @@ export const HomeScreen: React.FC = () => {
           renderPerfilContent()
         )}
       </SafeAreaView>
+
+      {/* Drawer/Sidebar */}
+      <AppDrawer
+        visible={drawerVisible}
+        onClose={handleCloseDrawer}
+        onLogoutPress={handleLogoutPress}
+      />
+
+      {/* Modal de confirmación de logout */}
+      <LogoutConfirmModal
+        visible={logoutModalVisible}
+        onCancel={handleLogoutCancel}
+        onConfirm={handleLogoutConfirm}
+        isLoading={isLoggingOut}
+      />
     </LinearGradient>
   );
 

@@ -7,6 +7,7 @@ type SubscriptionState = {
   isSubscribed: boolean;
   selectPlan: (plan: PlanId) => void;
   confirmSubscription: () => void; // mock por ahora
+  reset: () => void;
 };
 
 export const useSubscriptionStore = create<SubscriptionState>((set) => ({
@@ -14,4 +15,5 @@ export const useSubscriptionStore = create<SubscriptionState>((set) => ({
   isSubscribed: false,
   selectPlan: (plan) => set({ selectedPlan: plan }),
   confirmSubscription: () => set((s) => ({ isSubscribed: true, selectedPlan: s.selectedPlan })),
+  reset: () => set({ selectedPlan: null, isSubscribed: false }),
 }));

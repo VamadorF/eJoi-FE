@@ -141,3 +141,29 @@ export const removeCompanionData = async (): Promise<void> => {
   return removeItem(COMPANION_KEY);
 };
 
+/**
+ * Limpia TODOS los datos almacenados (auth, user, companion)
+ * Usado por sessionManager.logout()
+ */
+export const clearAllStorage = async (): Promise<void> => {
+  await Promise.all([
+    removeItem(TOKEN_KEY),
+    removeItem(REFRESH_TOKEN_KEY),
+    removeItem(USER_KEY),
+    removeItem(COMPANION_KEY),
+  ]);
+};
+
+/**
+ * Limpia solo datos de autenticación (tokens + user)
+ * Preserva companion_data para re-login
+ * Usado por sessionManager.logout()
+ */
+export const clearAuthStorage = async (): Promise<void> => {
+  await Promise.all([
+    removeItem(TOKEN_KEY),
+    removeItem(REFRESH_TOKEN_KEY),
+    removeItem(USER_KEY),
+  ]);
+};
+
