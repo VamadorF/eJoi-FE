@@ -15,6 +15,7 @@ import { Button } from '@/shared/components/Button';
 import { EmptyState } from '@/shared/components/EmptyState';
 
 import { useCompanionStore } from '@/features/companion/store/companion.store';
+import { isValidUuid } from '@/shared/utils/uuid';
 import { useSubscriptionStore } from '@/features/subscription/store/subscription.store';
 import { RootStackParamList } from '@/shared/types/navigation';
 
@@ -42,7 +43,7 @@ type ChatScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'C
 
 export const ChatScreen: React.FC = () => {
   const navigation = useNavigation<ChatScreenNavigationProp>();
-  const { companion } = useCompanionStore();
+  const { companion, checkCompanion } = useCompanionStore();
   const genderedText = useGenderedText();
   const isSubscribed = useSubscriptionStore((s) => s.isSubscribed);
   const [draftMessage, setDraftMessage] = React.useState('');
@@ -69,6 +70,10 @@ export const ChatScreen: React.FC = () => {
   }, [data?.flatMessages]);
 
   useEffect(() => {
+    if (companion && !isValidUuid(companion.id)) {
+      void checkCompanion();
+      return;
+    }
     if (!companion?.id) {
       return;
     }
@@ -138,7 +143,7 @@ export const ChatScreen: React.FC = () => {
       leaveConversation(socket, companion.id);
       setTypingByCompanion(false);
     };
-  }, [companion?.id, connect, isConnected, queryClient, socket]);
+  }, [companion, companion?.id, checkCompanion, connect, isConnected, queryClient, socket]);
 
   // Nota: no bloqueamos la navegación por suscripción para evitar un estado
   // de transición permanente mientras se estabiliza el flujo de pantallas.
@@ -193,7 +198,25 @@ export const ChatScreen: React.FC = () => {
     }
   };
 
-  // Sin companion 
+  // Companion con ID inválido (datos antiguos) - refrescar desde API
+  if (companion && !isValidUuid(companion.id)) {
+    return (
+      <Screen>
+        <LinearGradient
+          colors={[Colors.base.primary, Colors.base.secondary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradient}
+        >
+          <View style={styles.emptyContainer}>
+            <Text style={styles.loadingText}>Actualizando compañer@...</Text>
+          </View>
+        </LinearGradient>
+      </Screen>
+    );
+  }
+
+  // Sin companion
   if (!companion) {
     return (
       <Screen>
@@ -231,7 +254,10 @@ export const ChatScreen: React.FC = () => {
     );
   }
 
-  // ✅ Mockup ORIGINAL intacto
+  const greeting = generateGreeting(companion) ?? '';
+  const aboutMe = generateAboutMe(companion) ?? '';
+  const chatWelcome = generateChatWelcome(companion) ?? '';
+
   return (
     <Screen>
       <LinearGradient
@@ -264,14 +290,12 @@ export const ChatScreen: React.FC = () => {
               style={styles.welcomeMessage}
               entering={FadeInUp.delay(200).duration(500)}
             >
-              <Text style={styles.welcomeText}>
-                {generateGreeting(companion)}
-              </Text>
-              <Text style={styles.welcomeSubtext}>
-                {generateAboutMe(companion)}
-              </Text>
-              <Text style={styles.welcomeSubtext}>
-                {generateChatWelcome(companion)}
+              <Text>
+                <Text style={styles.welcomeText}>{greeting}</Text>
+                {'\n\n'}
+                <Text style={styles.welcomeSubtext}>{aboutMe}</Text>
+                {'\n\n'}
+                <Text style={styles.welcomeSubtext}>{chatWelcome}</Text>
               </Text>
             </Animated.View>
             {isMessagesLoading ? (
@@ -313,7 +337,7 @@ export const ChatScreen: React.FC = () => {
               <Text style={styles.loadingText}>Cargando mensajes anteriores...</Text>
             )}
             {typingByCompanion && (
-              <Text style={styles.loadingText}>{companion.name} esta escribiendo...</Text>
+              <Text style={styles.loadingText}>{companion.name} está escribiendo...</Text>
             )}
           </ScrollView>
 

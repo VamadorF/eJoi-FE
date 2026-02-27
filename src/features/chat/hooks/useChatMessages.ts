@@ -5,6 +5,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getChatMessages } from '../api/chat.api';
 import { queryKeys } from '@/shared/lib/queryKeys';
+import { isValidUuid } from '@/shared/utils/uuid';
 
 export const useChatMessages = (companionId?: string, limit?: number) => {
   const effectiveCompanionId = companionId ?? 'default';
@@ -12,7 +13,7 @@ export const useChatMessages = (companionId?: string, limit?: number) => {
 
   return useInfiniteQuery({
     queryKey: queryKeys.chat.messages(effectiveCompanionId),
-    enabled: Boolean(companionId),
+    enabled: Boolean(companionId) && isValidUuid(companionId),
     initialPageParam: { cursor: undefined as string | undefined, offset: 0 },
     queryFn: ({ pageParam }) =>
       getChatMessages({

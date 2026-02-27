@@ -3,6 +3,7 @@ import { HeaderMenuButton } from '@/shared/components/HeaderMenuButton/HeaderMen
 import { AppDrawer } from '@/shared/components/AppDrawer/AppDrawer';
 import { LogoutConfirmModal } from '@/shared/components/LogoutConfirmModal/LogoutConfirmModal';
 import { logout } from '@/shared/services/session/sessionManager';
+import { getLastHomeTab, setLastHomeTab } from '@/shared/services/storage/secure';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import {
   View,
@@ -41,10 +42,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/shared/theme/colors';
+import { shadowStyle } from '@/shared/utils/shadow';
 import { Typography } from '@/shared/theme/typography';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
 import { useGenderedText } from '@/shared/hooks/useGenderedText';
-import { generateAboutMe, generateShortDescription } from '@/shared/utils/companionTextGenerator';
+import {
+  generateAboutMe,
+  generateShortDescription,
+  generateChatWelcome,
+} from '@/shared/utils/companionTextGenerator';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
@@ -358,6 +364,49 @@ export const HomeScreen: React.FC = () => {
   const genderedText = useGenderedText();
   const lastInteractionTime = useRef(Date.now());
 
+  const hasRestoredTab = useRef(false);
+
+  // Restaurar último tab al montar (tras login)
+  useEffect(() => {
+    getLastHomeTab().then((saved) => {
+      if (saved === 'chat' || saved === 'perfil' || saved === 'recuerdos') {
+        setActiveTab(saved);
+      }
+      hasRestoredTab.current = true;
+    });
+  }, []);
+
+  // Persistir tab solo cuando el usuario cambia (no al restaurar)
+  useEffect(() => {
+    if (hasRestoredTab.current) {
+      setLastHomeTab(activeTab);
+    }
+  }, [activeTab]);
+
+  // Companion nuevo: mostrar mensaje de bienvenida en lugar de placeholders
+  const lastWelcomeCompanionId = useRef<string | null>(null);
+  const isNewCompanionEarly = useMemo(
+    () =>
+      companion?.createdAt &&
+      Date.now() - new Date(companion.createdAt).getTime() < 24 * 60 * 60 * 1000,
+    [companion?.createdAt]
+  );
+  useEffect(() => {
+    if (isNewCompanionEarly && companion && lastWelcomeCompanionId.current !== companion.id) {
+      lastWelcomeCompanionId.current = companion.id;
+      const welcomeText = generateChatWelcome(companion);
+      setMessages([
+        {
+          id: 'welcome',
+          text: welcomeText,
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+          date: 'Hoy',
+        },
+      ]);
+    }
+  }, [isNewCompanionEarly, companion]);
+
   // Placeholder contextual aleatorio (se selecciona al montar)
   const placeholder = useMemo(
     () => INPUT_PLACEHOLDERS[Math.floor(Math.random() * INPUT_PLACEHOLDERS.length)],
@@ -518,19 +567,31 @@ export const HomeScreen: React.FC = () => {
     return groups;
   };
 
-  // Agrupar recuerdos por categoría
+  // Companion nuevo: sin recuerdos si se creó hace menos de 24h
+  const isNewCompanion = useMemo(() => {
+    return (
+      companion?.createdAt &&
+      Date.now() - new Date(companion.createdAt).getTime() < 24 * 60 * 60 * 1000
+    );
+  }, [companion?.createdAt]);
+
+  // Agrupar recuerdos por categoría (vacío para companion nuevo)
   const groupedMemories = useMemo(() => {
+    if (isNewCompanion) {
+      return { week: [], month: [], older: [] };
+    }
     return {
       week: MEMORIES_DATA.filter((m) => m.category === 'week'),
       month: MEMORIES_DATA.filter((m) => m.category === 'month'),
       older: MEMORIES_DATA.filter((m) => m.category === 'older'),
     };
-  }, []);
+  }, [isNewCompanion]);
 
-  // Recuerdo destacado
+  // Recuerdo destacado (null para companion nuevo)
   const featuredMemory = useMemo(() => {
+    if (isNewCompanion) return null;
     return MEMORIES_DATA.find((m) => m.isFavorite) || MEMORIES_DATA[0];
-  }, []);
+  }, [isNewCompanion]);
 
   // Reproducir sonido (placeholder)
   const playSound = useCallback(async (_type: 'send' | 'receive' | 'confirm') => {
@@ -846,53 +907,70 @@ export const HomeScreen: React.FC = () => {
         entering={FadeInUp.delay(200).duration(400)}
       >
         <View style={memoryStyles.statItem}>
-          <Text style={memoryStyles.statNumber}>{MEMORIES_DATA.length}</Text>
+          <Text style={memoryStyles.statNumber}>
+            {isNewCompanion ? 0 : MEMORIES_DATA.length}
+          </Text>
           <Text style={memoryStyles.statLabel}>Momentos</Text>
         </View>
         <View style={memoryStyles.statDivider} />
         <View style={memoryStyles.statItem}>
-          <Text style={memoryStyles.statNumber}>3</Text>
+          <Text style={memoryStyles.statNumber}>
+            {isNewCompanion ? 0 : groupedMemories.week.length}
+          </Text>
           <Text style={memoryStyles.statLabel}>Esta semana</Text>
         </View>
         <View style={memoryStyles.statDivider} />
         <View style={memoryStyles.statItem}>
-          <Text style={memoryStyles.statNumber}>1</Text>
+          <Text style={memoryStyles.statNumber}>
+            {isNewCompanion ? 0 : (groupedMemories.week.length > 0 ? 1 : 0)}
+          </Text>
           <Text style={memoryStyles.statLabel}>Favorito</Text>
         </View>
       </Animated.View>
 
-      {/* Recuerdo Destacado */}
-      <Animated.View
-        style={memoryStyles.featuredSection}
-        entering={ZoomIn.delay(300).duration(500).springify()}
-      >
-        <View style={memoryStyles.sectionHeader}>
-          <Ionicons name="star" size={18} color={Colors.base.primary} />
-          <Text style={memoryStyles.sectionTitle}>Momento Especial</Text>
-        </View>
-        <Pressable
-          style={memoryStyles.featuredCard}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            setExpandedMemory(expandedMemory === featuredMemory.id ? null : featuredMemory.id);
-          }}
+      {/* Recuerdo Destacado (oculto para companion nuevo) */}
+      {featuredMemory ? (
+        <Animated.View
+          style={memoryStyles.featuredSection}
+          entering={ZoomIn.delay(300).duration(500).springify()}
         >
-          <LinearGradient
-            colors={[Colors.base.primary + '20', Colors.base.secondary + '10']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={memoryStyles.featuredGradient}
+          <View style={memoryStyles.sectionHeader}>
+            <Ionicons name="star" size={18} color={Colors.base.primary} />
+            <Text style={memoryStyles.sectionTitle}>Momento Especial</Text>
+          </View>
+          <Pressable
+            style={memoryStyles.featuredCard}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setExpandedMemory(expandedMemory === featuredMemory.id ? null : featuredMemory.id);
+            }}
           >
-            <Text style={memoryStyles.featuredEmoji}>{featuredMemory.emoji}</Text>
-            <Text style={memoryStyles.featuredTitle}>{featuredMemory.title}</Text>
-            <Text style={memoryStyles.featuredPreview}>{featuredMemory.preview}</Text>
-            <View style={memoryStyles.featuredFooter}>
-              <Text style={memoryStyles.featuredMood}>{featuredMemory.mood}</Text>
-              <Text style={memoryStyles.featuredDate}>{featuredMemory.fullDate}</Text>
-            </View>
-          </LinearGradient>
-        </Pressable>
-      </Animated.View>
+            <LinearGradient
+              colors={[Colors.base.primary + '20', Colors.base.secondary + '10']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={memoryStyles.featuredGradient}
+            >
+              <Text style={memoryStyles.featuredEmoji}>{featuredMemory.emoji}</Text>
+              <Text style={memoryStyles.featuredTitle}>{featuredMemory.title}</Text>
+              <Text style={memoryStyles.featuredPreview}>{featuredMemory.preview}</Text>
+              <View style={memoryStyles.featuredFooter}>
+                <Text style={memoryStyles.featuredMood}>{featuredMemory.mood}</Text>
+                <Text style={memoryStyles.featuredDate}>{featuredMemory.fullDate}</Text>
+              </View>
+            </LinearGradient>
+          </Pressable>
+        </Animated.View>
+      ) : (
+        <Animated.View
+          style={[memoryStyles.featuredSection, memoryStyles.emptyMemories]}
+          entering={ZoomIn.delay(300).duration(500).springify()}
+        >
+          <Text style={memoryStyles.emptyMemoriesText}>
+            Aún no tienes recuerdos compartidos con {companionName}. ¡Comparte momentos en el chat!
+          </Text>
+        </Animated.View>
+      )}
 
       {/* Esta semana */}
       {groupedMemories.week.length > 0 && (
@@ -1243,15 +1321,14 @@ export const HomeScreen: React.FC = () => {
 
         {/* Avatar pequeño del companion (solo en chat) */}
         {activeTab === 'chat' && (
-          <Animated.View
-            style={[styles.avatarContainer, avatarAnimatedStyle]}
-            entering={ZoomIn.delay(200).duration(400).springify()}
-          >
-            <Image
-              source={getAvatarImage()}
-              style={styles.avatar}
-              resizeMode="cover"
-            />
+          <Animated.View entering={ZoomIn.delay(200).duration(400).springify()}>
+            <Animated.View style={[styles.avatarContainer, avatarAnimatedStyle]}>
+              <Image
+                source={getAvatarImage()}
+                style={styles.avatar}
+                resizeMode="cover"
+              />
+            </Animated.View>
           </Animated.View>
         )}
 
@@ -1372,11 +1449,7 @@ const memoryStyles = StyleSheet.create({
     marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    ...shadowStyle({ color: Colors.text.primary, offset: { width: 0, height: 4 }, opacity: 0.15, radius: 12, elevation: 6 }),
   },
   bookSpine: {
     width: 4,
@@ -1455,14 +1528,22 @@ const memoryStyles = StyleSheet.create({
   featuredSection: {
     marginBottom: 24,
   },
+  emptyMemories: {
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyMemoriesText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 15,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
   featuredCard: {
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: Colors.base.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 6,
+    ...shadowStyle({ color: Colors.base.primary, offset: { width: 0, height: 4 }, opacity: 0.2, radius: 12, elevation: 6 }),
   },
   featuredGradient: {
     padding: 24,
@@ -1511,18 +1592,13 @@ const memoryStyles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    ...shadowStyle({ color: Colors.text.primary, offset: { width: 0, height: 2 }, opacity: 0.08, radius: 8, elevation: 3 }),
     position: 'relative',
     overflow: 'hidden',
   },
   cardExpanded: {
     backgroundColor: '#fff',
-    shadowOpacity: 0.15,
-    elevation: 5,
+    ...shadowStyle({ color: Colors.text.primary, offset: { width: 0, height: 2 }, opacity: 0.15, radius: 8, elevation: 5 }),
   },
   cardFavorite: {
     borderWidth: 1,
@@ -1651,11 +1727,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.white,
     borderRadius: 25,
     padding: 4,
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...shadowStyle({ color: Colors.text.primary, offset: { width: 0, height: 2 }, opacity: 0.1, radius: 8, elevation: 4 }),
   },
   tabWrapper: {
     flex: 1,
@@ -1809,11 +1881,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     marginRight: 12,
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...shadowStyle({ color: Colors.text.primary, offset: { width: 0, height: 1 }, opacity: 0.05, radius: 4, elevation: 2 }),
     justifyContent: 'center',
   },
   textInput: {
@@ -1830,11 +1898,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.base.secondary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.base.secondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    ...shadowStyle({ color: Colors.base.secondary, offset: { width: 0, height: 2 }, opacity: 0.3, radius: 4, elevation: 4 }),
   },
 
   // Perfil styles
@@ -1852,11 +1916,7 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    ...shadowStyle({ color: Colors.text.primary, offset: { width: 0, height: 4 }, opacity: 0.2, radius: 8, elevation: 8 }),
     marginBottom: 12,
   },
   profileImage: {
@@ -1956,11 +2016,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     width: '100%',
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...shadowStyle({ color: Colors.text.primary, offset: { width: 0, height: 2 }, opacity: 0.1, radius: 8, elevation: 4 }),
     marginBottom: 20,
   },
   subTabContainer: {
@@ -2078,11 +2134,7 @@ const styles = StyleSheet.create({
     padding: 16,
     width: '100%',
     minHeight: 200,
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    ...shadowStyle({ color: Colors.text.primary, offset: { width: 0, height: 2 }, opacity: 0.1, radius: 8, elevation: 4 }),
     marginBottom: 24,
   },
   editTextInput: {
@@ -2105,11 +2157,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.base.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.base.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...shadowStyle({ color: Colors.base.primary, offset: { width: 0, height: 4 }, opacity: 0.3, radius: 8, elevation: 6 }),
   },
   savedConfirmation: {
     marginTop: 12,

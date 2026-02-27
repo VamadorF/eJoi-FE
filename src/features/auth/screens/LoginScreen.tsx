@@ -59,18 +59,19 @@ export const LoginScreen: React.FC = () => {
   useEffect(() => {
     StatusBar.setBarStyle('dark-content');
 
-    // Animación de entrada
+    // Animación de entrada (useNativeDriver: false en web porque no hay módulo nativo)
+    const useNative = Platform.OS !== 'web';
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 800,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
       Animated.spring(logoScale, {
         toValue: 1,
         tension: 50,
         friction: 7,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
     ]).start();
   }, []);
@@ -277,7 +278,7 @@ export const LoginScreen: React.FC = () => {
         onRequestClose={closeModal}
       >
         <Pressable style={styles.sheetBackdrop} onPress={closeModal} />
-        <SafeAreaView style={styles.sheetSafeArea} pointerEvents="box-none">
+        <SafeAreaView style={[styles.sheetSafeArea, { pointerEvents: 'box-none' }]}>
           <View style={styles.sheetContainer}>
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle} numberOfLines={1}>

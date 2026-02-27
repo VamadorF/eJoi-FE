@@ -62,10 +62,16 @@ cd eJoi-FE
 npm install
 ```
 
-3. Crea un archivo `.env` en la raíz (actualmente no hay `.env.example`) y define al menos:
+3. Copia `.env.example` a `.env` y configura las variables:
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` y define al menos:
 
 ```env
-EXPO_PUBLIC_API_URL=http://localhost:3000
+EXPO_PUBLIC_API_URL=http://localhost:4000
 EXPO_PUBLIC_SOCKET_URL=ws://localhost:3001
 EXPO_PUBLIC_GOOGLE_CLIENT_ID=tu_google_client_id
 ```

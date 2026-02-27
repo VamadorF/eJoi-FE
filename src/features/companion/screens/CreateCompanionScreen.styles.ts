@@ -522,9 +522,3 @@ export const styles = StyleSheet.create({
     zIndex: 0,
   },
 });
-
-const debugTinderCardStyle = StyleSheet.flatten(styles.tinderCard) as Record<string, unknown>;
-const debugEditImageButtonStyle = StyleSheet.flatten(styles.editImageButton) as Record<string, unknown>;
-// #region agent log
-fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'shadow-dbg-6',hypothesisId:'H6',location:'CreateCompanionScreen.styles.ts:moduleInit',message:'create companion styles resolved',data:{platform:Platform.OS,tinderHasShadowColor:Object.prototype.hasOwnProperty.call(debugTinderCardStyle ?? {},'shadowColor'),tinderHasBoxShadow:Object.prototype.hasOwnProperty.call(debugTinderCardStyle ?? {},'boxShadow'),editButtonHasShadowColor:Object.prototype.hasOwnProperty.call(debugEditImageButtonStyle ?? {},'shadowColor'),editButtonHasBoxShadow:Object.prototype.hasOwnProperty.call(debugEditImageButtonStyle ?? {},'boxShadow')},timestamp:Date.now()})}).catch(()=>{});
-// #endregion

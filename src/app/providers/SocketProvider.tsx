@@ -81,9 +81,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     });
     socket.on('connect_error', (error) => {
       setIsConnected(false);
-      // #region agent log
-      fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'cycle-dbg-1',hypothesisId:'H4',location:'SocketProvider.tsx:connect_error',message:'socket connection failed',data:{errorMessage:error?.message??'unknown',socketUrl:SOCKET_URL},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       console.warn('[SocketProvider] connect_error', error.message);
     });
 

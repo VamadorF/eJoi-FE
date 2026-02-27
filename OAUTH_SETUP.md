@@ -50,10 +50,10 @@ El código de autorización se enviará como parámetro: `ejoi://?code=XXX` o `e
 2. **Agrega la URL del backend**:
 
 ```env
-# URL del Backend API
-EXPO_PUBLIC_API_URL=http://localhost:3000
+# URL del Backend API (backend usa puerto 4000 por defecto)
+EXPO_PUBLIC_API_URL=http://localhost:4000
 
-# Socket.io URL (opcional)
+# Socket.io URL (opcional, deshabilitado hasta que el backend lo soporte)
 EXPO_PUBLIC_SOCKET_URL=ws://localhost:3001
 ```
 

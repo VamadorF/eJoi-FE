@@ -61,9 +61,6 @@ export const ContentContainer: React.FC<ContentContainerProps> = ({
   };
 
   const sanitizedChildren = React.Children.map(children, (child) => sanitizeChildren(child, false));
-  // #region agent log
-  fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'textnode-dbg-3',hypothesisId:'H7',location:'ContentContainer.tsx:render',message:'content container render children shape deep scan',data:{childCount:childArray.length,textChildCount:textChildren.length,firstTextChild:textChildren.length?String(textChildren[0]).slice(0,20):null,textPaths:textPaths.slice(0,5),strippedTextNodes},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
 
   return <View style={styles.container}>{sanitizedChildren}</View>;
 };

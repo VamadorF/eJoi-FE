@@ -10,6 +10,7 @@ const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user_data';
 const COMPANION_KEY = 'companion_data';
+const HOME_LAST_TAB_KEY = 'home_last_tab';
 
 /**
  * Almacena un valor de forma segura
@@ -110,6 +111,20 @@ export const removeRefreshToken = async (): Promise<void> => {
 };
 
 /**
+ * Almacena los datos del usuario (workaround hasta que GET /auth devuelva user)
+ */
+export const setUserData = async (user: string): Promise<void> => {
+  return setItem(USER_KEY, user);
+};
+
+/**
+ * Obtiene los datos del usuario almacenados
+ */
+export const getUserData = async (): Promise<string | null> => {
+  return getItem(USER_KEY);
+};
+
+/**
  * Limpia todos los datos de autenticación
  */
 export const clearAuthData = async (): Promise<void> => {
@@ -152,6 +167,20 @@ export const clearAllStorage = async (): Promise<void> => {
     removeItem(USER_KEY),
     removeItem(COMPANION_KEY),
   ]);
+};
+
+/**
+ * Guarda el último tab activo en Home (chat | perfil | recuerdos)
+ */
+export const setLastHomeTab = async (tab: string): Promise<void> => {
+  return setItem(HOME_LAST_TAB_KEY, tab);
+};
+
+/**
+ * Obtiene el último tab activo en Home
+ */
+export const getLastHomeTab = async (): Promise<string | null> => {
+  return getItem(HOME_LAST_TAB_KEY);
 };
 
 /**

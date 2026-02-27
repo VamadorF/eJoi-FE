@@ -451,7 +451,7 @@ export const OnboardingScreen: React.FC = () => {
           >
             {/* Background glow on gender selection */}
             {onboardingData.gender !== '' && (
-              <View style={localStyles.glowContainer} pointerEvents="none">
+              <View style={[localStyles.glowContainer, { pointerEvents: 'none' }]}>
                 <Animated.View style={[
                   localStyles.glowOrb,
                   glowAnimatedStyle,
@@ -508,7 +508,7 @@ export const OnboardingScreen: React.FC = () => {
           >
             {/* Background glow on visual style selection */}
             {onboardingData.visualStyle !== '' && (
-              <View style={localStyles.glowContainer} pointerEvents="none">
+              <View style={[localStyles.glowContainer, { pointerEvents: 'none' }]}>
                 <Animated.View style={[
                   localStyles.glowOrb,
                   glowAnimatedStyle,
@@ -861,7 +861,7 @@ export const OnboardingScreen: React.FC = () => {
                 <Text style={localStyles.randomHint}>¿Sin ideas?</Text>
                 <View style={sparkleStyles.buttonWrapper}>
                   {/* Sparkle particles */}
-                  <View style={sparkleStyles.particleContainer} pointerEvents="none">
+                  <View style={[sparkleStyles.particleContainer, { pointerEvents: 'none' }]}>
                     {SPARKLE_CONFIGS.map((config, i) => (
                       <SparkleParticle
                         key={i}
@@ -895,11 +895,6 @@ export const OnboardingScreen: React.FC = () => {
   };
 
   const stepNode = renderStepContent();
-  const stepNodeArray = React.Children.toArray(stepNode);
-  const stepNodeTextChildren = stepNodeArray.filter((node) => typeof node === 'string');
-  // #region agent log
-  fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'textnode-dbg-2',hypothesisId:'H7',location:'OnboardingScreen.tsx:render:stepNode',message:'onboarding step node inspection',data:{currentStep,stepNodeCount:stepNodeArray.length,textNodeCount:stepNodeTextChildren.length,firstTextNode:stepNodeTextChildren.length?String(stepNodeTextChildren[0]).slice(0,20):null},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
 
   return (
       <GradientBackground

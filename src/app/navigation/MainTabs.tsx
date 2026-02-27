@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ChatScreen } from '@/features/chat/screens/ChatScreen';
+import { HomeScreen } from '@/features/main/screens/HomeScreen';
 import { SubscriptionPaywallScreen } from '@/features/subscription/screens/SubscriptionPaywallScreen';
 import { RootStackParamList } from '@/shared/types/navigation';
 
@@ -10,9 +10,9 @@ export const MainTabs: React.FC = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
-      initialRouteName="Chat"
+      initialRouteName="Home"
     >
-      <Stack.Screen name="Chat" component={ChatScreen} />
+      <Stack.Screen name="Home" component={HomeScreen} />
 
       {/*Paywall dentro del flujo autenticado */}
       <Stack.Screen

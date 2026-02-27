@@ -43,7 +43,21 @@ export const CreandoCompanionScreen: React.FC = () => {
     };
 
     try {
-      const companion = await createCompanionMutation.mutateAsync(payload);
+      const apiCompanion = await createCompanionMutation.mutateAsync(payload);
+      // Merge payload con respuesta: si el backend solo devuelve id/name, usamos lo que enviamos
+      const companion = {
+        ...apiCompanion,
+        name: apiCompanion.name || payload.name,
+        visualStyle: apiCompanion.visualStyle || payload.visualStyle,
+        gender: apiCompanion.gender || payload.gender,
+        persona: apiCompanion.persona ?? payload.persona ?? '',
+        tone: apiCompanion.tone ?? payload.tone ?? '',
+        interactionStyle: apiCompanion.interactionStyle ?? payload.interactionStyle ?? '',
+        conversationDepth: apiCompanion.conversationDepth ?? payload.conversationDepth ?? '',
+        interests: apiCompanion.interests?.length ? apiCompanion.interests : payload.interests ?? [],
+        boundaries: apiCompanion.boundaries?.length ? apiCompanion.boundaries : payload.boundaries ?? [],
+        createdAt: apiCompanion.createdAt ?? new Date().toISOString(),
+      };
       await setCompanion(companion);
 
       navigation.reset({

@@ -3,7 +3,7 @@ import {
     View,
     Text,
     TouchableOpacity,
-    TouchableWithoutFeedback,
+    Pressable,
     ScrollView,
 } from 'react-native';
 import Animated, {
@@ -70,9 +70,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
         <>
             {/* Overlay */}
             <Animated.View style={[styles.overlay, overlayAnimatedStyle]}>
-                <TouchableWithoutFeedback onPress={onClose}>
-                    <View style={styles.overlayTouchable} />
-                </TouchableWithoutFeedback>
+                <Pressable style={styles.overlayTouchable} onPress={onClose} />
             </Animated.View>
 
             {/* Drawer */}
