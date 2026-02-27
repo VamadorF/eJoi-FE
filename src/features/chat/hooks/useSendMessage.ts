@@ -13,12 +13,16 @@ export const useSendMessage = () => {
     mutationFn: ({
       companionId,
       message,
+      useLongTermMemory,
     }: {
-      companionId: string;
+      companionId?: string;
       message: string;
-    }) => sendMessage({ companionId, message }),
+      useLongTermMemory?: boolean;
+    }) => sendMessage({ companionId, message, useLongTermMemory }),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.chat.messages(variables.companionId) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.chat.messages(variables.companionId ?? 'default'),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.chat.rooms });
     },
   });

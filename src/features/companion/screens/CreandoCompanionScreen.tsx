@@ -6,10 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RootStackParamList } from '@/shared/types/navigation';
 import { useCompanionStore } from '../store/companion.store';
-import { Companion } from '../types';
 import { Gender } from '@/features/onboarding/types';
 import { CreatingAnimation } from '@/shared/components';
 import { logger } from '@/shared/utils/logger';
+import { useCreateCompanion } from '../hooks/useCreateCompanion';
 
 type CreandoCompanionScreenRouteProp = RouteProp<
   RootStackParamList,
@@ -24,15 +24,13 @@ export const CreandoCompanionScreen: React.FC = () => {
   const navigation = useNavigation<CreandoCompanionScreenNavigationProp>();
   const route = useRoute<CreandoCompanionScreenRouteProp>();
   const { setCompanion } = useCompanionStore();
+  const createCompanionMutation = useCreateCompanion();
   const onboardingData = route.params?.onboardingData;
 
   const handleDone = async () => {
     if (!onboardingData) return;
 
-    // Crear companion localmente (sin backend)
-    // TODO: Cuando el backend esté listo, reemplazar con createCompanion() del API
-    const companion: Companion = {
-      id: `local-${Date.now()}`,
+    const payload = {
       name: onboardingData.companionName || 'Tu Compañer@',
       visualStyle: onboardingData.visualStyle || 'realista',
       gender: (onboardingData.gender as Gender) || 'femenino',
@@ -42,10 +40,10 @@ export const CreandoCompanionScreen: React.FC = () => {
       conversationDepth: onboardingData.conversationDepth,
       interests: onboardingData.interests,
       boundaries: onboardingData.boundaries,
-      createdAt: new Date().toISOString(),
     };
 
     try {
+      const companion = await createCompanionMutation.mutateAsync(payload);
       await setCompanion(companion);
 
       navigation.reset({

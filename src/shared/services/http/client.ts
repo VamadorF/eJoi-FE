@@ -5,6 +5,8 @@
 
 import { API_URL } from '@/app/config/env';
 import { getAuthToken } from '@/shared/services/storage/secure';
+import { logout } from '@/shared/services/session/sessionManager';
+import { publishFatalHttpError } from './httpErrorBus';
 
 export interface RequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -30,23 +32,56 @@ export class ApiError extends Error {
   }
 }
 
+const AUTH_ERROR_STATUSES = new Set([401, 403]);
+
+const parseResponseBody = async (response: Response): Promise<any> => {
+  const contentType = response.headers.get('content-type') ?? '';
+  if (contentType.includes('application/json')) {
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    const text = await response.text();
+    return text ? { message: text } : null;
+  } catch {
+    return null;
+  }
+};
+
+const isFatalBoundaryError = (status: number): boolean => status === 0 || status >= 500;
+
+const reportFatalBoundaryError = (error: ApiError, endpoint: string, method: string): void => {
+  publishFatalHttpError({
+    status: error.status,
+    statusText: error.statusText,
+    endpoint,
+    method,
+    message: error.message,
+  });
+};
+
 export const httpClient = {
   async request<T = any>(
     endpoint: string,
     config: RequestConfig = {}
   ): Promise<ApiResponse<T>> {
     const { method = 'GET', headers = {}, body } = config;
+    const requestHeadersInput = { ...headers };
 
     const token = await getAuthToken();
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      requestHeadersInput['Authorization'] = `Bearer ${token}`;
     }
 
     const url = `${API_URL}${endpoint}`;
 
     const requestHeaders: HeadersInit = {
       'Content-Type': 'application/json',
-      ...headers,
+      ...requestHeadersInput,
     };
 
     const requestConfig: RequestInit = {
@@ -60,15 +95,23 @@ export const httpClient = {
 
     try {
       const response = await fetch(url, requestConfig);
-      const data = await response.json();
+      const data = await parseResponseBody(response);
 
       if (!response.ok) {
-        throw new ApiError(
+        const apiError = new ApiError(
           response.status,
           response.statusText,
           data,
-          data.message || `Request failed: ${response.statusText}`
+          data?.message || `Request failed: ${response.statusText}`
         );
+
+        if (AUTH_ERROR_STATUSES.has(apiError.status)) {
+          await logout();
+        } else if (isFatalBoundaryError(apiError.status)) {
+          reportFatalBoundaryError(apiError, endpoint, method);
+        }
+
+        throw apiError;
       }
 
       return {
@@ -80,12 +123,15 @@ export const httpClient = {
       if (error instanceof ApiError) {
         throw error;
       }
-      throw new ApiError(
+      const networkError = new ApiError(
         0,
         'Network Error',
         null,
         error instanceof Error ? error.message : 'Unknown error'
       );
+
+      reportFatalBoundaryError(networkError, endpoint, method);
+      throw networkError;
     }
   },
 

@@ -20,19 +20,14 @@ export interface LoginCredentialsRequest {
 export interface AuthProviderRequest {
   provider: 'google' | 'apple';
   providerUserId: string;
-  email: string;
-  name: string;
+  email?: string;
+  name?: string;
+  avatarUrl?: string;
 }
 
-export interface GoogleLoginRequest {
-  idToken: string;
-  accessToken?: string;
-}
+export type GoogleLoginRequest = AuthProviderRequest;
 
-export interface AppleLoginRequest {
-  identityToken: string;
-  authorizationCode?: string;
-}
+export type AppleLoginRequest = AuthProviderRequest;
 
 export interface AuthLoginResponse {
   code?: number;
@@ -48,6 +43,8 @@ export interface AuthLoginResponse {
 export type AuthProviderResponse = AuthLoginResponse;
 
 export interface AuthSessionResponse {
+  code?: number;
+  status?: string;
   isAuthenticated: boolean;
   user: User | null;
 }

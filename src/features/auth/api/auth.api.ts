@@ -12,65 +12,30 @@ import {
   AuthSessionResponse,
   GoogleLoginRequest,
   LoginCredentialsRequest,
-  User,
 } from '../types';
-
-type RawAuthResponse = {
-  code?: number;
-  access_token?: string;
-  accessToken?: string;
-  token?: string;
-  user?: User | null;
-};
-
-type RawSessionResponse = {
-  isAuthenticated?: boolean;
-  authenticated?: boolean;
-  user?: User | null;
-};
-
-const normalizeAuthResponse = (data: RawAuthResponse): AuthLoginResponse => {
-  const accessToken = data.accessToken || data.access_token || data.token;
-
-  if (!accessToken) {
-    throw new Error('El backend no devolvio un access token valido');
-  }
-
-  if (!data.user) {
-    throw new Error('El backend no devolvio informacion del usuario');
-  }
-
-  return {
-    code: data.code,
-    accessToken,
-    access_token: data.access_token,
-    user: data.user,
-  };
-};
-
-const normalizeSessionResponse = (data: RawSessionResponse): AuthSessionResponse => {
-  const isAuthenticated = data.isAuthenticated ?? data.authenticated ?? !!data.user;
-  return {
-    isAuthenticated,
-    user: isAuthenticated ? data.user ?? null : null,
-  };
-};
+import {
+  fromAuthApiResponse,
+  fromAuthSessionApiResponse,
+  RawAuthResponse,
+  RawSessionResponse,
+  toProviderAuthDto,
+} from '../adapters/auth.adapter';
 
 export const loginWithCredentials = async (
   credentials: LoginCredentialsRequest
 ): Promise<AuthLoginResponse> => {
   const response = await httpClient.post<RawAuthResponse>('/auth/login', credentials);
-  return normalizeAuthResponse(response.data);
+  return fromAuthApiResponse(response.data);
 };
 
 export const loginWithGoogle = async (data: GoogleLoginRequest): Promise<AuthLoginResponse> => {
-  const response = await httpClient.post<RawAuthResponse>('/auth/google', data);
-  return normalizeAuthResponse(response.data);
+  const response = await httpClient.post<RawAuthResponse>('/auth/google', toProviderAuthDto(data));
+  return fromAuthApiResponse(response.data);
 };
 
 export const loginWithApple = async (data: AppleLoginRequest): Promise<AuthLoginResponse> => {
-  const response = await httpClient.post<RawAuthResponse>('/auth/apple', data);
-  return normalizeAuthResponse(response.data);
+  const response = await httpClient.post<RawAuthResponse>('/auth/apple', toProviderAuthDto(data));
+  return fromAuthApiResponse(response.data);
 };
 
 /**
@@ -79,13 +44,13 @@ export const loginWithApple = async (data: AppleLoginRequest): Promise<AuthLogin
 export const loginWithProvider = async (
   data: AuthProviderRequest
 ): Promise<AuthProviderResponse> => {
-  const response = await httpClient.post<RawAuthResponse>('/auth/provider', data);
-  return normalizeAuthResponse(response.data);
+  const response = await httpClient.post<RawAuthResponse>('/auth/provider', toProviderAuthDto(data));
+  return fromAuthApiResponse(response.data);
 };
 
 export const getAuthSession = async (): Promise<AuthSessionResponse> => {
   const response = await httpClient.get<RawSessionResponse>('/auth');
-  return normalizeSessionResponse(response.data);
+  return fromAuthSessionApiResponse(response.data);
 };
 
 export const logout = async (): Promise<void> => {

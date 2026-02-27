@@ -4,7 +4,7 @@
  * Flujo actual:
  * 1. El SDK del proveedor (Google/Apple) resuelve el OAuth en el cliente
  * 2. Se obtiene providerUserId, email y name del usuario
- * 3. Estos datos se env?an al backend via POST /auth/provider (en useAuth)
+ * 3. Estos datos se envían al backend vía ProviderAuthDto
  */
 
 import * as WebBrowser from 'expo-web-browser';
@@ -55,6 +55,7 @@ export const signInWithGoogle = async (): Promise<GoogleAuthResult> => {
           id: payload.sub,
           email: payload.email || '',
           name: payload.name || '',
+          picture: payload.picture,
         },
       };
     }

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, TextInput } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -22,6 +22,8 @@ import { styles } from './ChatScreen.styles';
 import { Colors } from '@/shared/theme/colors';
 import { useGenderedText } from '@/shared/hooks/useGenderedText';
 import { generateGreeting, generateChatWelcome, generateAboutMe } from '@/shared/utils/companionTextGenerator';
+import { useChatMessages } from '../hooks/useChatMessages';
+import { useSendMessage } from '../hooks/useSendMessage';
 
 type ChatScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Chat'>;
 
@@ -30,6 +32,9 @@ export const ChatScreen: React.FC = () => {
   const { companion } = useCompanionStore();
   const genderedText = useGenderedText();
   const isSubscribed = useSubscriptionStore((s) => s.isSubscribed);
+  const [draftMessage, setDraftMessage] = React.useState('');
+  const { data: messages = [], isLoading: isMessagesLoading } = useChatMessages(companion?.id, 50);
+  const sendMessageMutation = useSendMessage();
 
   // Guard: si hay companion pero no hay suscripción -> manda al paywall
   useEffect(() => {
@@ -40,6 +45,23 @@ export const ChatScreen: React.FC = () => {
 
   const handleStartOnboarding = () => {
     navigation.navigate('Onboarding');
+  };
+
+  const handleSendMessage = async () => {
+    const trimmedMessage = draftMessage.trim();
+    if (!trimmedMessage || sendMessageMutation.isPending) {
+      return;
+    }
+
+    try {
+      await sendMessageMutation.mutateAsync({
+        companionId: companion?.id,
+        message: trimmedMessage,
+      });
+      setDraftMessage('');
+    } catch {
+      // Error surfaces through mutation state if needed.
+    }
   };
 
   // Sin companion 
@@ -121,13 +143,57 @@ export const ChatScreen: React.FC = () => {
                 {generateChatWelcome(companion)}
               </Text>
             </Animated.View>
+            {isMessagesLoading ? (
+              <Text style={styles.loadingText}>Cargando historial...</Text>
+            ) : (
+              messages.map((item) => {
+                const isUserMessage = item.role === 'user';
+                return (
+                  <View
+                    key={item.id}
+                    style={[
+                      styles.messageBubble,
+                      isUserMessage ? styles.messageBubbleUser : styles.messageBubbleAssistant,
+                    ]}
+                  >
+                    <Text style={[styles.messageText, isUserMessage && styles.messageTextUser]}>
+                      {item.message}
+                    </Text>
+                    <Text style={[styles.messageTime, isUserMessage && styles.messageTimeUser]}>
+                      {new Date(item.createdAt).toLocaleTimeString()}
+                    </Text>
+                  </View>
+                );
+              })
+            )}
           </ScrollView>
 
           <Animated.View
             style={styles.inputContainer}
             entering={SlideInDown.delay(400).duration(400).springify()}
           >
-            <Text style={styles.inputPlaceholder}>Próximamente: Envía un mensaje...</Text>
+            <View style={styles.composerRow}>
+              <TextInput
+                style={styles.composerInput}
+                value={draftMessage}
+                onChangeText={setDraftMessage}
+                placeholder="Escribe un mensaje"
+                onSubmitEditing={handleSendMessage}
+                returnKeyType="send"
+              />
+              <Button
+                title="Enviar"
+                onPress={handleSendMessage}
+                style={styles.composerButton}
+                loading={sendMessageMutation.isPending}
+                disabled={!draftMessage.trim()}
+              />
+            </View>
+            {sendMessageMutation.isError && (
+              <Text style={styles.inputPlaceholder}>
+                No se pudo enviar el mensaje. Intenta nuevamente.
+              </Text>
+            )}
           </Animated.View>
         </View>
       </LinearGradient>

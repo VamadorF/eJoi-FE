@@ -25,14 +25,16 @@ export interface Companion {
 
 export interface CreateCompanionRequest {
   name: string;
-  visualStyle: VisualStyle;
-  gender: Gender;
-  persona: string;
-  tone: string;
-  interactionStyle: string;
-  conversationDepth: string;
-  interests: string[];
-  boundaries: string[];
+  visualStyle?: VisualStyle | string;
+  gender?: Gender | string;
+  persona?: string;
+  tone?: string;
+  interactionStyle?: string;
+  conversationDepth?: string;
+  interests?: string[];
+  boundaries?: string[];
+  dob?: string;
+  extra?: Record<string, unknown>;
 }
 
 export type UpdateCompanionRequest = Partial<CreateCompanionRequest>;

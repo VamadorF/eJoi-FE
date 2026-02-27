@@ -9,6 +9,8 @@ import { QueryProvider } from './src/app/providers/QueryProvider';
 import { SocketProvider } from './src/app/providers/SocketProvider';
 import { RootNavigator } from './src/app/navigation/RootNavigator';
 import { Colors } from './src/shared/theme/colors';
+import { AppErrorBoundary } from './src/shared/components/AppErrorBoundary';
+import { HttpErrorBoundaryBridge } from './src/shared/components/HttpErrorBoundaryBridge';
 
 // Mantener splash screen mientras se cargan las fuentes
 SplashScreen.preventAutoHideAsync();
@@ -44,16 +46,20 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider>
-      <QueryProvider>
-        <SocketProvider>
-          <AuthProvider>
-            <NavigationContainer>
-              <RootNavigator />
-            </NavigationContainer>
-          </AuthProvider>
-        </SocketProvider>
-      </QueryProvider>
-    </ThemeProvider>
+    <AppErrorBoundary>
+      <HttpErrorBoundaryBridge>
+        <ThemeProvider>
+          <QueryProvider>
+            <SocketProvider>
+              <AuthProvider>
+                <NavigationContainer>
+                  <RootNavigator />
+                </NavigationContainer>
+              </AuthProvider>
+            </SocketProvider>
+          </QueryProvider>
+        </ThemeProvider>
+      </HttpErrorBoundaryBridge>
+    </AppErrorBoundary>
   );
 }
