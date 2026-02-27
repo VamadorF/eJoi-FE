@@ -25,18 +25,13 @@ const moderateScale = (size: number, factor = 0.5) => {
 // ============ RESPONSIVE VALUES ============
 // Card
 const CARD_HORIZONTAL_MARGIN = isTablet ? 64 : isSmallPhone ? 12 : 16;
-const CARD_WIDTH = isDesktop 
-  ? Math.min(480, SCREEN_WIDTH - 64) 
+const CARD_WIDTH = isDesktop
+  ? Math.min(480, SCREEN_WIDTH - 64)
   : SCREEN_WIDTH - (CARD_HORIZONTAL_MARGIN * 2);
 const CARD_BORDER_RADIUS = isTablet ? 24 : 16;
 
-// Image
-const IMAGE_ASPECT_RATIO = 4 / 5; // Aspect ratio estilo Tinder
-const CARD_IMAGE_HEIGHT = isDesktop
-  ? 400
-  : isTablet
-  ? Math.min(SCREEN_HEIGHT * 0.45, 450)
-  : Math.min(CARD_WIDTH * IMAGE_ASPECT_RATIO, SCREEN_HEIGHT * 0.45);
+// Image – usamos aspect ratio en vez de altura fija para evitar recortes
+const IMAGE_ASPECT_RATIO = 3 / 4; // Aspect ratio portrait (más alto, muestra la imagen completa)
 
 // Spacing responsive
 const SECTION_PADDING_H = isTablet ? Spacing.lg : isSmallPhone ? Spacing.sm : Spacing.md;
@@ -81,7 +76,7 @@ export const styles = StyleSheet.create({
   // ============ IMAGEN DEL COMPANION ============
   imageContainer: {
     width: '100%',
-    height: CARD_IMAGE_HEIGHT,
+    aspectRatio: IMAGE_ASPECT_RATIO,
     position: 'relative',
     backgroundColor: Colors.background.light,
     overflow: 'hidden',
@@ -90,6 +85,7 @@ export const styles = StyleSheet.create({
   companionImage: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
 
   imageGradient: {
