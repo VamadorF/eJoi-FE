@@ -15,6 +15,28 @@ import {
 import { logger } from '@/shared/utils/logger';
 import { AuthProviderRequest, LoginCredentialsRequest } from '../types';
 
+const decodeJwtPayload = (
+  token?: string
+): { sub?: string; email?: string; name?: string; picture?: string } | null => {
+  if (!token) {
+    return null;
+  }
+  try {
+    const payloadSegment = token.split('.')[1];
+    if (!payloadSegment) {
+      return null;
+    }
+    const base64 = payloadSegment.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = typeof atob === 'function' ? atob(base64) : '';
+    if (!decoded) {
+      return null;
+    }
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+};
+
 export const useAuth = () => {
   const {
     user,
@@ -104,6 +126,7 @@ export const useAuth = () => {
       setError(null);
       let idToken = idTokenFromAuthRequest;
       let accessToken: string | undefined;
+      let providerUser: { id?: string; email?: string; name?: string; picture?: string } | null = null;
 
       // Mantiene compatibilidad con el flujo previo si no se envía token desde useAuthRequest.
       if (!idToken) {
@@ -116,9 +139,20 @@ export const useAuth = () => {
 
         idToken = googleResult.idToken;
         accessToken = googleResult.accessToken;
+        providerUser = googleResult.user ?? null;
+      } else {
+        const decodedPayload = decodeJwtPayload(idToken);
+        providerUser = decodedPayload
+          ? {
+              id: decodedPayload.sub,
+              email: decodedPayload.email,
+              name: decodedPayload.name,
+              picture: decodedPayload.picture,
+            }
+          : null;
       }
 
-      if (!googleResult.user.id) {
+      if (!providerUser?.id) {
         throw new Error('No se recibio providerUserId de Google');
       }
 
@@ -127,15 +161,12 @@ export const useAuth = () => {
         accessToken,
       };
 
-      // DEBUG TEMPORAL: imprime solo lo que se manda al backend segun contrato.
-      console.error('MIRA AQUI >>> PAYLOAD GOOGLE A BACKEND (/auth/google):', googleContractPayload);
-
       const response = await loginWithGoogleMutation.mutateAsync({
         provider: 'google',
-        providerUserId: googleResult.user.id,
-        email: googleResult.user.email || undefined,
-        name: googleResult.user.name || undefined,
-        avatarUrl: googleResult.user.picture,
+        providerUserId: providerUser.id,
+        email: providerUser.email || undefined,
+        name: providerUser.name || undefined,
+        avatarUrl: providerUser.picture,
       });
 
       await login(

@@ -406,7 +406,6 @@ export const OnboardingScreen: React.FC = () => {
         return false;
     }
   };
-
   const getStepContext = (step: number): string => {
     switch (step) {
       case 1:
@@ -895,6 +894,13 @@ export const OnboardingScreen: React.FC = () => {
     }
   };
 
+  const stepNode = renderStepContent();
+  const stepNodeArray = React.Children.toArray(stepNode);
+  const stepNodeTextChildren = stepNodeArray.filter((node) => typeof node === 'string');
+  // #region agent log
+  fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'textnode-dbg-2',hypothesisId:'H7',location:'OnboardingScreen.tsx:render:stepNode',message:'onboarding step node inspection',data:{currentStep,stepNodeCount:stepNodeArray.length,textNodeCount:stepNodeTextChildren.length,firstTextNode:stepNodeTextChildren.length?String(stepNodeTextChildren[0]).slice(0,20):null},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+
   return (
       <GradientBackground
         variant="wizard"
@@ -916,14 +922,14 @@ export const OnboardingScreen: React.FC = () => {
           {/* Pasos visuales (1 y 2) sin tarjeta para diseño más abierto */}
           {currentStep <= 2 ? (
             <View style={styles.visualStepContainer}>
-              {renderStepContent()}
+              {stepNode}
               {errorMessage && (
                 <Text style={styles.errorText}>{errorMessage}</Text>
               )}
             </View>
           ) : (
             <CardSurface variant="glass" padding="lg" textColor={Colors.text.primary}>
-              {renderStepContent()}
+              {stepNode}
               {errorMessage && (
                 <Text style={styles.errorText}>{errorMessage}</Text>
               )}

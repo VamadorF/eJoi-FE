@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, ScrollView, TextInput } from 'react-native';
+import { View, Text, ScrollView, TextInput, Pressable } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -24,6 +24,19 @@ import { useGenderedText } from '@/shared/hooks/useGenderedText';
 import { generateGreeting, generateChatWelcome, generateAboutMe } from '@/shared/utils/companionTextGenerator';
 import { useChatMessages } from '../hooks/useChatMessages';
 import { useSendMessage } from '../hooks/useSendMessage';
+import { useSocket } from '@/app/providers/SocketProvider';
+import {
+  joinConversation,
+  leaveConversation,
+  onMessageNew,
+  onMessageSent,
+  onTypingStart,
+  onTypingStop,
+  sendMessageEvent,
+} from '../services/chat.socket';
+import { ChatHistoryPage, Message } from '../types';
+import { queryKeys } from '@/shared/lib/queryKeys';
+import { useQueryClient, InfiniteData } from '@tanstack/react-query';
 
 type ChatScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Chat'>;
 
@@ -33,15 +46,102 @@ export const ChatScreen: React.FC = () => {
   const genderedText = useGenderedText();
   const isSubscribed = useSubscriptionStore((s) => s.isSubscribed);
   const [draftMessage, setDraftMessage] = React.useState('');
-  const { data: messages = [], isLoading: isMessagesLoading } = useChatMessages(companion?.id, 50);
+  const [sendState, setSendState] = React.useState<'idle' | 'pending' | 'failed'>('idle');
+  const [typingByCompanion, setTypingByCompanion] = React.useState(false);
+  const {
+    data,
+    isLoading: isMessagesLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useChatMessages(companion?.id, 30);
   const sendMessageMutation = useSendMessage();
+  const { socket, isConnected, connect } = useSocket();
+  const queryClient = useQueryClient();
+  const messages = React.useMemo(() => {
+    const messageMap = new Map<string, Message>();
+    (data?.flatMessages ?? []).forEach((message) => {
+      messageMap.set(message.id, message);
+    });
+    return Array.from(messageMap.values()).sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  }, [data?.flatMessages]);
 
-  // Guard: si hay companion pero no hay suscripción -> manda al paywall
   useEffect(() => {
-    if (companion && !isSubscribed) {
-      navigation.replace('SubscriptionPaywall', { companion });
+    if (!companion?.id) {
+      return;
     }
-  }, [companion, isSubscribed, navigation]);
+    if (!isConnected) {
+      void connect();
+      return;
+    }
+
+    joinConversation(socket, companion.id);
+
+    const appendIncomingMessage = (incomingMessage: Message) => {
+      if (incomingMessage.companionId !== companion.id) {
+        return;
+      }
+      queryClient.setQueryData<InfiniteData<ChatHistoryPage>>(
+        queryKeys.chat.messages(companion.id),
+        (currentData) => {
+          if (!currentData || currentData.pages.length === 0) {
+            return {
+              pageParams: [undefined],
+              pages: [{ messages: [incomingMessage], hasMore: false, nextCursor: null }],
+            };
+          }
+          const alreadyExists = currentData.pages.some((page) =>
+            page.messages.some(
+              (message) =>
+                message.id === incomingMessage.id ||
+                (incomingMessage.clientMessageId &&
+                  message.clientMessageId === incomingMessage.clientMessageId)
+            )
+          );
+          if (alreadyExists) {
+            return currentData;
+          }
+
+          const lastPageIndex = currentData.pages.length - 1;
+          return {
+            ...currentData,
+            pages: currentData.pages.map((page, index) =>
+              index === lastPageIndex
+                ? { ...page, messages: [...page.messages, { ...incomingMessage, deliveryStatus: 'sent' }] }
+                : page
+            ),
+          };
+        }
+      );
+    };
+
+    const unsubscribeMessageNew = onMessageNew(socket, appendIncomingMessage);
+    const unsubscribeMessageSent = onMessageSent(socket, appendIncomingMessage);
+    const unsubscribeTypingStart = onTypingStart(socket, ({ companionId }) => {
+      if (companionId === companion.id) {
+        setTypingByCompanion(true);
+      }
+    });
+    const unsubscribeTypingStop = onTypingStop(socket, ({ companionId }) => {
+      if (companionId === companion.id) {
+        setTypingByCompanion(false);
+      }
+    });
+
+    return () => {
+      unsubscribeMessageNew();
+      unsubscribeMessageSent();
+      unsubscribeTypingStart();
+      unsubscribeTypingStop();
+      leaveConversation(socket, companion.id);
+      setTypingByCompanion(false);
+    };
+  }, [companion?.id, connect, isConnected, queryClient, socket]);
+
+  // Nota: no bloqueamos la navegación por suscripción para evitar un estado
+  // de transición permanente mientras se estabiliza el flujo de pantallas.
 
   const handleStartOnboarding = () => {
     navigation.navigate('Onboarding');
@@ -53,14 +153,43 @@ export const ChatScreen: React.FC = () => {
       return;
     }
 
+    const clientMessageId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setSendState('pending');
     try {
+      if (isConnected && companion?.id) {
+        sendMessageEvent(socket, {
+          companionId: companion.id,
+          message: trimmedMessage,
+          clientMessageId,
+        });
+      }
       await sendMessageMutation.mutateAsync({
         companionId: companion?.id,
         message: trimmedMessage,
+        clientMessageId,
       });
       setDraftMessage('');
+      setSendState('idle');
     } catch {
-      // Error surfaces through mutation state if needed.
+      // The mutation updates message-level state, this keeps explicit local transaction state in sync.
+      setSendState('failed');
+    }
+  };
+
+  const handleRetryMessage = async (item: Message) => {
+    if (!item.message || sendMessageMutation.isPending) {
+      return;
+    }
+    setSendState('pending');
+    try {
+      await sendMessageMutation.mutateAsync({
+        companionId: companion?.id,
+        message: item.message,
+        clientMessageId: item.clientMessageId ?? item.id,
+      });
+      setSendState('idle');
+    } catch {
+      setSendState('failed');
     }
   };
 
@@ -102,11 +231,6 @@ export const ChatScreen: React.FC = () => {
     );
   }
 
-  // ✅ Evita "flash" del chat si va a redirigir al paywall
-  if (!isSubscribed) {
-    return null;
-  }
-
   // ✅ Mockup ORIGINAL intacto
   return (
     <Screen>
@@ -128,6 +252,13 @@ export const ChatScreen: React.FC = () => {
           <ScrollView
             style={styles.messagesContainer}
             contentContainerStyle={styles.messagesContent}
+            onScroll={({ nativeEvent }) => {
+              const nearTop = nativeEvent.contentOffset.y <= 24;
+              if (nearTop && hasNextPage && !isFetchingNextPage && !isMessagesLoading) {
+                void fetchNextPage();
+              }
+            }}
+            scrollEventThrottle={120}
           >
             <Animated.View
               style={styles.welcomeMessage}
@@ -162,9 +293,27 @@ export const ChatScreen: React.FC = () => {
                     <Text style={[styles.messageTime, isUserMessage && styles.messageTimeUser]}>
                       {new Date(item.createdAt).toLocaleTimeString()}
                     </Text>
+                    {isUserMessage && item.deliveryStatus === 'pending' && (
+                      <Text style={[styles.messageTime, isUserMessage && styles.messageTimeUser]}>
+                        Enviando...
+                      </Text>
+                    )}
+                    {isUserMessage && item.deliveryStatus === 'failed' && (
+                      <Pressable onPress={() => void handleRetryMessage(item)}>
+                        <Text style={[styles.messageTime, isUserMessage && styles.messageTimeUser]}>
+                          Fallo al enviar. Reintentar
+                        </Text>
+                      </Pressable>
+                    )}
                   </View>
                 );
               })
+            )}
+            {isFetchingNextPage && (
+              <Text style={styles.loadingText}>Cargando mensajes anteriores...</Text>
+            )}
+            {typingByCompanion && (
+              <Text style={styles.loadingText}>{companion.name} esta escribiendo...</Text>
             )}
           </ScrollView>
 
@@ -189,7 +338,7 @@ export const ChatScreen: React.FC = () => {
                 disabled={!draftMessage.trim()}
               />
             </View>
-            {sendMessageMutation.isError && (
+            {(sendMessageMutation.isError || sendState === 'failed') && (
               <Text style={styles.inputPlaceholder}>
                 No se pudo enviar el mensaje. Intenta nuevamente.
               </Text>

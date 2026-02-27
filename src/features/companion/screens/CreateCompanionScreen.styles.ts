@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions, PixelRatio } from 'react-native';
+import { StyleSheet, Dimensions, PixelRatio, Platform } from 'react-native';
 import { Colors } from '@/shared/theme/colors';
 import { Spacing } from '@/shared/theme/spacing';
 import { Typography } from '@/shared/theme/typography';
@@ -66,11 +66,18 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.background.white,
     borderRadius: CARD_BORDER_RADIUS,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: isTablet ? 12 : 8 },
-    shadowOpacity: isTablet ? 0.18 : 0.15,
-    shadowRadius: isTablet ? 32 : 24,
-    elevation: isTablet ? 16 : 12,
+    ...Platform.select({
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: isTablet ? 12 : 8 },
+        shadowOpacity: isTablet ? 0.18 : 0.15,
+        shadowRadius: isTablet ? 32 : 24,
+        elevation: isTablet ? 16 : 12,
+      },
+      web: {
+        boxShadow: isTablet ? '0px 12px 32px rgba(0,0,0,0.18)' : '0px 8px 24px rgba(0,0,0,0.15)',
+      },
+    }),
   },
 
   // ============ IMAGEN DEL COMPANION ============
@@ -110,11 +117,18 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...Platform.select({
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0px 2px 4px rgba(0,0,0,0.1)',
+      },
+    }),
   },
 
   editImageButtonText: {
@@ -508,3 +522,9 @@ export const styles = StyleSheet.create({
     zIndex: 0,
   },
 });
+
+const debugTinderCardStyle = StyleSheet.flatten(styles.tinderCard) as Record<string, unknown>;
+const debugEditImageButtonStyle = StyleSheet.flatten(styles.editImageButton) as Record<string, unknown>;
+// #region agent log
+fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'shadow-dbg-6',hypothesisId:'H6',location:'CreateCompanionScreen.styles.ts:moduleInit',message:'create companion styles resolved',data:{platform:Platform.OS,tinderHasShadowColor:Object.prototype.hasOwnProperty.call(debugTinderCardStyle ?? {},'shadowColor'),tinderHasBoxShadow:Object.prototype.hasOwnProperty.call(debugTinderCardStyle ?? {},'boxShadow'),editButtonHasShadowColor:Object.prototype.hasOwnProperty.call(debugEditImageButtonStyle ?? {},'shadowColor'),editButtonHasBoxShadow:Object.prototype.hasOwnProperty.call(debugEditImageButtonStyle ?? {},'boxShadow')},timestamp:Date.now()})}).catch(()=>{});
+// #endregion

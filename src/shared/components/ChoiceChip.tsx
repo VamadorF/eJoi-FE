@@ -81,14 +81,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.base.secondary,
     backgroundColor: Colors.auxiliary.secondary,
     borderWidth: 2,
-    shadowColor: Colors.base.secondary,
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 3,
+    boxShadow: `0px 1px 3px ${Colors.base.secondary}40`,
   },
   chipDisabled: {
     opacity: 0.5,

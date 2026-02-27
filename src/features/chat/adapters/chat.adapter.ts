@@ -1,4 +1,4 @@
-import { ChatHistoryParams, Message, MessageRole, SendMessageRequest } from '../types';
+import { ChatHistoryPage, ChatHistoryParams, Message, MessageRole, SendMessageRequest } from '../types';
 
 export type RawMessage = {
   id?: string;
@@ -12,6 +12,13 @@ export type RawMessage = {
 };
 
 export type RawHistoryResponse = RawMessage[] | { messages?: RawMessage[]; data?: RawMessage[] };
+export type RawHistoryPageResponse =
+  | RawHistoryResponse
+  | {
+      nextCursor?: string | null;
+      hasMore?: boolean;
+      cursor?: string | null;
+    };
 
 const toMessageRole = (role?: string): MessageRole => {
   if (role === 'assistant' || role === 'system') {
@@ -32,6 +39,12 @@ export const toChatHistoryQueryParams = (params: ChatHistoryParams): URLSearchPa
   }
   if (typeof params.limit === 'number') {
     queryParams.append('limit', String(params.limit));
+  }
+  if (params.cursor) {
+    queryParams.append('cursor', params.cursor);
+  }
+  if (typeof params.offset === 'number') {
+    queryParams.append('offset', String(params.offset));
   }
   return queryParams;
 };
@@ -64,4 +77,27 @@ export const fromRawHistoryResponse = (
         : [];
 
   return rawMessages.map((item) => fromRawMessage(item, fallbackCompanionId));
+};
+
+export const fromRawHistoryPageResponse = (
+  data: RawHistoryPageResponse,
+  fallbackCompanionId: string,
+  requestedLimit: number
+): ChatHistoryPage => {
+  const hasMessageCollection =
+    Array.isArray(data) ||
+    ('messages' in data && Array.isArray(data.messages)) ||
+    ('data' in data && Array.isArray(data.data));
+  const messages = hasMessageCollection
+    ? fromRawHistoryResponse(data as RawHistoryResponse, fallbackCompanionId)
+    : [];
+  const payload = data as { nextCursor?: string | null; hasMore?: boolean; cursor?: string | null };
+  const nextCursor = payload.nextCursor ?? payload.cursor ?? null;
+  const inferredHasMore = typeof payload.hasMore === 'boolean' ? payload.hasMore : messages.length >= requestedLimit;
+
+  return {
+    messages,
+    nextCursor,
+    hasMore: inferredHasMore,
+  };
 };
