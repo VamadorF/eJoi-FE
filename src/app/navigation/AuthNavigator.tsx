@@ -17,25 +17,13 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
  */
 export const AuthNavigator: React.FC = () => {
   return (
-    <AuthNavigatorWithInitialRoute />
-  );
-};
-
-type AuthNavigatorProps = {
-  initialRouteName?: keyof RootStackParamList;
-};
-
-export const AuthNavigatorWithInitialRoute: React.FC<AuthNavigatorProps> = ({
-  initialRouteName = 'Login',
-}) => {
-  return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
         animation: 'fade',
         animationDuration: 300,
       }}
-      initialRouteName={initialRouteName}
+      initialRouteName="Login"
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator, Text } from 'react-native';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
-import { AuthNavigatorWithInitialRoute } from './AuthNavigator';
+import { AuthNavigator } from './AuthNavigator';
 import { MainTabs } from './MainTabs';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
@@ -43,25 +43,10 @@ export const RootNavigator: React.FC = () => {
     );
   }
 
-  const targetNavigator = isAuthenticated
-    ? hasCompanion
-      ? 'MainTabs'
-      : 'AuthNavigator(Onboarding)'
-    : 'AuthNavigator(Login)';
-  console.log('Rendering navigator:', targetNavigator);
+  console.log('Rendering navigator:', isAuthenticated ? 'MainTabs' : 'AuthNavigator');
 
-  // Reglas de navegación:
-  // - No autenticado: Login
-  // - Autenticado sin compañer@: Onboarding (primera vez)
-  // - Autenticado con compañer@: MainTabs
-  if (!isAuthenticated) {
-    return <AuthNavigatorWithInitialRoute initialRouteName="Login" />;
-  }
-
-  if (!hasCompanion) {
-    return <AuthNavigatorWithInitialRoute initialRouteName="Onboarding" />;
-  }
-
-  return <MainTabs />;
+  // Si está autenticado, mostrar MainTabs, sino AuthNavigator
+  // El flujo de navegación dentro de AuthNavigator manejará Onboarding vs Chat
+  return isAuthenticated ? <MainTabs /> : <AuthNavigator />;
 };
 

@@ -98,41 +98,26 @@ export const useAuth = () => {
    * Obtiene los datos del usuario via Google Sign-In SDK
    * y los envía al backend via POST /auth/provider.
    */
-  const loginWithGoogle = useCallback(async (idTokenFromAuthRequest?: string) => {
+  const loginWithGoogle = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      let idToken = idTokenFromAuthRequest;
-      let accessToken: string | undefined;
 
-      // Mantiene compatibilidad con el flujo previo si no se envía token desde useAuthRequest.
-      if (!idToken) {
-        const { signInWithGoogle } = await import('../services/auth.providers');
-        const googleResult = await signInWithGoogle();
+      // Importar dinámicamente para evitar problemas en plataformas sin soporte
+      const { signInWithGoogle } = await import('../services/auth.providers');
+      const googleResult = await signInWithGoogle();
 
-        if (googleResult.type === 'error' || !googleResult.user) {
-          throw new Error(googleResult.error || 'Error en autenticación Google');
-        }
-
-        idToken = googleResult.idToken;
-        accessToken = googleResult.accessToken;
+      if (googleResult.type === 'error' || !googleResult.user) {
+        throw new Error(googleResult.error || 'Error en autenticación Google');
       }
 
-      if (!idToken) {
+      if (!googleResult.idToken) {
         throw new Error('No se recibio idToken de Google');
       }
 
-      const googleContractPayload = {
-        idToken,
-        accessToken,
-      };
-
-      // DEBUG TEMPORAL: imprime solo lo que se manda al backend segun contrato.
-      console.error('MIRA AQUI >>> PAYLOAD GOOGLE A BACKEND (/auth/google):', googleContractPayload);
-
       const response = await loginWithGoogleMutation.mutateAsync({
-        idToken,
-        accessToken,
+        idToken: googleResult.idToken,
+        accessToken: googleResult.accessToken,
       });
 
       await login(
