@@ -11,6 +11,7 @@ import {
   Pressable,
   SafeAreaView,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -21,8 +22,18 @@ import { RootStackParamList } from '@/shared/types/navigation';
 import { styles } from './LoginScreen.styles';
 import terminosContenido from '../assets/terminos.json';
 import privacidadContenido from '../assets/privacidad.json';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import {
+  GOOGLE_ANDROID_CLIENT_ID,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_IOS_CLIENT_ID,
+  GOOGLE_WEB_CLIENT_ID,
+} from '@/app/config/env';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
+
+WebBrowser.maybeCompleteAuthSession({ skipRedirectCheck: true });
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
@@ -31,6 +42,15 @@ export const LoginScreen: React.FC = () => {
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
   const [isAppleLoading, setIsAppleLoading] = React.useState(false);
   const [modalContent, setModalContent] = React.useState<{ title: string; content: string } | null>(null);
+  const redirectUri = Platform.OS === 'web' ? window.location.origin : undefined;
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    expoClientId: GOOGLE_CLIENT_ID,
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    redirectUri,
+    scopes: ['openid', 'profile', 'email'],
+  });
 
   // Animaciones
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -55,18 +75,43 @@ export const LoginScreen: React.FC = () => {
     ]).start();
   }, []);
 
+  useEffect(() => {
+    if (!response) return;
+    if (response.type !== 'success') {
+      setIsGoogleLoading(false);
+    }
+  }, [response]);
+
   const handleGoogleLogin = async () => {
     try {
+      if (!request) {
+        Alert.alert('Login con Google', 'Google Auth Request no está inicializado todavía.');
+        return;
+      }
+
       setIsGoogleLoading(true);
       console.log('Intentando login con Google...');
-      await loginWithGoogle();
+      const authResult = await promptAsync();
+      if (authResult.type !== 'success') {
+        setIsGoogleLoading(false);
+        return;
+      }
+
+      const authIdToken = authResult.authentication?.idToken || authResult.params?.id_token;
+      if (!authIdToken) {
+        throw new Error('No se recibio idToken desde Google Auth Request');
+      }
+
+      await loginWithGoogle(authIdToken);
       Alert.alert('Éxito', 'Login con Google iniciado.');
+      setIsGoogleLoading(false);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       console.error('Error en login con Google:', error);
       Alert.alert('Login con Google', `Error: ${errorMessage}`);
-    } finally {
       setIsGoogleLoading(false);
+    } finally {
+      // El estado se cierra en useEffect cuando llega la respuesta de OAuth.
     }
   };
 
