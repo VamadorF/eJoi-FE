@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   fromRawHistoryResponse,
+  fromRawHistoryPageResponse,
   fromRawMessage,
   toChatHistoryQueryParams,
   toSendMessageDto,
@@ -53,8 +54,24 @@ describe('chat.adapter', () => {
   });
 
   it('arma query params solo con valores presentes', () => {
-    const params = toChatHistoryQueryParams({ limit: 50 });
+    const params = toChatHistoryQueryParams({ limit: 50, cursor: 'cursor-1', offset: 10 });
     expect(params.get('companionId')).toBeNull();
     expect(params.get('limit')).toBe('50');
+    expect(params.get('cursor')).toBe('cursor-1');
+    expect(params.get('offset')).toBe('10');
+  });
+
+  it('normaliza metadata paginada con fallback de hasMore', () => {
+    const page = fromRawHistoryPageResponse(
+      {
+        messages: [{ role: 'assistant', message: 'hola' }],
+      },
+      'cmp-paged',
+      1
+    );
+
+    expect(page.messages).toHaveLength(1);
+    expect(page.hasMore).toBe(true);
+    expect(page.nextCursor).toBeNull();
   });
 });

@@ -63,10 +63,10 @@ export const PrimaryCTA: React.FC<PrimaryCTAProps> = ({
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      pointerEvents="box-none"
+      style={{ pointerEvents: 'box-none' }}
     >
-      <View style={styles.container} pointerEvents="box-none">
-        <SafeAreaView style={styles.safeArea} edges={['bottom']} pointerEvents="box-none">
+      <View style={[styles.container, { pointerEvents: 'box-none' }]}>
+        <SafeAreaView style={[styles.safeArea, { pointerEvents: 'box-none' }]} edges={['bottom']}>
           <AnimatedPressable
             style={[
               styles.button,

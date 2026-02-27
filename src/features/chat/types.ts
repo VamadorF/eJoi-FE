@@ -11,11 +11,21 @@ export interface Message {
   message: string;
   createdAt: string;
   updatedAt?: string;
+  deliveryStatus?: 'pending' | 'sent' | 'failed';
+  clientMessageId?: string;
 }
 
 export interface ChatHistoryParams {
   companionId?: string;
   limit?: number;
+  cursor?: string;
+  offset?: number;
+}
+
+export interface ChatHistoryPage {
+  messages: Message[];
+  nextCursor?: string | null;
+  hasMore: boolean;
 }
 
 export interface SendMessageRequest {

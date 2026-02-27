@@ -26,11 +26,15 @@ export const styles = StyleSheet.create({
         paddingBottom: 28,
         borderTopLeftRadius: 20,
         borderBottomLeftRadius: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: -4, height: 0 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 16,
+        ...(Platform.OS === 'web'
+            ? { boxShadow: '-4px 0px 12px rgba(0, 0, 0, 0.15)' }
+            : {
+                shadowColor: '#000',
+                shadowOffset: { width: -4, height: 0 },
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+                elevation: 16,
+            }),
     },
     header: {
         flexDirection: 'row',

@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions, PixelRatio } from 'react-native';
+import { StyleSheet, Dimensions, PixelRatio, Platform } from 'react-native';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
 
@@ -26,12 +26,15 @@ export const styles = StyleSheet.create({
         paddingBottom: verticalScale(20),
         width: SCREEN_WIDTH * 0.85,
         maxWidth: scale(380),
-        // Sombra
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
-        shadowRadius: 20,
-        elevation: 20,
+        ...(Platform.OS === 'web'
+            ? { boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.20)' }
+            : {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.2,
+                shadowRadius: 20,
+                elevation: 20,
+            }),
     },
     iconContainer: {
         alignItems: 'center',

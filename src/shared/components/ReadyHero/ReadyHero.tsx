@@ -11,7 +11,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CompanionAvatar } from '../CompanionAvatar';
 import { PrimaryCTA } from '../PrimaryCTA';
 import { ContentContainer } from '../ContentContainer';
-import { ChoiceChip, CardSurface } from '../index';
+import { ChoiceChip } from '../ChoiceChip';
+import { CardSurface } from '../CardSurface';
 import { ReadyHeroProps } from './ReadyHero.types';
 import { styles } from './ReadyHero.styles';
 import { Spacing } from '@/shared/theme/spacing';
@@ -30,6 +31,9 @@ export const ReadyHero: React.FC<ReadyHeroProps> = ({
   interests = [],
   boundaries = [],
 }) => {
+  // #region agent log
+  fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'cycle-dbg-2',hypothesisId:'H2',location:'ReadyHero.tsx:render',message:'ReadyHero render with direct imports',data:{hasChoiceChip:Boolean(ChoiceChip),hasCardSurface:Boolean(CardSurface)},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   const visibleInterests = interests.slice(0, 5);
   const remainingCount = interests.length - 5;
 

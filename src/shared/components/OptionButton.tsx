@@ -82,14 +82,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.base.primary,
     backgroundColor: Colors.auxiliary.primary,
     borderWidth: 3,
-    shadowColor: Colors.base.primary,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    boxShadow: `0px 2px 4px ${Colors.base.primary}4D`,
   },
   buttonDisabled: {
     opacity: 0.5,

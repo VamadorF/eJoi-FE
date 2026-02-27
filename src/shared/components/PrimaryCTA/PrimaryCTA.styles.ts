@@ -31,16 +31,19 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 56,
-    shadowColor: Colors.base.primary,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
     ...Platform.select({
+      default: {
+        shadowColor: Colors.base.primary,
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+      },
       web: {
+        boxShadow: `0px 4px 8px ${Colors.base.primary}4D`,
         cursor: 'pointer' as any,
       },
     }),
@@ -62,4 +65,9 @@ export const styles = StyleSheet.create({
     opacity: 0.6,
   },
 });
+
+const debugPrimaryButtonStyle = StyleSheet.flatten(styles.button) as Record<string, unknown>;
+// #region agent log
+fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'shadow-dbg-1',hypothesisId:'H1',location:'PrimaryCTA.styles.ts:moduleInit',message:'primary cta style resolved',data:{platform:Platform.OS,hasShadowColor:Object.prototype.hasOwnProperty.call(debugPrimaryButtonStyle ?? {},'shadowColor'),hasShadowOffset:Object.prototype.hasOwnProperty.call(debugPrimaryButtonStyle ?? {},'shadowOffset'),hasBoxShadow:Object.prototype.hasOwnProperty.call(debugPrimaryButtonStyle ?? {},'boxShadow')},timestamp:Date.now()})}).catch(()=>{});
+// #endregion
 

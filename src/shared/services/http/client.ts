@@ -12,6 +12,7 @@ export interface RequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
   body?: any;
+  suppressFatalBoundary?: boolean;
 }
 
 export interface ApiResponse<T = any> {
@@ -69,7 +70,7 @@ export const httpClient = {
     endpoint: string,
     config: RequestConfig = {}
   ): Promise<ApiResponse<T>> {
-    const { method = 'GET', headers = {}, body } = config;
+    const { method = 'GET', headers = {}, body, suppressFatalBoundary = false } = config;
     const requestHeadersInput = { ...headers };
 
     const token = await getAuthToken();
@@ -107,7 +108,7 @@ export const httpClient = {
 
         if (AUTH_ERROR_STATUSES.has(apiError.status)) {
           await logout();
-        } else if (isFatalBoundaryError(apiError.status)) {
+        } else if (isFatalBoundaryError(apiError.status) && !suppressFatalBoundary) {
           reportFatalBoundaryError(apiError, endpoint, method);
         }
 
@@ -130,13 +131,19 @@ export const httpClient = {
         error instanceof Error ? error.message : 'Unknown error'
       );
 
-      reportFatalBoundaryError(networkError, endpoint, method);
+      if (!suppressFatalBoundary) {
+        reportFatalBoundaryError(networkError, endpoint, method);
+      }
       throw networkError;
     }
   },
 
-  get<T = any>(endpoint: string, headers?: Record<string, string>) {
-    return this.request<T>(endpoint, { method: 'GET', headers });
+  get<T = any>(
+    endpoint: string,
+    headers?: Record<string, string>,
+    options?: Pick<RequestConfig, 'suppressFatalBoundary'>
+  ) {
+    return this.request<T>(endpoint, { method: 'GET', headers, ...options });
   },
 
   post<T = any>(
