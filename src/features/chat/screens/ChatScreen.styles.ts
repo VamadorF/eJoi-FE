@@ -37,6 +37,43 @@ export const styles = StyleSheet.create({
   messagesContent: {
     padding: Spacing.screen.paddingHorizontal,
     paddingTop: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  loadingText: {
+    ...Typography.styles.bodySmall,
+    color: Colors.text.white,
+    textAlign: 'center',
+    marginVertical: Spacing.md,
+  },
+  messageBubble: {
+    maxWidth: '85%',
+    borderRadius: 16,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  messageBubbleUser: {
+    alignSelf: 'flex-end',
+    backgroundColor: Colors.base.primary,
+  },
+  messageBubbleAssistant: {
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.auxiliary.primary,
+  },
+  messageText: {
+    ...Typography.styles.body,
+    color: Colors.text.primary,
+  },
+  messageTextUser: {
+    color: Colors.text.white,
+  },
+  messageTime: {
+    ...Typography.styles.caption,
+    marginTop: Spacing.xs,
+    opacity: 0.7,
+    color: Colors.text.primary,
+  },
+  messageTimeUser: {
+    color: Colors.text.white,
   },
   welcomeMessage: {
     backgroundColor: Colors.auxiliary.primary,
@@ -64,7 +101,25 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.auxiliary.primary,
     backgroundColor: Colors.background.white,
-    opacity: 0.1,
+    gap: Spacing.sm,
+  },
+  composerRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'center',
+  },
+  composerInput: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.auxiliary.primary,
+    paddingHorizontal: Spacing.md,
+    color: Colors.text.primary,
+    backgroundColor: Colors.background.white,
+  },
+  composerButton: {
+    minWidth: 90,
   },
   inputPlaceholder: {
     ...Typography.styles.bodySmall,

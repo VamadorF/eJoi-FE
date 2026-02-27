@@ -92,7 +92,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
       if (session.isAuthenticated) {
         set({
-          user: session.user,
+          user: session.user ?? null,
           isAuthenticated: true,
           isLoading: false,
         });

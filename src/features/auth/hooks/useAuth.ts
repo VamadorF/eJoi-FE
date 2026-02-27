@@ -96,7 +96,7 @@ export const useAuth = () => {
   /**
    * Inicia sesión con Google.
    * Obtiene los datos del usuario via Google Sign-In SDK
-   * y los envía al backend via POST /auth/provider.
+   * y los envía al backend como ProviderAuthDto en POST /auth/google.
    */
   const loginWithGoogle = useCallback(async () => {
     try {
@@ -111,13 +111,16 @@ export const useAuth = () => {
         throw new Error(googleResult.error || 'Error en autenticación Google');
       }
 
-      if (!googleResult.idToken) {
-        throw new Error('No se recibio idToken de Google');
+      if (!googleResult.user.id) {
+        throw new Error('No se recibio providerUserId de Google');
       }
 
       const response = await loginWithGoogleMutation.mutateAsync({
-        idToken: googleResult.idToken,
-        accessToken: googleResult.accessToken,
+        provider: 'google',
+        providerUserId: googleResult.user.id,
+        email: googleResult.user.email || undefined,
+        name: googleResult.user.name || undefined,
+        avatarUrl: googleResult.user.picture,
       });
 
       await login(
@@ -142,7 +145,7 @@ export const useAuth = () => {
   /**
    * Inicia sesión con Apple.
    * Obtiene los datos del usuario via Apple Sign-In SDK
-   * y los envía al backend via POST /auth/provider.
+   * y los envía al backend como ProviderAuthDto en POST /auth/apple.
    */
   const loginWithApple = useCallback(async () => {
     try {
@@ -156,13 +159,15 @@ export const useAuth = () => {
         throw new Error(appleResult.error || 'Error en autenticación Apple');
       }
 
-      if (!appleResult.identityToken) {
-        throw new Error('No se recibio identityToken de Apple');
+      if (!appleResult.user.id) {
+        throw new Error('No se recibio providerUserId de Apple');
       }
 
       const response = await loginWithAppleMutation.mutateAsync({
-        identityToken: appleResult.identityToken,
-        authorizationCode: appleResult.authorizationCode,
+        provider: 'apple',
+        providerUserId: appleResult.user.id,
+        email: appleResult.user.email || undefined,
+        name: appleResult.user.name || undefined,
       });
 
       await login(

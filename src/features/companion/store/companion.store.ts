@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { Companion } from '../types';
 import { getCompanionData, setCompanionData, removeCompanionData } from '@/shared/services/storage/secure';
+import { getMyCompanion } from '../api/companion.api';
 
 interface CompanionStore {
   // State
@@ -73,28 +74,16 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
         }
       }
 
-      // TODO: Cuando el backend esté listo, descomentar para buscar desde API
-      // try {
-      //   const companion = await getMyCompanion();
-      //   if (companion) {
-      //     await get().setCompanion(companion);
-      //     set({ isLoading: false });
-      //     return;
-      //   }
-      // } catch (apiError) {
-      //   console.error('Error fetching companion from API:', apiError);
-      // }
-
-      // TODO: Llamar a API para verificar si tiene compañer@
-      // const response = await fetch(`${API_URL}/companion`, {
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
-      // if (response.ok) {
-      //   const companion = await response.json();
-      //   get().setCompanion(companion);
-      //   set({ hasCompanion: true, isLoading: false });
-      //   return;
-      // }
+      try {
+        const companion = await getMyCompanion();
+        if (companion) {
+          await get().setCompanion(companion);
+          set({ isLoading: false });
+          return;
+        }
+      } catch (apiError) {
+        console.error('Error fetching companion from API:', apiError);
+      }
 
       // Si no hay compañer@ en almacenamiento ni en API
       set({

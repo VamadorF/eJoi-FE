@@ -14,13 +14,14 @@ export interface Message {
 }
 
 export interface ChatHistoryParams {
-  companionId: string;
+  companionId?: string;
   limit?: number;
 }
 
 export interface SendMessageRequest {
-  companionId: string;
+  companionId?: string;
   message: string;
+  useLongTermMemory?: boolean;
 }
 
 export interface ChatRoom {

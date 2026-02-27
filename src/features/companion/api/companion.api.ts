@@ -5,17 +5,15 @@
 
 import { httpClient } from '@/shared/services/http/client';
 import { Companion, CreateCompanionRequest, UpdateCompanionRequest } from '../types';
+import { fromCompanionApiResponse, toUpsertCompanionDto } from '../adapters/companion.adapter';
 
 /**
  * Obtiene el companion del usuario autenticado
  * Endpoint: GET /companion/me
  */
 export const getMyCompanion = async (): Promise<Companion | null> => {
-  const response = await httpClient.get<Companion>('/companion/me');
-  if (!response.data || Object.keys(response.data).length === 0) {
-    return null;
-  }
-  return response.data;
+  const response = await httpClient.get<unknown>('/companion/me');
+  return fromCompanionApiResponse(response.data);
 };
 
 /**
@@ -23,8 +21,12 @@ export const getMyCompanion = async (): Promise<Companion | null> => {
  * Endpoint: POST /companion/me
  */
 export const createCompanion = async (data: CreateCompanionRequest): Promise<Companion> => {
-  const response = await httpClient.post<Companion>('/companion/me', data);
-  return response.data;
+  const response = await httpClient.post<unknown>('/companion/me', toUpsertCompanionDto(data));
+  const normalized = fromCompanionApiResponse(response.data);
+  if (!normalized) {
+    throw new Error('El backend no devolvio un companion valido');
+  }
+  return normalized;
 };
 
 /**
@@ -32,6 +34,10 @@ export const createCompanion = async (data: CreateCompanionRequest): Promise<Com
  * Endpoint: PUT /companion/me
  */
 export const updateCompanion = async (data: UpdateCompanionRequest): Promise<Companion> => {
-  const response = await httpClient.put<Companion>('/companion/me', data);
-  return response.data;
+  const response = await httpClient.put<unknown>('/companion/me', toUpsertCompanionDto(data));
+  const normalized = fromCompanionApiResponse(response.data);
+  if (!normalized) {
+    throw new Error('El backend no devolvio un companion valido');
+  }
+  return normalized;
 };
