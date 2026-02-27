@@ -5,12 +5,16 @@
 
 import { create } from 'zustand';
 import { User, AuthState } from '../types';
-import { setAuthToken, getAuthToken, clearAuthData } from '@/shared/services/storage/secure';
+import {
+  setAuthToken,
+  getAuthToken,
+  setUserData,
+  getUserData,
+  clearAuthData,
+  removeCompanionData,
+} from '@/shared/services/storage/secure';
 import { getAuthSession } from '../api/auth.api';
-
-// #region agent log
-fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'cycle-dbg-1',hypothesisId:'H1',location:'auth.store.ts:moduleInit',message:'auth store module initialized',data:{hasGetAuthSession:Boolean(getAuthSession)},timestamp:Date.now()})}).catch(()=>{});
-// #endregion
+import { useCompanionStore } from '@/features/companion/store/companion.store';
 
 interface AuthStore extends AuthState {
   setUser: (user: User | null) => void;
@@ -36,7 +40,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   login: async (user, accessToken) => {
     try {
-      await setAuthToken(accessToken);
+      await Promise.all([
+        setAuthToken(accessToken),
+        setUserData(JSON.stringify(user)),
+        removeCompanionData(),
+      ]);
+      useCompanionStore.setState({
+        companion: null,
+        hasCompanion: false,
+        isLoading: true,
+        error: null,
+      });
       set({
         user,
         isAuthenticated: true,
@@ -81,9 +95,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   checkAuth: async () => {
     try {
-      // #region agent log
-      fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'cycle-dbg-1',hypothesisId:'H1',location:'auth.store.ts:checkAuth:entry',message:'checkAuth called',data:{hasGetAuthSession:Boolean(getAuthSession)},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       const token = await getAuthToken();
 
       if (!token) {
@@ -96,13 +107,21 @@ export const useAuthStore = create<AuthStore>((set) => ({
       }
 
       const session = await getAuthSession();
-      // #region agent log
-      fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'cycle-dbg-1',hypothesisId:'H1',location:'auth.store.ts:checkAuth:sessionResponse',message:'checkAuth received session',data:{isAuthenticated:Boolean(session?.isAuthenticated),hasUser:Boolean(session?.user)},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
 
       if (session.isAuthenticated) {
+        let user = session.user;
+        if (!user) {
+          const storedUserData = await getUserData();
+          if (storedUserData) {
+            try {
+              user = JSON.parse(storedUserData) as User;
+            } catch {
+              // Ignore parse errors
+            }
+          }
+        }
         set({
-          user: session.user ?? null,
+          user: user ?? null,
           isAuthenticated: true,
           isLoading: false,
         });

@@ -10,6 +10,7 @@ export const useChatRooms = () => {
   return useQuery({
     queryKey: queryKeys.chat.rooms,
     queryFn: getChatRooms,
+    enabled: false, // Backend no expone GET /chat/rooms aún
   });
 };
 

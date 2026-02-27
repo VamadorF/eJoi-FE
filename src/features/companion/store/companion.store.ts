@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { Companion } from '../types';
 import { getCompanionData, setCompanionData, removeCompanionData } from '@/shared/services/storage/secure';
+import { isValidUuid } from '@/shared/utils/uuid';
 import { getMyCompanion } from '../api/companion.api';
 
 interface CompanionStore {
@@ -62,15 +63,19 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
       if (storedCompanionData) {
         try {
           const companion: Companion = JSON.parse(storedCompanionData);
-          set({
-            companion,
-            hasCompanion: true,
-            isLoading: false,
-          });
-          return;
+          if (!isValidUuid(companion?.id)) {
+            await removeCompanionData();
+          } else {
+            set({
+              companion,
+              hasCompanion: true,
+              isLoading: false,
+            });
+            return;
+          }
         } catch (parseError) {
           console.error('Error parsing stored companion:', parseError);
-          // Continuar para intentar obtener desde API
+          await removeCompanionData();
         }
       }
 

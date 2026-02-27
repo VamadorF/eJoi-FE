@@ -18,9 +18,6 @@ import { useSubscriptionStore } from '@/features/subscription/store/subscription
 import { queryClient } from '@/app/providers/QueryProvider';
 
 let isLoggingOut = false;
-// #region agent log
-fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'cycle-dbg-2',hypothesisId:'H1',location:'sessionManager.ts:moduleInit',message:'sessionManager initialized without static auth.store import',data:{hasQueryClient:Boolean(queryClient)},timestamp:Date.now()})}).catch(()=>{});
-// #endregion
 
 /**
  * Ejecuta logout completo: limpia storage, stores y cache.
@@ -33,9 +30,6 @@ fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{metho
  * antes de limpiar el estado local.
  */
 export const logout = async (): Promise<void> => {
-  // #region agent log
-  fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'cycle-dbg-2',hypothesisId:'H1',location:'sessionManager.ts:logout:entry',message:'logout invoked before dynamic auth.store import',data:{},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
   // Guard de idempotencia
   if (isLoggingOut) {
     console.log('[SessionManager] logout ya en curso, ignorando llamada duplicada');
@@ -67,9 +61,6 @@ export const logout = async (): Promise<void> => {
     // 2. Resetear stores de Zustand
     try {
       const { useAuthStore } = await import('@/features/auth/store/auth.store');
-      // #region agent log
-      fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'cycle-dbg-2',hypothesisId:'H1',location:'sessionManager.ts:logout:afterDynamicImport',message:'auth.store loaded dynamically',data:{hasGetState:Boolean(useAuthStore?.getState),hasSetState:Boolean(useAuthStore?.setState)},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       // Auth store: esto causa que RootNavigator muestre AuthNavigator (Login)
       useAuthStore.getState().setUser(null);
       useAuthStore.setState({

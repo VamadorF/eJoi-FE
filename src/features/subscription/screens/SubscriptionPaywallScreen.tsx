@@ -297,7 +297,7 @@ export const SubscriptionPaywallScreen: React.FC = () => {
         </ContentContainer>
 
         {/* CTA */}
-        <View style={[styles.ctaDock, { paddingBottom: 12 + insets.bottom }]} pointerEvents="box-none">
+        <View style={[styles.ctaDock, { paddingBottom: 12 + insets.bottom, pointerEvents: 'box-none' }]}>
           <LinearGradient
             colors={[
               'rgba(232, 208, 245, 0.00)',
@@ -306,8 +306,7 @@ export const SubscriptionPaywallScreen: React.FC = () => {
             ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
-            style={styles.ctaFade}
-            pointerEvents="none"
+            style={[styles.ctaFade, { pointerEvents: 'none' }]}
           />
 
           <Pressable
