@@ -40,6 +40,8 @@ export const CreandoCompanionScreen: React.FC = () => {
       conversationDepth: onboardingData.conversationDepth,
       interests: onboardingData.interests,
       boundaries: onboardingData.boundaries,
+      // TODO: Descomentar cuando el backend soporte extra.ethnicity
+      // extra: onboardingData.ethnicity ? { ethnicity: onboardingData.ethnicity } : undefined,
     };
 
     try {

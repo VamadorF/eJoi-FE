@@ -142,7 +142,17 @@ const GENDER_OPTIONS = [
   { id: 'neutro', label: 'Neutro', icon: '⚧' },
 ] as const;
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 10;
+
+const ETHNICITY_OPTIONS = [
+  { id: 'latina', label: 'Latina', icon: '🌎' },
+  { id: 'caucasica', label: 'Caucásica', icon: '🌍' },
+  { id: 'afrodescendiente', label: 'Afrodescendiente', icon: '🌍' },
+  { id: 'asiatica', label: 'Asiática', icon: '🌏' },
+  { id: 'arabe', label: 'Árabe', icon: '🌍' },
+  { id: 'india', label: 'India', icon: '🌏' },
+  { id: 'mixta', label: 'Mixta', icon: '🌐' },
+] as const;
 
 // Configuración de partículas sparkle para el botón "Generar nombre"
 const SPARKLE_CONFIGS = [
@@ -192,7 +202,7 @@ export const OnboardingScreen: React.FC = () => {
   const initialStep = route.params?.initialStep || 1;
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [animationKey, setAnimationKey] = useState(0);
-  
+
   useEffect(() => {
     if (route.params?.initialStep) {
       setCurrentStep(route.params.initialStep);
@@ -209,9 +219,10 @@ export const OnboardingScreen: React.FC = () => {
     boundaries: [],
     companionName: '',
     avatar: undefined,
+    ethnicity: '',
   });
   const [errorMessage, setErrorMessage] = useState<string>('');
-  
+
   // Hook para textos con género dinámico
   const genderedText = useGenderedTextWithGender(onboardingData.gender as Gender | '');
 
@@ -263,7 +274,7 @@ export const OnboardingScreen: React.FC = () => {
 
   const handleNext = () => {
     setErrorMessage('');
-    
+
     if (!canProceed()) {
       setErrorMessage('Por favor completa este paso antes de continuar');
       return;
@@ -310,6 +321,16 @@ export const OnboardingScreen: React.FC = () => {
 
   const handleInteractionStyleSelect = (option: string) => {
     setOnboardingData({ ...onboardingData, interactionStyle: option });
+  };
+
+  const handleEthnicitySelect = (option: string) => {
+    setOnboardingData({ ...onboardingData, ethnicity: option });
+  };
+
+  const handleSkipEthnicity = () => {
+    setOnboardingData({ ...onboardingData, ethnicity: '' });
+    setAnimationKey(prev => prev + 1);
+    setCurrentStep(currentStep + 1);
   };
 
   const handleConversationDepthSelect = (option: string) => {
@@ -386,22 +407,24 @@ export const OnboardingScreen: React.FC = () => {
       case 2:
         return !!onboardingData.visualStyle;
       case 3:
-        return !!onboardingData.persona;
+        return true; // Etnia es opcional
       case 4:
-        return !!onboardingData.tone;
+        return !!onboardingData.persona;
       case 5:
-        return !!onboardingData.interactionStyle;
+        return !!onboardingData.tone;
       case 6:
-        return !!onboardingData.conversationDepth;
+        return !!onboardingData.interactionStyle;
       case 7:
-        return onboardingData.interests.length > 0; // Al menos un interés
+        return !!onboardingData.conversationDepth;
       case 8:
-        return true; // Los límites son opcionales
+        return onboardingData.interests.length > 0; // Al menos un interés
       case 9:
+        return true; // Los límites son opcionales
+      case 10:
         // Validar que el nombre tenga al menos 2 caracteres y sea un nombre válido
-        return !!onboardingData.companionName && 
-               onboardingData.companionName.trim().length >= 2 && 
-               validators.name(onboardingData.companionName);
+        return !!onboardingData.companionName &&
+          onboardingData.companionName.trim().length >= 2 &&
+          validators.name(onboardingData.companionName);
       default:
         return false;
     }
@@ -413,18 +436,20 @@ export const OnboardingScreen: React.FC = () => {
       case 2:
         return 'Elige el estilo visual';
       case 3:
-        return genderedText.t('Define cómo quieres que sea tu compañer@');
+        return 'Elige una etnia (opcional)';
       case 4:
-        return 'Define cómo te habla';
+        return genderedText.t('Define cómo quieres que sea tu compañer@');
       case 5:
-        return 'Elige el tipo de relación';
+        return 'Define cómo te habla';
       case 6:
-        return 'Define la profundidad';
+        return 'Elige el tipo de relación';
       case 7:
-        return 'Elige intereses';
+        return 'Define la profundidad';
       case 8:
-        return 'Establece límites';
+        return 'Elige intereses';
       case 9:
+        return 'Establece límites';
+      case 10:
         return 'Elige un nombre';
       default:
         return '';
@@ -433,7 +458,7 @@ export const OnboardingScreen: React.FC = () => {
 
   const getCTALabel = (step: number): string => {
     switch (step) {
-      case 9:
+      case 10:
         return 'Crear';
       default:
         return 'Siguiente';
@@ -444,7 +469,7 @@ export const OnboardingScreen: React.FC = () => {
     switch (currentStep) {
       case 1:
         return (
-          <Animated.View 
+          <Animated.View
             key={`step-1-${animationKey}`}
             style={styles.stepContainer}
             entering={FadeInDown.duration(400).springify()}
@@ -455,24 +480,28 @@ export const OnboardingScreen: React.FC = () => {
                 <Animated.View style={[
                   localStyles.glowOrb,
                   glowAnimatedStyle,
-                  { backgroundColor: onboardingData.gender === 'femenino'
+                  {
+                    backgroundColor: onboardingData.gender === 'femenino'
                       ? 'rgba(242, 10, 100, 0.28)'
                       : onboardingData.gender === 'neutro'
-                      ? 'rgba(107, 191, 138, 0.28)'
-                      : 'rgba(123, 104, 238, 0.28)' },
+                        ? 'rgba(107, 191, 138, 0.28)'
+                        : 'rgba(123, 104, 238, 0.28)'
+                  },
                 ]} />
                 <Animated.View style={[
                   localStyles.glowRing,
                   ringAnimatedStyle,
-                  { borderColor: onboardingData.gender === 'femenino'
+                  {
+                    borderColor: onboardingData.gender === 'femenino'
                       ? 'rgba(242, 10, 100, 0.22)'
                       : onboardingData.gender === 'neutro'
-                      ? 'rgba(107, 191, 138, 0.22)'
-                      : 'rgba(123, 104, 238, 0.22)' },
+                        ? 'rgba(107, 191, 138, 0.22)'
+                        : 'rgba(123, 104, 238, 0.22)'
+                  },
                 ]} />
               </View>
             )}
-            <Animated.View 
+            <Animated.View
               style={styles.visualStepHeader}
               entering={FadeInUp.delay(100).duration(300)}
             >
@@ -481,7 +510,7 @@ export const OnboardingScreen: React.FC = () => {
               </Text>
               <CategoryPill label="Físico" />
             </Animated.View>
-            <Animated.View 
+            <Animated.View
               style={styles.circleSelectorWrapper}
               entering={FadeIn.delay(200).duration(400)}
             >
@@ -501,7 +530,7 @@ export const OnboardingScreen: React.FC = () => {
       case 2:
         const selectedGender = (onboardingData.gender || 'femenino') as Gender;
         return (
-          <Animated.View 
+          <Animated.View
             key={`step-2-${animationKey}`}
             style={styles.stepContainer}
             entering={FadeInDown.duration(400).springify()}
@@ -512,20 +541,24 @@ export const OnboardingScreen: React.FC = () => {
                 <Animated.View style={[
                   localStyles.glowOrb,
                   glowAnimatedStyle,
-                  { backgroundColor: onboardingData.visualStyle === 'realista'
+                  {
+                    backgroundColor: onboardingData.visualStyle === 'realista'
                       ? 'rgba(247, 191, 216, 0.4)'
-                      : 'rgba(186, 176, 237, 0.4)' },
+                      : 'rgba(186, 176, 237, 0.4)'
+                  },
                 ]} />
                 <Animated.View style={[
                   localStyles.glowRing,
                   ringAnimatedStyle,
-                  { borderColor: onboardingData.visualStyle === 'realista'
+                  {
+                    borderColor: onboardingData.visualStyle === 'realista'
                       ? 'rgba(247, 191, 216, 0.3)'
-                      : 'rgba(186, 176, 237, 0.3)' },
+                      : 'rgba(186, 176, 237, 0.3)'
+                  },
                 ]} />
               </View>
             )}
-            <Animated.View 
+            <Animated.View
               style={styles.visualStepHeader}
               entering={FadeInUp.delay(100).duration(300)}
             >
@@ -534,7 +567,7 @@ export const OnboardingScreen: React.FC = () => {
               </Text>
               <CategoryPill label="Estilo" />
             </Animated.View>
-            <Animated.View 
+            <Animated.View
               style={styles.circleSelectorWrapper}
               entering={FadeIn.delay(200).duration(400)}
             >
@@ -552,18 +585,79 @@ export const OnboardingScreen: React.FC = () => {
 
       case 3:
         return (
-          <Animated.View 
+          <Animated.View
             key={`step-3-${animationKey}`}
             style={styles.stepContainer}
             entering={FadeInDown.duration(400).springify()}
           >
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepIndicator}
               entering={FadeIn.delay(50).duration(200)}
             >
               Paso {currentStep} de {TOTAL_STEPS}
             </Animated.Text>
-            <Animated.Text 
+            <Animated.Text
+              style={styles.stepTitle}
+              entering={FadeInUp.delay(100).duration(300)}
+            >
+              Elige Etnia
+            </Animated.Text>
+            <Text style={styles.stepContext}>{getStepContext(currentStep)}</Text>
+            <Text style={styles.stepSubtitle}>
+              {genderedText.t('Selecciona una apariencia étnica para tu compañer@ (opcional)')}
+            </Text>
+            <Animated.View
+              style={styles.optionsContainer}
+              entering={FadeIn.delay(200).duration(400)}
+            >
+              {ETHNICITY_OPTIONS.map((option, index) => (
+                <Animated.View
+                  key={option.id}
+                  entering={FadeInDown.delay(150 + index * 50).duration(300)}
+                >
+                  <OptionButton
+                    title={option.label}
+                    onPress={() => handleEthnicitySelect(option.label)}
+                    selected={onboardingData.ethnicity === option.label}
+                    leftIcon={<Text style={{ fontSize: 20 }}>{option.icon}</Text>}
+                    rightIcon="check"
+                  />
+                </Animated.View>
+              ))}
+            </Animated.View>
+            <Animated.View
+              entering={FadeInUp.delay(500).duration(300)}
+              style={{ alignItems: 'center', marginTop: 8 }}
+            >
+              <Pressable
+                onPress={handleSkipEthnicity}
+                hitSlop={10}
+                style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+              >
+                <Text style={{
+                  color: Colors.text.secondary,
+                  fontSize: 14,
+                  textDecorationLine: 'underline',
+                }}>Omitir</Text>
+              </Pressable>
+            </Animated.View>
+          </Animated.View>
+        );
+
+      case 4:
+        return (
+          <Animated.View
+            key={`step-4-${animationKey}`}
+            style={styles.stepContainer}
+            entering={FadeInDown.duration(400).springify()}
+          >
+            <Animated.Text
+              style={styles.stepIndicator}
+              entering={FadeIn.delay(50).duration(200)}
+            >
+              Paso {currentStep} de {TOTAL_STEPS}
+            </Animated.Text>
+            <Animated.Text
               style={styles.stepTitle}
               entering={FadeInUp.delay(100).duration(300)}
             >
@@ -573,7 +667,7 @@ export const OnboardingScreen: React.FC = () => {
             <Text style={styles.stepSubtitle}>
               {genderedText.t('Selecciona cómo quieres que sea tu compañer@')}
             </Text>
-            <Animated.View 
+            <Animated.View
               style={styles.optionsContainer}
               entering={FadeIn.delay(200).duration(400)}
             >
@@ -595,20 +689,20 @@ export const OnboardingScreen: React.FC = () => {
           </Animated.View>
         );
 
-      case 4:
+      case 5:
         return (
-          <Animated.View 
-            key={`step-4-${animationKey}`}
+          <Animated.View
+            key={`step-5-${animationKey}`}
             style={styles.stepContainer}
             entering={FadeInDown.duration(400).springify()}
           >
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepIndicator}
               entering={FadeIn.delay(50).duration(200)}
             >
               Paso {currentStep} de {TOTAL_STEPS}
             </Animated.Text>
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepTitle}
               entering={FadeInUp.delay(100).duration(300)}
             >
@@ -618,7 +712,7 @@ export const OnboardingScreen: React.FC = () => {
             <Text style={styles.stepSubtitle}>
               ¿Cómo quieres que hable contigo?
             </Text>
-            <Animated.View 
+            <Animated.View
               style={styles.optionsContainer}
               entering={FadeIn.delay(200).duration(400)}
             >
@@ -640,20 +734,20 @@ export const OnboardingScreen: React.FC = () => {
           </Animated.View>
         );
 
-      case 5:
+      case 6:
         return (
-          <Animated.View 
-            key={`step-5-${animationKey}`}
+          <Animated.View
+            key={`step-6-${animationKey}`}
             style={styles.stepContainer}
             entering={FadeInDown.duration(400).springify()}
           >
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepIndicator}
               entering={FadeIn.delay(50).duration(200)}
             >
               Paso {currentStep} de {TOTAL_STEPS}
             </Animated.Text>
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepTitle}
               entering={FadeInUp.delay(100).duration(300)}
             >
@@ -663,7 +757,7 @@ export const OnboardingScreen: React.FC = () => {
             <Text style={styles.stepSubtitle}>
               {genderedText.t('¿Qué tipo de relación buscas con tu compañer@?')}
             </Text>
-            <Animated.View 
+            <Animated.View
               style={styles.optionsContainer}
               entering={FadeIn.delay(200).duration(400)}
             >
@@ -685,20 +779,20 @@ export const OnboardingScreen: React.FC = () => {
           </Animated.View>
         );
 
-      case 6:
+      case 7:
         return (
-          <Animated.View 
-            key={`step-6-${animationKey}`}
+          <Animated.View
+            key={`step-7-${animationKey}`}
             style={styles.stepContainer}
             entering={FadeInDown.duration(400).springify()}
           >
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepIndicator}
               entering={FadeIn.delay(50).duration(200)}
             >
               Paso {currentStep} de {TOTAL_STEPS}
             </Animated.Text>
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepTitle}
               entering={FadeInUp.delay(100).duration(300)}
             >
@@ -708,7 +802,7 @@ export const OnboardingScreen: React.FC = () => {
             <Text style={styles.stepSubtitle}>
               ¿Qué tan profundas quieres que sean las conversaciones?
             </Text>
-            <Animated.View 
+            <Animated.View
               style={styles.optionsContainer}
               entering={FadeIn.delay(200).duration(400)}
             >
@@ -730,20 +824,20 @@ export const OnboardingScreen: React.FC = () => {
           </Animated.View>
         );
 
-      case 7:
+      case 8:
         return (
-          <Animated.View 
-            key={`step-7-${animationKey}`}
+          <Animated.View
+            key={`step-8-${animationKey}`}
             style={styles.stepContainer}
             entering={FadeInDown.duration(400).springify()}
           >
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepIndicator}
               entering={FadeIn.delay(50).duration(200)}
             >
               Paso {currentStep} de {TOTAL_STEPS}
             </Animated.Text>
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepTitle}
               entering={FadeInUp.delay(100).duration(300)}
             >
@@ -753,7 +847,7 @@ export const OnboardingScreen: React.FC = () => {
             <Text style={styles.stepSubtitle}>
               Selecciona los temas que te interesan (puedes elegir varios)
             </Text>
-            <Animated.View 
+            <Animated.View
               style={styles.chipsContainer}
               entering={FadeIn.delay(200).duration(400)}
             >
@@ -773,20 +867,20 @@ export const OnboardingScreen: React.FC = () => {
           </Animated.View>
         );
 
-      case 8:
+      case 9:
         return (
-          <Animated.View 
-            key={`step-8-${animationKey}`}
+          <Animated.View
+            key={`step-9-${animationKey}`}
             style={styles.stepContainer}
             entering={FadeInDown.duration(400).springify()}
           >
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepIndicator}
               entering={FadeIn.delay(50).duration(200)}
             >
               Paso {currentStep} de {TOTAL_STEPS}
             </Animated.Text>
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepTitle}
               entering={FadeInUp.delay(100).duration(300)}
             >
@@ -796,7 +890,7 @@ export const OnboardingScreen: React.FC = () => {
             <Text style={styles.stepSubtitle}>
               Establece qué temas prefieres evitar (opcional)
             </Text>
-            <Animated.View 
+            <Animated.View
               style={styles.chipsContainer}
               entering={FadeIn.delay(200).duration(400)}
             >
@@ -816,20 +910,20 @@ export const OnboardingScreen: React.FC = () => {
           </Animated.View>
         );
 
-      case 9:
+      case 10:
         return (
-          <Animated.View 
-            key={`step-9-${animationKey}`}
+          <Animated.View
+            key={`step-10-${animationKey}`}
             style={styles.stepContainer}
             entering={FadeInDown.duration(400).springify()}
           >
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepIndicator}
               entering={FadeIn.delay(50).duration(200)}
             >
               Paso {currentStep} de {TOTAL_STEPS}
             </Animated.Text>
-            <Animated.Text 
+            <Animated.Text
               style={styles.stepTitle}
               entering={FadeInUp.delay(100).duration(300)}
             >
@@ -839,7 +933,7 @@ export const OnboardingScreen: React.FC = () => {
             <Text style={styles.stepSubtitle}>
               {genderedText.t('¿Cómo quieres llamar a tu compañer@?')}
             </Text>
-            <Animated.View 
+            <Animated.View
               style={styles.inputContainer}
               entering={FadeIn.delay(200).duration(400)}
             >
@@ -854,7 +948,7 @@ export const OnboardingScreen: React.FC = () => {
                   helperText="Solo letras, sin números ni símbolos"
                 />
               </Animated.View>
-              <Animated.View 
+              <Animated.View
                 style={localStyles.randomRow}
                 entering={FadeInUp.delay(300).duration(300)}
               >
@@ -897,11 +991,11 @@ export const OnboardingScreen: React.FC = () => {
   const stepNode = renderStepContent();
 
   return (
-      <GradientBackground
-        variant="wizard"
-        overlayImage={require('../../../../public/IMG/eJoi_INTERFAZ-12.png')}
-        overlayOpacity={0.08}
-      >
+    <GradientBackground
+      variant="wizard"
+      overlayImage={require('../../../../public/IMG/eJoi_INTERFAZ-12.png')}
+      overlayOpacity={0.08}
+    >
       <WizardHeader
         step={currentStep}
         total={TOTAL_STEPS}
@@ -915,7 +1009,7 @@ export const OnboardingScreen: React.FC = () => {
       >
         <ContentContainer>
           {/* Pasos visuales (1 y 2) sin tarjeta para diseño más abierto */}
-          {currentStep <= 2 ? (
+          {(currentStep === 1 || currentStep === 2) ? (
             <View style={styles.visualStepContainer}>
               {stepNode}
               {errorMessage && (

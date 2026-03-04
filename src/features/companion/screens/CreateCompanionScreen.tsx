@@ -56,7 +56,7 @@ export const CreateCompanionScreen: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
 
   const onboardingData = route.params?.onboardingData;
-  
+
   // Hook para textos con género dinámico
   const genderedText = useGenderedTextWithGender(
     (onboardingData?.gender || '') as Gender | ''
@@ -125,12 +125,12 @@ export const CreateCompanionScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* TINDER CARD */}
-        <Animated.View 
+        <Animated.View
           style={styles.tinderCard}
           entering={FadeInUp.duration(600).springify()}
         >
           {/* IMAGEN DEL COMPANION */}
-          <Animated.View 
+          <Animated.View
             style={styles.imageContainer}
             entering={FadeIn.delay(200).duration(400)}
           >
@@ -145,7 +145,7 @@ export const CreateCompanionScreen: React.FC = () => {
               style={styles.imageGradient}
             />
             {/* Botón editar imagen */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.editImageButton}
               onPress={() => handleEdit(2)}
             >
@@ -154,7 +154,7 @@ export const CreateCompanionScreen: React.FC = () => {
           </Animated.View>
 
           {/* HEADER: NOMBRE + VERIFICADO */}
-          <Animated.View 
+          <Animated.View
             style={styles.headerSection}
             entering={FadeInUp.delay(300).duration(400)}
           >
@@ -165,15 +165,15 @@ export const CreateCompanionScreen: React.FC = () => {
               <View style={styles.verifiedBadge}>
                 <Text style={styles.verifiedIcon}>✓</Text>
               </View>
-              <TouchableOpacity onPress={() => handleEdit(9)}>
+              <TouchableOpacity onPress={() => handleEdit(10)}>
                 <Text style={styles.editLink}>Editar</Text>
               </TouchableOpacity>
             </View>
 
             {/* BADGE DE PERSONALIDAD */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.personalityBadge}
-              onPress={() => handleEdit(3)}
+              onPress={() => handleEdit(4)}
             >
               <Text style={styles.personalityBadgeIcon}>{toneEmoji}</Text>
               <Text style={styles.personalityBadgeText}>
@@ -183,13 +183,13 @@ export const CreateCompanionScreen: React.FC = () => {
           </Animated.View>
 
           {/* SOBRE MÍ */}
-          <Animated.View 
+          <Animated.View
             style={styles.aboutSection}
             entering={FadeInUp.delay(400).duration(400)}
           >
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Sobre mí</Text>
-              <TouchableOpacity onPress={() => handleEdit(3)}>
+              <TouchableOpacity onPress={() => handleEdit(4)}>
                 <Text style={styles.editLink}>Editar</Text>
               </TouchableOpacity>
             </View>
@@ -199,13 +199,13 @@ export const CreateCompanionScreen: React.FC = () => {
           </Animated.View>
 
           {/* INTERESES */}
-          <Animated.View 
+          <Animated.View
             style={styles.interestsSection}
             entering={FadeInUp.delay(500).duration(400)}
           >
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Intereses</Text>
-              <TouchableOpacity onPress={() => handleEdit(7)}>
+              <TouchableOpacity onPress={() => handleEdit(8)}>
                 <Text style={styles.editLink}>Editar</Text>
               </TouchableOpacity>
             </View>
@@ -230,7 +230,7 @@ export const CreateCompanionScreen: React.FC = () => {
           </Animated.View>
 
           {/* MÁS SOBRE MÍ (Detalles adicionales) */}
-          <Animated.View 
+          <Animated.View
             style={styles.moreSection}
             entering={FadeInUp.delay(600).duration(400)}
           >
@@ -275,18 +275,25 @@ export const CreateCompanionScreen: React.FC = () => {
                   <Text style={styles.moreChipText}>{onboardingData.conversationDepth}</Text>
                 </View>
               )}
+              {/* Etnia (si fue seleccionada) */}
+              {onboardingData.ethnicity && (
+                <View style={styles.moreChip}>
+                  <Text style={styles.moreChipIcon}>🌍</Text>
+                  <Text style={styles.moreChipText}>{onboardingData.ethnicity}</Text>
+                </View>
+              )}
             </View>
           </Animated.View>
 
           {/* LÍMITES */}
           {onboardingData.boundaries.length > 0 && (
-            <Animated.View 
+            <Animated.View
               style={styles.boundariesSection}
               entering={FadeInUp.delay(700).duration(400)}
             >
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Límites</Text>
-                <TouchableOpacity onPress={() => handleEdit(8)}>
+                <TouchableOpacity onPress={() => handleEdit(9)}>
                   <Text style={styles.editLink}>Editar</Text>
                 </TouchableOpacity>
               </View>

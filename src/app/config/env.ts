@@ -20,6 +20,7 @@ export const APPLE_CLIENT_ID = process.env.EXPO_PUBLIC_APPLE_CLIENT_ID || '';
 export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'ws://localhost:3001';
 export const ENABLE_WEBSOCKET = (process.env.EXPO_PUBLIC_ENABLE_WEBSOCKET || 'false') === 'true';
+export const MOCK_API = (process.env.EXPO_PUBLIC_MOCK_API || 'false') === 'true';
 
 export const IS_DEVELOPMENT = __DEV__;
 
