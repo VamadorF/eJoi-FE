@@ -1,5 +1,9 @@
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import {
+  initPurchaseListeners,
+  cleanupPurchaseListeners,
+} from '@/features/subscription/services/purchaseListener.service';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -22,6 +26,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Error in checkAuth:', error);
     });
   }, []);
+
+  // Purchase listeners: montar cuando el usuario está autenticado, limpiar al desmontar o logout
+  useEffect(() => {
+    if (isAuthenticated) {
+      initPurchaseListeners();
+    }
+    return () => {
+      cleanupPurchaseListeners();
+    };
+  }, [isAuthenticated]);
 
   const value: AuthContextType = {
     isAuthenticated,

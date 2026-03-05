@@ -211,4 +211,11 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   ctaTextDisabled: { color: 'rgba(255,255,255,0.92)' },
+  errorText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 13,
+    color: '#E53935',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
 });

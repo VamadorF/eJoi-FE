@@ -15,6 +15,7 @@
 import { clearAuthStorage } from '@/shared/services/storage/secure';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
 import { useSubscriptionStore } from '@/features/subscription/store/subscription.store';
+import { cleanupPurchaseListeners } from '@/features/subscription/services/purchaseListener.service';
 import { queryClient } from '@/app/providers/QueryProvider';
 
 let isLoggingOut = false;
@@ -81,6 +82,13 @@ export const logout = async (): Promise<void> => {
       console.log('[SessionManager] Subscription store reseteado');
     } catch (error) {
       console.warn('[SessionManager] Error reseteando subscription store:', error);
+    }
+
+    try {
+      cleanupPurchaseListeners();
+      console.log('[SessionManager] Purchase listeners limpiados');
+    } catch (error) {
+      console.warn('[SessionManager] Error limpiando purchase listeners:', error);
     }
 
     // 3. Limpiar React Query cache
