@@ -51,6 +51,9 @@ import {
   generateShortDescription,
   generateChatWelcome,
 } from '@/shared/utils/companionTextGenerator';
+import { PremiumScreen } from '@/features/subscription/screens/PremiumScreen';
+import { shouldShowPremiumScreen } from '@/features/subscription/helpers/premiumHelpers';
+import { useSubscriptionStore } from '@/features/subscription/store/subscription.store';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
@@ -364,6 +367,10 @@ export const HomeScreen: React.FC = () => {
   const genderedText = useGenderedText();
   const lastInteractionTime = useRef(Date.now());
 
+  // --- Premium Screen State ---
+  const [showPremium, setShowPremium] = useState(false);
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
+
   const hasRestoredTab = useRef(false);
 
   // Restaurar último tab al montar (tras login)
@@ -406,6 +413,26 @@ export const HomeScreen: React.FC = () => {
       ]);
     }
   }, [isNewCompanionEarly, companion]);
+
+  /**
+   * Evaluar si mostrar la pantalla premium tras enviar mensajes.
+   *
+   * TODO: [BACKEND] Reemplazar conteo local de mensajes con datos reales del servidor
+   * TODO: [BACKEND] Integrar con Remote Config para trigger remoto del paywall
+   * TODO: [ANALYTICS] Trackear cuándo se muestra/oculta el paywall
+   */
+  useEffect(() => {
+    // Contar solo mensajes del usuario
+    const userMessageCount = messages.filter((m) => m.isUser).length;
+    const shouldShow = shouldShowPremiumScreen({
+      userMessageCount,
+      isPremium,
+      remoteOverride: null, // TODO: [BACKEND] conectar con Remote Config
+    });
+    if (shouldShow && !showPremium) {
+      setShowPremium(true);
+    }
+  }, [messages, isPremium, showPremium]);
 
   // Placeholder contextual aleatorio (se selecciona al montar)
   const placeholder = useMemo(
@@ -1421,6 +1448,19 @@ export const HomeScreen: React.FC = () => {
         onConfirm={handleLogoutConfirm}
         isLoading={isLoggingOut}
       />
+
+      {/* Premium Screen Overlay */}
+      {showPremium && (
+        <PremiumScreen
+          companion={companion}
+          onClose={() => setShowPremium(false)}
+          onPurchaseSuccess={() => {
+            // NOTE: [BACKEND] Aquí se podría refrescar el estado premium
+            //       y desbloquear features persistentemente.
+            setShowPremium(false);
+          }}
+        />
+      )}
     </LinearGradient>
   );
 
