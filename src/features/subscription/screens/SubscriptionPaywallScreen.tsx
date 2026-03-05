@@ -9,6 +9,7 @@ import {
   Animated,
   Platform,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
 
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -19,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '@/shared/types/navigation';
 import { GradientBackground, ContentContainer } from '@/shared/components';
 import { useSubscriptionStore, PlanId } from '@/features/subscription/store/subscription.store';
+import { useSubscriptionPurchase } from '@/features/subscription/hooks/useSubscriptionPurchase';
 
 import { styles } from './SubscriptionPaywallScreen.styles';
 
@@ -88,9 +90,14 @@ export const SubscriptionPaywallScreen: React.FC = () => {
 
   const selectedPlan = useSubscriptionStore((s) => s.selectedPlan);
   const selectPlan = useSubscriptionStore((s) => s.selectPlan);
-  const confirmSubscription = useSubscriptionStore((s) => s.confirmSubscription);
+  const isSubscribed = useSubscriptionStore((s) => s.isSubscribed);
+  const { purchasePlan, state: purchaseState, error: purchaseError, reset: resetPurchase } =
+    useSubscriptionPurchase();
 
-  const isDisabled = useMemo(() => !selectedPlan, [selectedPlan]);
+  const isDisabled = useMemo(
+    () => !selectedPlan || purchaseState === 'loading',
+    [selectedPlan, purchaseState]
+  );
   const defaultPlan = useMemo(() => PLANS.find((p) => p.recommended) ?? PLANS[0], []);
   const activePlan = useMemo(() => PLANS.find((p) => p.id === selectedPlan) ?? defaultPlan, [
     selectedPlan,
@@ -131,10 +138,22 @@ export const SubscriptionPaywallScreen: React.FC = () => {
     ]).start();
   }, [activePlan.id, perksAnim, perksSlide]);
 
-  const handleContinue = () => {
-    confirmSubscription();
-    navigation.replace('Home');
+  const handleContinue = async () => {
+    if (!selectedPlan) return;
+    const success = await purchasePlan(selectedPlan);
+    if (success) {
+      // La compra se procesa en purchaseListener; cuando el backend confirme,
+      // confirmSubscription se llama y isSubscribed pasa a true
+    }
   };
+
+  // Navegar a Home cuando la suscripción se confirme (listener + backend)
+  useEffect(() => {
+    if (isSubscribed && purchaseState === 'success') {
+      resetPurchase();
+      navigation.replace('Home');
+    }
+  }, [isSubscribed, purchaseState, navigation, resetPurchase]);
 
   const CTA_TOTAL_HEIGHT = 44 + 8 + 12 + 64 + 16;
 
@@ -309,6 +328,9 @@ export const SubscriptionPaywallScreen: React.FC = () => {
             style={[styles.ctaFade, { pointerEvents: 'none' }]}
           />
 
+          {purchaseError && (
+            <Text style={styles.errorText}>{purchaseError}</Text>
+          )}
           <Pressable
             onPress={handleContinue}
             disabled={isDisabled}
@@ -318,9 +340,13 @@ export const SubscriptionPaywallScreen: React.FC = () => {
               pressed && !isDisabled && { transform: [{ scale: 0.99 }], opacity: 0.95 },
             ]}
           >
-            <Text style={[styles.ctaText, isDisabled && styles.ctaTextDisabled]}>
-              Continuar
-            </Text>
+            {purchaseState === 'loading' ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={[styles.ctaText, isDisabled && styles.ctaTextDisabled]}>
+                Continuar
+              </Text>
+            )}
           </Pressable>
         </View>
       </View>
