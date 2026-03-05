@@ -7,9 +7,10 @@ import { ApiError, httpClient } from '@/shared/services/http/client';
 import { ChatHistoryPage, ChatHistoryParams, ChatRoom, Message, SendMessageRequest } from '../types';
 import {
   fromRawHistoryPageResponse,
-  fromRawMessage,
+  fromSendMessageResponse,
   RawHistoryPageResponse,
-  RawMessage,
+  RawSendMessageResponse,
+  SendMessageResult,
   toChatHistoryQueryParams,
   toSendMessageDto,
 } from '../adapters/chat.adapter';
@@ -92,10 +93,13 @@ export const getChatMessages = async ({
  *
  * Endpoint: POST /chat/message
  * Body: { companionId, message }
- * Response: Message
+ * Response: { userMessage, assistantMessage } (backend NestJS)
  */
-export const sendMessage = async (data: SendMessageRequest): Promise<Message> => {
-  const response = await httpClient.post<RawMessage>('/chat/message', toSendMessageDto(data));
-  return fromRawMessage(response.data, data.companionId ?? 'default');
+export const sendMessage = async (data: SendMessageRequest): Promise<SendMessageResult> => {
+  const response = await httpClient.post<RawSendMessageResponse>(
+    '/chat/message',
+    toSendMessageDto(data)
+  );
+  return fromSendMessageResponse(response.data, data.companionId ?? 'default');
 };
 

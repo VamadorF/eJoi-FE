@@ -64,6 +64,41 @@ export const fromRawMessage = (message: RawMessage, fallbackCompanionId: string)
   updatedAt: message.updatedAt,
 });
 
+/** Respuesta del backend POST /chat/message */
+export type RawSendMessageResponse = {
+  conversationId?: string;
+  userMessage?: { id?: string; content?: string; createdAt?: string };
+  assistantMessage?: { id?: string; content?: string; createdAt?: string };
+};
+
+export interface SendMessageResult {
+  userMessage: Message;
+  assistantMessage: Message;
+}
+
+export const fromSendMessageResponse = (
+  data: RawSendMessageResponse,
+  companionId: string
+): SendMessageResult => {
+  const userMsg = data.userMessage ?? {};
+  const assistantMsg = data.assistantMessage ?? {};
+  return {
+    userMessage: fromRawMessage(
+      { id: userMsg.id, role: 'user', content: userMsg.content, createdAt: userMsg.createdAt },
+      companionId
+    ),
+    assistantMessage: fromRawMessage(
+      {
+        id: assistantMsg.id,
+        role: 'assistant',
+        content: assistantMsg.content,
+        createdAt: assistantMsg.createdAt,
+      },
+      companionId
+    ),
+  };
+};
+
 export const fromRawHistoryResponse = (
   data: RawHistoryResponse,
   fallbackCompanionId: string
