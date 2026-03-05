@@ -25,6 +25,35 @@ const updateMessageInPages = (
   };
 };
 
+const appendMessageToLastPage = (
+  data: InfiniteData<ChatHistoryPage> | undefined,
+  newMessage: Message
+): InfiniteData<ChatHistoryPage> | undefined => {
+  if (!data || data.pages.length === 0) {
+    return {
+      pageParams: [undefined],
+      pages: [{ messages: [newMessage], hasMore: false, nextCursor: null }],
+    };
+  }
+
+  const lastPageIndex = data.pages.length - 1;
+  const lastPage = data.pages[lastPageIndex];
+  const alreadyExists = lastPage.messages.some((m) => m.id === newMessage.id);
+
+  if (alreadyExists) {
+    return data;
+  }
+
+  return {
+    ...data,
+    pages: data.pages.map((page, index) =>
+      index === lastPageIndex
+        ? { ...page, messages: [...page.messages, newMessage] }
+        : page
+    ),
+  };
+};
+
 export const useSendMessage = () => {
   const queryClient = useQueryClient();
 
@@ -100,15 +129,26 @@ export const useSendMessage = () => {
         )
       );
     },
-    onSuccess: (_data, variables) => {
-      const queryKey = queryKeys.chat.messages(variables.companionId ?? 'default');
-      queryClient.setQueryData<InfiniteData<ChatHistoryPage>>(queryKey, (currentData) =>
-        updateMessageInPages(
+    onSuccess: (data, variables) => {
+      const companionKey = variables.companionId ?? 'default';
+      const queryKey = queryKeys.chat.messages(companionKey);
+
+      queryClient.setQueryData<InfiniteData<ChatHistoryPage>>(queryKey, (currentData) => {
+        // 1) Marcar mensaje del usuario como enviado (y actualizar id real si viene del backend)
+        let updated = updateMessageInPages(
           currentData,
           (message) => message.clientMessageId === variables.clientMessageId,
-          (message) => ({ ...message, deliveryStatus: 'sent' })
-        )
-      );
+          (message) => ({
+            ...message,
+            id: data.userMessage.id ?? message.id,
+            deliveryStatus: 'sent' as const,
+          })
+        );
+        // 2) Añadir respuesta del assistant al cache para que aparezca de inmediato
+        updated = appendMessageToLastPage(updated, data.assistantMessage);
+        return updated;
+      });
+
       queryClient.invalidateQueries({ queryKey: queryKeys.chat.rooms });
     },
   });
