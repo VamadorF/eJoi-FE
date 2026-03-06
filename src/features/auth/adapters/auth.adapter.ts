@@ -32,6 +32,8 @@ export const toProviderAuthDto = (payload: AuthProviderRequest): AuthProviderReq
   email: trimOptional(payload.email),
   name: trimOptional(payload.name),
   avatarUrl: trimOptional(payload.avatarUrl),
+  idToken: trimOptional(payload.idToken),
+  identityToken: trimOptional(payload.identityToken),
 });
 
 export const fromAuthApiResponse = (data: RawAuthResponse): AuthLoginResponse => {

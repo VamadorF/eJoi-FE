@@ -23,6 +23,10 @@ export interface AuthProviderRequest {
   email?: string;
   name?: string;
   avatarUrl?: string;
+  /** Google: id_token para verificación en backend */
+  idToken?: string;
+  /** Apple: identity_token para verificación en backend */
+  identityToken?: string;
 }
 
 export type GoogleLoginRequest = AuthProviderRequest;

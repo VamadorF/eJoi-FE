@@ -41,11 +41,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+
+/** Haptic solo en iOS/Android; en web es no-op para evitar UnavailabilityError */
+const hapticImpact = (style: Haptics.ImpactFeedbackStyle) => {
+  if (Platform.OS === 'web') return;
+  void Haptics.impactAsync(style);
+};
 import { Colors } from '@/shared/theme/colors';
 import { shadowStyle } from '@/shared/utils/shadow';
 import { Typography } from '@/shared/theme/typography';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
 import { useGenderedText } from '@/shared/hooks/useGenderedText';
+import { useChatMessages } from '@/features/chat/hooks/useChatMessages';
+import { useSendMessage } from '@/features/chat/hooks/useSendMessage';
 import {
   generateAboutMe,
   generateShortDescription,
@@ -238,6 +246,16 @@ const MEMORIES_DATA: Memory[] = [
   },
 ];
 
+const formatMessageDate = (iso: string) => {
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return 'Hoy';
+  if (d.toDateString() === yesterday.toDateString()) return 'Ayer';
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+};
+
 // Imágenes placeholder según género y estilo
 const AVATAR_IMAGES = {
   realista: {
@@ -348,19 +366,19 @@ export const HomeScreen: React.FC = () => {
   const [conductaText, setConductaText] = useState('');
   const [inputText, setInputText] = useState('');
   const [inputHeight, setInputHeight] = useState(24);
-  const [messages, setMessages] = useState<Message[]>(PLACEHOLDER_MESSAGES);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
   const [isTyping, setIsTyping] = useState(false);
-  const [lastSentMessageId, setLastSentMessageId] = useState<string | null>(null);
   const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
   const [expandedMemory, setExpandedMemory] = useState<string | null>(null);
-  // Drawer & logout states
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const navigation = useNavigation();
   const { companion } = useCompanionStore();
+
+  const { data: chatData } = useChatMessages(companion?.id, 50);
+  const sendMessageMutation = useSendMessage();
   const genderedText = useGenderedText();
   const lastInteractionTime = useRef(Date.now());
 
@@ -383,29 +401,46 @@ export const HomeScreen: React.FC = () => {
     }
   }, [activeTab]);
 
-  // Companion nuevo: mostrar mensaje de bienvenida en lugar de placeholders
-  const lastWelcomeCompanionId = useRef<string | null>(null);
+  // Mensajes desde el backend (convertidos al formato HomeScreen)
   const isNewCompanionEarly = useMemo(
     () =>
       companion?.createdAt &&
       Date.now() - new Date(companion.createdAt).getTime() < 24 * 60 * 60 * 1000,
     [companion?.createdAt]
   );
-  useEffect(() => {
-    if (isNewCompanionEarly && companion && lastWelcomeCompanionId.current !== companion.id) {
-      lastWelcomeCompanionId.current = companion.id;
-      const welcomeText = generateChatWelcome(companion);
-      setMessages([
-        {
-          id: 'welcome',
-          text: welcomeText,
-          isUser: false,
-          timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-          date: 'Hoy',
-        },
-      ]);
-    }
+  const welcomeMessage = useMemo((): Message | null => {
+    if (!isNewCompanionEarly || !companion) return null;
+    return {
+      id: 'welcome',
+      text: generateChatWelcome(companion),
+      isUser: false,
+      timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+      date: 'Hoy',
+    };
   }, [isNewCompanionEarly, companion]);
+
+  const messages = useMemo((): Message[] => {
+    const apiMessages = chatData?.flatMessages ?? [];
+    const converted = apiMessages
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .map((m) => ({
+        id: m.id,
+        text: m.message,
+        isUser: m.role === 'user',
+        timestamp: new Date(m.createdAt).toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        date: formatMessageDate(m.createdAt),
+        readStatus: (m.deliveryStatus === 'sent' || m.deliveryStatus === 'failed'
+          ? m.deliveryStatus
+          : 'read') as 'sent' | 'read',
+      }));
+    if (converted.length === 0 && welcomeMessage) {
+      return [welcomeMessage];
+    }
+    return converted;
+  }, [chatData?.flatMessages, welcomeMessage]);
 
   // Placeholder contextual aleatorio (se selecciona al montar)
   const placeholder = useMemo(
@@ -598,55 +633,37 @@ export const HomeScreen: React.FC = () => {
     // Sonidos deshabilitados por ahora
   }, []);
 
-  const handleSend = () => {
-    if (inputText.trim()) {
-      const newMessageId = Date.now().toString();
-      const newMessage: Message = {
-        id: newMessageId,
-        text: inputText.trim(),
-        isUser: true,
-        timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-        date: 'Hoy',
-        readStatus: 'sent',
-      };
-      setMessages([...messages, newMessage]);
-      setInputText('');
-      setInputHeight(24);
-      setLastSentMessageId(newMessageId);
+  const handleSend = async () => {
+    const text = inputText.trim();
+    if (!text || !companion?.id || sendMessageMutation.isPending) return;
 
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      playSound('send');
+    setInputText('');
+    setInputHeight(24);
+    hapticImpact(Haptics.ImpactFeedbackStyle.Light);
+    playSound('send');
+    highlightOpacity.value = withSequence(
+      withTiming(0.15, { duration: 150 }),
+      withTiming(0, { duration: 300 })
+    );
+    setIsTyping(true);
 
-      highlightOpacity.value = withSequence(
-        withTiming(0.15, { duration: 150 }),
-        withTiming(0, { duration: 300 })
-      );
-
-      setTimeout(() => {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === newMessageId ? { ...msg, readStatus: 'read' as const } : msg
-          )
-        );
-      }, 1500);
-
-      setTimeout(() => {
-        setIsTyping(true);
-      }, 800);
-
-      setTimeout(() => {
-        setIsTyping(false);
-        playSound('receive');
-      }, 2500);
-
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+    try {
+      await sendMessageMutation.mutateAsync({
+        companionId: companion.id,
+        message: text,
+        clientMessageId: `home-${Date.now()}`,
+      });
+      playSound('receive');
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+    } catch {
+      // Error ya manejado por el hook; el mensaje queda en estado failed
+    } finally {
+      setIsTyping(false);
     }
   };
 
   const handleSaveConducta = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    hapticImpact(Haptics.ImpactFeedbackStyle.Medium);
     playSound('confirm');
 
     saveButtonScale.value = withSequence(
@@ -771,7 +788,6 @@ export const HomeScreen: React.FC = () => {
         style={[
           styles.messageContainer,
           message.isUser ? styles.userMessageContainer : styles.companionMessageContainer,
-          isLastUserMessage && message.id === lastSentMessageId && highlightAnimatedStyle,
         ]}
       >
         <Pressable
@@ -833,7 +849,7 @@ export const HomeScreen: React.FC = () => {
         memory.isFavorite && memoryStyles.cardFavorite,
       ]}
       onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        hapticImpact(Haptics.ImpactFeedbackStyle.Light);
         setExpandedMemory(isExpanded ? null : memory.id);
       }}
     >
@@ -941,7 +957,7 @@ export const HomeScreen: React.FC = () => {
           <Pressable
             style={memoryStyles.featuredCard}
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              hapticImpact(Haptics.ImpactFeedbackStyle.Medium);
               setExpandedMemory(expandedMemory === featuredMemory.id ? null : featuredMemory.id);
             }}
           >
@@ -1389,6 +1405,7 @@ export const HomeScreen: React.FC = () => {
               <AnimatedPressable
                 style={[styles.sendButton, sendButtonAnimatedStyle]}
                 onPress={handleSendPress}
+                disabled={sendMessageMutation.isPending}
               >
                 <Ionicons
                   name={inputText.trim() ? 'send' : 'add'}

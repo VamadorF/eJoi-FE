@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/shared/theme/colors';
 import { Typography } from '@/shared/theme/typography';
+import { shadowStyle } from '@/shared/utils/shadow';
 
 const PINK = '#FF2D87';
 const TEXT = '#1F1F1F';
@@ -61,20 +62,12 @@ export const styles = StyleSheet.create({
 
   planOuter: { flex: 1, borderRadius: 16, padding: 2 },
   planOuterRecommended: {
-    shadowColor: PINK,
-    shadowOpacity: 0.10,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 2,
+    ...shadowStyle({ color: PINK, opacity: 0.10, radius: 14, offset: { width: 0, height: 8 }, elevation: 2 }),
   },
   planOuterActive: {
     borderRadius: 16,
     padding: 2,
-    shadowColor: PINK,
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 3,
+    ...shadowStyle({ color: PINK, opacity: 0.18, radius: 18, offset: { width: 0, height: 10 }, elevation: 3 }),
   },
 
   planCard: {
@@ -86,11 +79,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.92)',
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
+    ...shadowStyle({ color: '#000', opacity: 0.05, radius: 10, offset: { width: 0, height: 6 }, elevation: 2 }),
   },
   planCardActive: { borderWidth: 0, backgroundColor: 'rgba(255,255,255,0.98)' },
   planCardRecommended: {
@@ -126,11 +115,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.18)',
     marginBottom: 10,
     marginTop: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 4,
+    ...shadowStyle({ color: '#000', opacity: 0.08, radius: 22, offset: { width: 0, height: 14 }, elevation: 4 }),
   },
   benefitsCard: { borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.96)', padding: 12 },
   benefitsHeader: {
@@ -197,13 +182,9 @@ export const styles = StyleSheet.create({
     backgroundColor: PINK,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: PINK,
-    shadowOpacity: 0.22,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 10,
+    ...shadowStyle({ color: PINK, opacity: 0.22, radius: 16, offset: { width: 0, height: 10 }, elevation: 10 }),
   },
-  ctaButtonDisabled: { backgroundColor: 'rgba(255,45,135,0.45)', shadowOpacity: 0, elevation: 0 },
+  ctaButtonDisabled: { backgroundColor: 'rgba(255,45,135,0.45)', ...shadowStyle({ opacity: 0 }), elevation: 0 },
   ctaText: {
     fontFamily: Typography.fontFamily.bold,
     fontSize: 16,
