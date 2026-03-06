@@ -167,6 +167,7 @@ export const useAuth = () => {
         email: providerUser.email || undefined,
         name: providerUser.name || undefined,
         avatarUrl: providerUser.picture,
+        idToken,
       });
 
       await login(
@@ -214,6 +215,7 @@ export const useAuth = () => {
         providerUserId: appleResult.user.id,
         email: appleResult.user.email || undefined,
         name: appleResult.user.name || undefined,
+        identityToken: appleResult.identityToken,
       });
 
       await login(
