@@ -429,6 +429,7 @@ export const HomeScreen: React.FC = () => {
       isPremium,
       remoteOverride: null, // TODO: [BACKEND] conectar con Remote Config
     });
+    console.log('[PremiumScreen] trigger check:', { userMessageCount, isPremium, shouldShow, showPremium });
     if (shouldShow && !showPremium) {
       setShowPremium(true);
     }

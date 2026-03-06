@@ -20,7 +20,7 @@ import { PREMIUM_PLANS, PremiumPlan } from '../config/premiumPlans';
  *
  * TODO: [BACKEND] Este umbral podría configurarse remotamente para A/B testing.
  */
-export const PREMIUM_MESSAGE_THRESHOLD = 5;
+export const PREMIUM_MESSAGE_THRESHOLD = 3;
 
 // ============================================================
 // shouldShowPremiumScreen
