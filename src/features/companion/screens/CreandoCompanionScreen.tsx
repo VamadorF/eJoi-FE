@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -10,6 +10,10 @@ import { Gender } from '@/features/onboarding/types';
 import { CreatingAnimation } from '@/shared/components';
 import { logger } from '@/shared/utils/logger';
 import { useCreateCompanion } from '../hooks/useCreateCompanion';
+import { generateCompanionImage } from '../api/image.api';
+import { generateCompanionImagePrompt } from '@/shared/utils/companionImagePrompt';
+
+const IMAGE_GENERATION_TIMEOUT_MS = 25000;
 
 type CreandoCompanionScreenRouteProp = RouteProp<
   RootStackParamList,
@@ -27,8 +31,30 @@ export const CreandoCompanionScreen: React.FC = () => {
   const createCompanionMutation = useCreateCompanion();
   const onboardingData = route.params?.onboardingData;
 
+  const imagePromiseRef = useRef<Promise<string | null> | null>(null);
+
+  useEffect(() => {
+    if (!onboardingData) return;
+    const prompt = generateCompanionImagePrompt(onboardingData);
+    imagePromiseRef.current = Promise.race([
+      generateCompanionImage({ prompt }).then((r) => r.imageUrl),
+      new Promise<string | null>((resolve) =>
+        setTimeout(() => resolve(null), IMAGE_GENERATION_TIMEOUT_MS)
+      ),
+    ]).catch(() => null);
+  }, [onboardingData]);
+
   const handleDone = async () => {
     if (!onboardingData) return;
+
+    let avatarUrl: string | null = null;
+    if (imagePromiseRef.current) {
+      try {
+        avatarUrl = await imagePromiseRef.current;
+      } catch {
+        avatarUrl = null;
+      }
+    }
 
     const payload = {
       name: onboardingData.companionName || 'Tu Compañer@',
@@ -40,6 +66,7 @@ export const CreandoCompanionScreen: React.FC = () => {
       conversationDepth: onboardingData.conversationDepth,
       interests: onboardingData.interests,
       boundaries: onboardingData.boundaries,
+      ...(avatarUrl && { avatarUrl }),
     };
 
     try {
@@ -56,6 +83,7 @@ export const CreandoCompanionScreen: React.FC = () => {
         conversationDepth: apiCompanion.conversationDepth ?? payload.conversationDepth ?? '',
         interests: apiCompanion.interests?.length ? apiCompanion.interests : payload.interests ?? [],
         boundaries: apiCompanion.boundaries?.length ? apiCompanion.boundaries : payload.boundaries ?? [],
+        avatarUrl: apiCompanion.avatarUrl ?? avatarUrl ?? undefined,
         createdAt: apiCompanion.createdAt ?? new Date().toISOString(),
       };
       await setCompanion(companion);
