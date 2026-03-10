@@ -19,6 +19,7 @@ export interface Companion {
   dob?: string;
   physicalRules?: string[];
   psychologicalRules?: string[];
+  avatarUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -33,6 +34,7 @@ export interface CreateCompanionRequest {
   conversationDepth?: string;
   interests?: string[];
   boundaries?: string[];
+  avatarUrl?: string;
   dob?: string;
   extra?: Record<string, unknown>;
 }

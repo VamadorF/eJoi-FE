@@ -53,6 +53,7 @@ export const toUpsertCompanionDto = (
     conversationDepth: trimOptional(payload.conversationDepth),
     interests: normalizeStringArray(payload.interests),
     boundaries: normalizeStringArray(payload.boundaries),
+    avatarUrl: trimOptional(payload.avatarUrl),
     dob: trimOptional(payload.dob),
     extra: payload.extra,
   };
