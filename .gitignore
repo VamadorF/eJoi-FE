@@ -65,3 +65,4 @@ web-build/
 .env.*.local
 !.env.example
 
+android/

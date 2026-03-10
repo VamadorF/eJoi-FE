@@ -8,7 +8,7 @@ Aplicación frontend de eJoi desarrollada con React Native, Expo y TypeScript.
 - Verificación de sesión integrada contra backend.
 - Flujo de onboarding y creación de companion implementado en UI.
 - Chat conectado parcialmente a backend (`history` y `message`), con partes de UI todavía en transición.
-- Paywall/suscripción implementado en frontend con lógica local.
+- Paywall/suscripción con compras in-app (expo-iap): listeners, acknowledge obligatorio en Android, envío de purchaseToken al backend.
 
 ## Stack principal
 
@@ -114,11 +114,25 @@ npm start
 
 - Definido en frontend, pero la integración backend sigue pendiente en esta rama.
 
+### Subscription (compras in-app)
+
+- `POST /subscription/validate` — Recibe `{ purchaseToken, productId, transactionId?, platform, packageName? }`. El backend debe validar contra Google Play Developer API (Android) o App Store (iOS), registrar la orden y responder `{ success: boolean }`. Implementar idempotencia por `purchaseToken` (unique constraint).
+
+## Compras in-app (IAP)
+
+Las compras usan **expo-iap** y requieren un **development build** (no Expo Go):
+
+```bash
+npx expo prebuild --clean
+eas build --platform android --profile development
+```
+
+Configura los product IDs en `src/features/subscription/config/subscriptionProducts.ts` según Google Play Console y App Store Connect.
+
 ## Notas
 
 - `SocketProvider` está preparado, pero todavía en modo placeholder.
 - Hay hooks React Query en varios dominios; no todo el flujo de UI ya consume esos hooks.
-- Chat y suscripción tienen partes funcionales y partes aún mock/pendientes de integración completa.
 
 ## Licencia
 

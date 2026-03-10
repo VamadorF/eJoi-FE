@@ -27,5 +27,8 @@ export const API_ENDPOINTS = {
   //   LOGOUT: '/auth/logout',
   //   REFRESH: '/auth/refresh',
   // },
+  SUBSCRIPTION: {
+    VALIDATE: '/subscription/validate',
+  },
 } as const;
 

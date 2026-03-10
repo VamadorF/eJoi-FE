@@ -19,10 +19,14 @@ export const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
 export const APPLE_CLIENT_ID = process.env.EXPO_PUBLIC_APPLE_CLIENT_ID || '';
 export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'ws://localhost:3001';
+export const IMAGE_API_URL = process.env.EXPO_PUBLIC_IMAGE_API_URL || 'https://ejoi-be-image.onrender.com';
 export const ENABLE_WEBSOCKET = (process.env.EXPO_PUBLIC_ENABLE_WEBSOCKET || 'false') === 'true';
 export const MOCK_API = (process.env.EXPO_PUBLIC_MOCK_API || 'false') === 'true';
 
 export const IS_DEVELOPMENT = __DEV__;
+export const ENABLE_SUBSCRIPTION_MOCK =
+  (process.env.EXPO_PUBLIC_ENABLE_SUBSCRIPTION_MOCK || (IS_DEVELOPMENT ? 'true' : 'false')) ===
+  'true';
 
 // Validación de configuración
 export const isOAuthConfigured = {
