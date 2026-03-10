@@ -16,5 +16,6 @@ export interface OnboardingData {
   boundaries: string[];
   companionName?: string;
   avatar?: string;
+  ethnicity?: string;
 }
 
