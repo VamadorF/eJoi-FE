@@ -15,9 +15,6 @@ export type RootStackParamList = {
   CompanionReady: { companion: import('@/features/companion/types').Companion };
   CompanionProfile: { companionId: string };
   
-  // Paywall Wireframe
-  SubscriptionPaywall: { companion: import('@/features/companion/types').Companion };
-  
   // Chat
   Chat: undefined;
   ChatRoom: { roomId: string };

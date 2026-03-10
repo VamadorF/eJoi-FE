@@ -54,6 +54,9 @@ import { useCompanionStore } from '@/features/companion/store/companion.store';
 import { useGenderedText } from '@/shared/hooks/useGenderedText';
 import { useChatMessages } from '@/features/chat/hooks/useChatMessages';
 import { useSendMessage } from '@/features/chat/hooks/useSendMessage';
+import { usePaywall } from '@/features/subscription/hooks/usePaywall';
+import { FREE_MESSAGE_LIMIT } from '@/features/subscription/constants/paywall.constants';
+import { PaywallModal } from '@/features/subscription/components/PaywallModal';
 import {
   generateAboutMe,
   generateShortDescription,
@@ -441,6 +444,24 @@ export const HomeScreen: React.FC = () => {
     }
     return converted;
   }, [chatData?.flatMessages, welcomeMessage]);
+  const userMessageCount = useMemo(
+    () => messages.filter((message) => message.isUser).length,
+    [messages]
+  );
+  const {
+    isPaywallVisible,
+    showPaywall,
+    dismissPaywall,
+    selectedPlan,
+    selectPlan,
+    handlePurchase,
+    handleRestore,
+    purchaseState,
+    error: paywallError,
+    isSubscribed,
+    messagesRemaining,
+  } = usePaywall({ userMessageCount });
+  const isPaywallBlocking = !isSubscribed && userMessageCount >= FREE_MESSAGE_LIMIT;
 
   // Placeholder contextual aleatorio (se selecciona al montar)
   const placeholder = useMemo(
@@ -635,6 +656,10 @@ export const HomeScreen: React.FC = () => {
 
   const handleSend = async () => {
     const text = inputText.trim();
+    if (isPaywallBlocking) {
+      showPaywall();
+      return;
+    }
     if (!text || !companion?.id || sendMessageMutation.isPending) return;
 
     setInputText('');
@@ -1388,7 +1413,7 @@ export const HomeScreen: React.FC = () => {
               <View style={[styles.inputWrapper, { minHeight: inputHeight + 24 }]}>
                 <TextInput
                   style={[styles.textInput, { height: inputHeight }]}
-                  placeholder={placeholder}
+                  placeholder={isPaywallBlocking ? 'Desbloquea Premium para seguir chateando' : placeholder}
                   placeholderTextColor={Colors.text.light}
                   value={inputText}
                   onChangeText={(text) => {
@@ -1400,12 +1425,13 @@ export const HomeScreen: React.FC = () => {
                   returnKeyType="send"
                   multiline
                   scrollEnabled={inputHeight >= 100}
+                  editable={!isPaywallBlocking}
                 />
               </View>
               <AnimatedPressable
                 style={[styles.sendButton, sendButtonAnimatedStyle]}
                 onPress={handleSendPress}
-                disabled={sendMessageMutation.isPending}
+                disabled={sendMessageMutation.isPending || isPaywallBlocking}
               >
                 <Ionicons
                   name={inputText.trim() ? 'send' : 'add'}
@@ -1437,6 +1463,20 @@ export const HomeScreen: React.FC = () => {
         onCancel={handleLogoutCancel}
         onConfirm={handleLogoutConfirm}
         isLoading={isLoggingOut}
+      />
+
+      <PaywallModal
+        visible={isPaywallVisible}
+        companionName={companion?.name}
+        selectedPlan={selectedPlan}
+        onSelectPlan={selectPlan}
+        onPurchase={handlePurchase}
+        onRestore={handleRestore}
+        onDismiss={dismissPaywall}
+        purchaseState={purchaseState}
+        error={paywallError}
+        isBlocking={isPaywallBlocking}
+        messagesRemaining={messagesRemaining}
       />
     </LinearGradient>
   );

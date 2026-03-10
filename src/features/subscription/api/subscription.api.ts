@@ -5,6 +5,7 @@
 
 import { httpClient } from '@/shared/services/http/client';
 import { API_ENDPOINTS } from '@/app/config/constants';
+import { ENABLE_SUBSCRIPTION_MOCK } from '@/app/config/env';
 
 export interface ValidatePurchaseRequest {
   purchaseToken: string;
@@ -38,6 +39,18 @@ export interface ValidatePurchaseResponse {
 export const validatePurchaseOnBackend = async (
   payload: ValidatePurchaseRequest
 ): Promise<ValidatePurchaseResponse> => {
+  if (ENABLE_SUBSCRIPTION_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    return {
+      valid: true,
+      platform: payload.platform,
+      productId: payload.productId,
+      status: 'ACTIVE',
+      message: 'Validation mocked on frontend',
+      expiryTimeMillis: String(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    };
+  }
+
   const response = await httpClient.post<ValidatePurchaseResponse>(
     API_ENDPOINTS.SUBSCRIPTION.VALIDATE,
     payload

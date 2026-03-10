@@ -7,7 +7,6 @@ import { CreandoCompanionScreen } from '@/features/companion/screens/CreandoComp
 import { ChatScreen } from '@/features/chat/screens/ChatScreen';
 import { HomeScreen } from '@/features/main/screens/HomeScreen';
 import { RootStackParamList } from '@/shared/types/navigation';
-import { SubscriptionPaywallScreen } from '@/features/subscription/screens/SubscriptionPaywallScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -60,14 +59,6 @@ export const AuthNavigatorWithInitialRoute: React.FC<AuthNavigatorProps> = ({
         options={{
           animation: 'fade',
           animationDuration: 400,
-        }}
-      />
-      <Stack.Screen
-        name="SubscriptionPaywall"
-        component={SubscriptionPaywallScreen}
-        options={{
-          animation: 'slide_from_right',
-          animationDuration: 300,
         }}
       />
       <Stack.Screen name="Chat" component={ChatScreen} />

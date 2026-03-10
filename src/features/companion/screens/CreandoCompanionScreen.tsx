@@ -90,7 +90,7 @@ export const CreandoCompanionScreen: React.FC = () => {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: 'SubscriptionPaywall', params: { companion } }],
+        routes: [{ name: 'Home' }],
       });
     } catch (error) {
       logger.error('Error creando companion:', error);
