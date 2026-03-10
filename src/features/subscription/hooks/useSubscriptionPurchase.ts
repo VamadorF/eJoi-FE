@@ -1,5 +1,5 @@
 /**
- * Hook para iniciar la compra de suscripción
+ * Hook para iniciar la compra de suscripcion
  * Usa expo-iap requestPurchase; el resultado se procesa en purchaseListener.service
  */
 import { useState, useCallback } from 'react';
@@ -8,6 +8,7 @@ import { requestPurchase, fetchProducts } from 'expo-iap';
 import type { ProductSubscription } from 'expo-iap';
 import { PLAN_TO_PRODUCT_ID } from '../config/subscriptionProducts';
 import type { PlanId } from '../store/subscription.store';
+import { ENABLE_SUBSCRIPTION_MOCK } from '@/app/config/env';
 
 export type PurchaseState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -16,8 +17,16 @@ export function useSubscriptionPurchase() {
   const [error, setError] = useState<string | null>(null);
 
   const purchasePlan = useCallback(async (planId: PlanId): Promise<boolean> => {
+    if (ENABLE_SUBSCRIPTION_MOCK) {
+      setState('loading');
+      setError(null);
+      await new Promise((resolve) => setTimeout(resolve, 700));
+      setState('success');
+      return true;
+    }
+
     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
-      setError('Las compras solo están disponibles en iOS y Android');
+      setError('Las compras solo estan disponibles en iOS y Android');
       setState('error');
       return false;
     }

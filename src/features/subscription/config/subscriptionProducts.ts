@@ -1,6 +1,6 @@
 /**
  * Mapeo PlanId → product ID en Google Play / App Store Connect
- * Actualizar según los IDs configurados en las consolas de cada plataforma
+ * TODO: actualizar con product IDs reales cuando estén creados en las consolas
  */
 import type { PlanId } from '../store/subscription.store';
 
@@ -8,7 +8,8 @@ import type { PlanId } from '../store/subscription.store';
 export const ANDROID_PACKAGE_NAME = 'com.ejoi.app';
 
 export const PLAN_TO_PRODUCT_ID: Record<PlanId, string> = {
-  Amigo: 'com.ejoi.app.sub_amigo',
-  'Amigo Cercano': 'com.ejoi.app.sub_amigo_cercano',
-  'Mejor Amigo': 'com.ejoi.app.sub_mejor_amigo',
+  // TODO: actualizar con product IDs reales de Google Play / App Store Connect
+  starter: 'com.ejoi.app.sub_starter_encuentro',
+  conexion: 'com.ejoi.app.sub_standard_conexion',
+  plus: 'com.ejoi.app.sub_plus_siempre_contigo',
 };
