@@ -21,13 +21,13 @@ export const CompanionReadyScreen: React.FC = () => {
     (companion?.gender || '') as GenderKey
   );
 
-  // Crea acompañante y pasa al paywall.
+  // Crea acompañante y redirige a Home.
   const handleStartChat = () => {
     if (!companion) return;
 
     navigation.reset({
       index: 0,
-      routes: [{ name: 'SubscriptionPaywall', params: { companion } }],
+      routes: [{ name: 'Home' }],
     });
   };
 
