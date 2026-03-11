@@ -11,7 +11,10 @@ export type RootStackParamList = {
   
   // Companion
   CreateCompanion: { onboardingData?: import('@/features/onboarding/types').OnboardingData };
-  CreandoCompanion: { onboardingData?: import('@/features/onboarding/types').OnboardingData };
+  CreandoCompanion: {
+    onboardingData?: import('@/features/onboarding/types').OnboardingData;
+    preGeneratedAvatarUrl?: string | null;
+  };
   CompanionReady: { companion: import('@/features/companion/types').Companion };
   CompanionProfile: { companionId: string };
   

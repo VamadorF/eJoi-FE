@@ -17,7 +17,7 @@ import {
   Platform,
   NativeSyntheticEvent,
   TextInputContentSizeChangeEventData,
-  useWindowDimensions,
+  Dimensions,
 } from 'react-native';
 import Animated, {
   FadeIn,
@@ -62,10 +62,11 @@ import {
   generateShortDescription,
   generateChatWelcome,
 } from '@/shared/utils/companionTextGenerator';
-import { CompanionCard, getCompanionCardLayout } from '@/shared/components';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ============ TIPOS ============
 interface Message {
@@ -378,11 +379,6 @@ export const HomeScreen: React.FC = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const navigation = useNavigation();
   const { companion } = useCompanionStore();
-  const { width: windowWidth } = useWindowDimensions();
-  const companionCardLayout = useMemo(
-    () => getCompanionCardLayout(windowWidth),
-    [windowWidth]
-  );
 
   const { data: chatData } = useChatMessages(companion?.id, 50);
   const sendMessageMutation = useSendMessage();
@@ -543,8 +539,11 @@ export const HomeScreen: React.FC = () => {
     }
   }, [activeTab]);
 
-  // Obtener avatar según configuración
-  const getAvatarImage = () => {
+  // Obtener avatar: prioriza imagen IA (avatarUrl), fallback a placeholders estáticos
+  const getAvatarSource = (): { uri: string } | number => {
+    if (companion?.avatarUrl?.trim()) {
+      return { uri: companion.avatarUrl };
+    }
     const style = (companion?.visualStyle as 'realista' | 'anime') || 'realista';
     const gender = (companion?.gender as 'femenino' | 'masculino' | 'neutro') || 'femenino';
     return AVATAR_IMAGES[style]?.[gender] || AVATAR_IMAGES.realista.femenino;
@@ -1081,35 +1080,43 @@ export const HomeScreen: React.FC = () => {
   const renderPerfilContent = () => (
     <ScrollView
       style={styles.perfilScrollView}
-      contentContainerStyle={[
-        styles.perfilScrollContent,
-        { paddingHorizontal: companionCardLayout.cardHorizontalMargin },
-      ]}
+      contentContainerStyle={styles.perfilScrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* Tinder Card reutilizada como base del perfil */}
-      <Animated.View entering={FadeInUp.delay(120).duration(420).springify()}>
-        <CompanionCard
-          mode="profile"
-          name={companionName}
-          image={getAvatarImage()}
-          persona={companion?.persona}
-          tone={companion?.tone}
-          aboutText={aboutMeText}
-          interests={companion?.interests ?? []}
-          boundaries={companion?.boundaries ?? []}
-          visualStyle={companion?.visualStyle}
-          gender={companion?.gender}
-          interactionStyle={companion?.interactionStyle}
-          conversationDepth={companion?.conversationDepth}
-          primaryActionLabel="Editar conducta"
-          onPrimaryAction={() => setIsEditingConducta(true)}
+      {/* Imagen grande del companion */}
+      <Animated.View
+        style={styles.profileImageContainer}
+        entering={ZoomIn.duration(500).springify()}
+      >
+        <Image
+          source={getAvatarSource()}
+          style={styles.profileImage}
+          resizeMode="cover"
         />
       </Animated.View>
 
+      {/* Nombre */}
+      <Animated.Text
+        style={styles.profileName}
+        entering={FadeInUp.delay(200).duration(400)}
+      >
+        {companionName}
+      </Animated.Text>
+
+      {/* Sobre mí */}
+      {aboutMeText && (
+        <Animated.View
+          style={styles.aboutMeContainer}
+          entering={FadeInUp.delay(220).duration(400)}
+        >
+          <Text style={styles.aboutMeTitle}>Sobre mí</Text>
+          <Text style={styles.aboutMeText}>{aboutMeText}</Text>
+        </Animated.View>
+      )}
+
       {/* Barra de Vínculo */}
       <Animated.View
-        style={[styles.bondContainer, { maxWidth: companionCardLayout.cardWidth }]}
+        style={styles.bondContainer}
         entering={FadeInUp.delay(250).duration(400)}
       >
         <Text style={styles.bondLabel}>Vínculo</Text>
@@ -1125,7 +1132,7 @@ export const HomeScreen: React.FC = () => {
 
       {/* Badges */}
       <Animated.View
-        style={[styles.badgesContainer, { maxWidth: companionCardLayout.cardWidth }]}
+        style={styles.badgesContainer}
         entering={FadeInUp.delay(300).duration(400)}
       >
         {BADGES.map((badge, index) => (
@@ -1147,7 +1154,7 @@ export const HomeScreen: React.FC = () => {
 
       {/* Card de atributos */}
       <Animated.View
-        style={[styles.attributesCard, { maxWidth: companionCardLayout.cardWidth }]}
+        style={styles.attributesCard}
         entering={FadeInUp.delay(400).duration(400)}
       >
         {/* Sub-tabs Carácter / Físico */}
@@ -1221,6 +1228,15 @@ export const HomeScreen: React.FC = () => {
         </View>
       </Animated.View>
 
+      {/* Botón Editar conducta */}
+      <Animated.View entering={FadeInUp.delay(500).duration(400)}>
+        <Pressable
+          style={styles.editConductaButton}
+          onPress={() => setIsEditingConducta(true)}
+        >
+          <Text style={styles.editConductaText}>Editar conducta</Text>
+        </Pressable>
+      </Animated.View>
     </ScrollView>
   );
 
@@ -1228,32 +1244,36 @@ export const HomeScreen: React.FC = () => {
   const renderEditConductaContent = () => (
     <ScrollView
       style={styles.perfilScrollView}
-      contentContainerStyle={[
-        styles.perfilScrollContent,
-        { paddingHorizontal: companionCardLayout.cardHorizontalMargin },
-      ]}
+      contentContainerStyle={styles.perfilScrollContent}
       showsVerticalScrollIndicator={false}
     >
-      <CompanionCard
-        mode="profile"
-        name={companionName}
-        image={getAvatarImage()}
-        persona={companion?.persona}
-        tone={companion?.tone}
-        aboutText={aboutMeText}
-        interests={companion?.interests ?? []}
-        boundaries={companion?.boundaries ?? []}
-        visualStyle={companion?.visualStyle}
-        gender={companion?.gender}
-        interactionStyle={companion?.interactionStyle}
-        conversationDepth={companion?.conversationDepth}
-        primaryActionLabel="Volver al perfil"
-        onPrimaryAction={() => setIsEditingConducta(false)}
-      />
+      {/* Imagen grande del companion */}
+      <View style={styles.profileImageContainer}>
+        <Image
+          source={getAvatarSource()}
+          style={styles.profileImage}
+          resizeMode="cover"
+        />
+      </View>
+
+      {/* Nombre */}
+      <Text style={styles.profileName}>{companionName}</Text>
+
+      {/* Botón Editar conducta (header) */}
+      <View style={styles.editConductaHeader}>
+        <LinearGradient
+          colors={[Colors.base.primary, Colors.base.secondary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.editConductaHeaderButton}
+        >
+          <Text style={styles.editConductaHeaderText}>Editar conducta</Text>
+        </LinearGradient>
+      </View>
 
       {/* Helper text */}
       <Animated.View
-        style={[styles.helperTextContainer, { maxWidth: companionCardLayout.cardWidth }]}
+        style={styles.helperTextContainer}
         entering={FadeIn.delay(100).duration(300)}
       >
         <Ionicons name="information-circle-outline" size={16} color={Colors.text.secondary} />
@@ -1263,7 +1283,7 @@ export const HomeScreen: React.FC = () => {
       </Animated.View>
 
       {/* Card de edición */}
-      <View style={[styles.editCard, { maxWidth: companionCardLayout.cardWidth }]}>
+      <View style={styles.editCard}>
         <TextInput
           style={styles.editTextInput}
           placeholder="Escribe aquí las instrucciones de conducta..."
@@ -1348,7 +1368,7 @@ export const HomeScreen: React.FC = () => {
           <Animated.View entering={ZoomIn.delay(200).duration(400).springify()}>
             <Animated.View style={[styles.avatarContainer, avatarAnimatedStyle]}>
               <Image
-                source={getAvatarImage()}
+                source={getAvatarSource()}
                 style={styles.avatar}
                 resizeMode="cover"
               />
@@ -1946,14 +1966,57 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   perfilScrollContent: {
+    paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 40,
     alignItems: 'center',
   },
+  profileImageContainer: {
+    width: 180,
+    height: 200,
+    borderRadius: 20,
+    overflow: 'hidden',
+    ...shadowStyle({ color: Colors.text.primary, offset: { width: 0, height: 4 }, opacity: 0.2, radius: 8, elevation: 8 }),
+    marginBottom: 12,
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+  },
+  profileName: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 24,
+    color: Colors.base.primary,
+    marginBottom: 12,
+    lineHeight: 30,
+  },
+
+  // Sobre mí
+  aboutMeContainer: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+  aboutMeTitle: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  aboutMeText: {
+    fontFamily: Typography.fontFamily.regular,
+    fontSize: 15,
+    color: Colors.text.primary,
+    lineHeight: 22,
+  },
+
   // Bond bar
   bondContainer: {
     width: '100%',
-    marginTop: 16,
     marginBottom: 16,
   },
   bondLabel: {
@@ -2082,15 +2145,42 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     minWidth: 0,
   },
+  editConductaButton: {
+    borderWidth: 2,
+    borderColor: Colors.base.primary,
+    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    backgroundColor: 'transparent',
+  },
+  editConductaText: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 18,
+    color: Colors.base.primary,
+    lineHeight: 22,
+  },
 
   // Edit Conducta styles
+  editConductaHeader: {
+    marginBottom: 8,
+  },
+  editConductaHeaderButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 25,
+  },
+  editConductaHeaderText: {
+    fontFamily: Typography.fontFamily.bold,
+    fontSize: 16,
+    color: Colors.text.white,
+    lineHeight: 20,
+  },
   helperTextContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     marginBottom: 16,
     paddingHorizontal: 8,
-    width: '100%',
   },
   helperText: {
     fontFamily: Typography.fontFamily.regular,
@@ -2142,4 +2232,3 @@ const styles = StyleSheet.create({
     color: Colors.text.white,
   },
 });
-

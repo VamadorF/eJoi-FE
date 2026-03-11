@@ -12,8 +12,9 @@
  * Preparado para BE: agregar llamada a endpoint sin cambiar UI.
  */
 
-import { clearAuthStorage } from '@/shared/services/storage/secure';
+import { clearAllStorage } from '@/shared/services/storage/secure';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
+import { clearImageCache } from '@/features/companion/services/companionImageCache';
 import { useSubscriptionStore } from '@/features/subscription/store/subscription.store';
 import { cleanupPurchaseListeners } from '@/features/subscription/services/purchaseListener.service';
 import { queryClient } from '@/app/providers/QueryProvider';
@@ -51,10 +52,10 @@ export const logout = async (): Promise<void> => {
     // }
     // ──────────────────────────────────────────────
 
-    // 1. Limpiar storage persistente (auth + user, NO companion)
+    // 1. Limpiar todo el storage (auth, user, companion, etc.)
     try {
-      await clearAuthStorage();
-      console.log('[SessionManager] Auth storage limpiado (companion preservado)');
+      await clearAllStorage();
+      console.log('[SessionManager] Storage completo limpiado');
     } catch (error) {
       console.warn('[SessionManager] Error limpiando storage:', error);
     }
@@ -62,7 +63,6 @@ export const logout = async (): Promise<void> => {
     // 2. Resetear stores de Zustand
     try {
       const { useAuthStore } = await import('@/features/auth/store/auth.store');
-      // Auth store: esto causa que RootNavigator muestre AuthNavigator (Login)
       useAuthStore.getState().setUser(null);
       useAuthStore.setState({
         user: null,
@@ -75,7 +75,13 @@ export const logout = async (): Promise<void> => {
       console.warn('[SessionManager] Error reseteando auth store:', error);
     }
 
-    // Nota: companion store NO se resetea — se preserva para re-login
+    try {
+      await useCompanionStore.getState().clearCompanion();
+      clearImageCache();
+      console.log('[SessionManager] Companion store, cache de imagen y storage limpiados');
+    } catch (error) {
+      console.warn('[SessionManager] Error limpiando companion:', error);
+    }
 
     try {
       useSubscriptionStore.getState().reset();

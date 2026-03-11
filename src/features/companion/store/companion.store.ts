@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { Companion } from '../types';
-import { getCompanionData, setCompanionData, removeCompanionData } from '@/shared/services/storage/secure';
+import { removeCompanionData } from '@/shared/services/storage/secure';
 import { isValidUuid } from '@/shared/utils/uuid';
 import { getMyCompanion } from '../api/companion.api';
 
@@ -37,51 +37,19 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
       companion,
       hasCompanion: !!companion,
     });
-
-    // Persistir en almacenamiento local
-    if (companion) {
-      try {
-        await setCompanionData(JSON.stringify(companion));
-      } catch (error) {
-        console.error('Error saving companion to storage:', error);
-      }
-    } else {
-      try {
-        await removeCompanionData();
-      } catch (error) {
-        console.error('Error removing companion from storage:', error);
-      }
-    }
+    // No persistimos companion en storage: la fuente de verdad es la API.
+    // Si el usuario es eliminado de la BD, al recargar obtendremos 401 o vacío.
   },
 
   checkCompanion: async () => {
     try {
       set({ isLoading: true, error: null });
 
-      // Verificar en almacenamiento local (no depende de token)
-      const storedCompanionData = await getCompanionData();
-      if (storedCompanionData) {
-        try {
-          const companion: Companion = JSON.parse(storedCompanionData);
-          if (!isValidUuid(companion?.id)) {
-            await removeCompanionData();
-          } else {
-            set({
-              companion,
-              hasCompanion: true,
-              isLoading: false,
-            });
-            return;
-          }
-        } catch (parseError) {
-          console.error('Error parsing stored companion:', parseError);
-          await removeCompanionData();
-        }
-      }
-
+      // Siempre obtener companion desde la API (no usar cache local).
+      // Si el usuario fue eliminado de la BD, la API devolverá 401 o vacío.
       try {
         const companion = await getMyCompanion();
-        if (companion) {
+        if (companion && isValidUuid(companion.id)) {
           await get().setCompanion(companion);
           set({ isLoading: false });
           return;
@@ -90,7 +58,6 @@ export const useCompanionStore = create<CompanionStore>((set, get) => ({
         console.error('Error fetching companion from API:', apiError);
       }
 
-      // Si no hay compañer@ en almacenamiento ni en API
       set({
         companion: null,
         hasCompanion: false,
