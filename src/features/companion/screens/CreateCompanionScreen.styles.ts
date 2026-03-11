@@ -95,6 +95,24 @@ export const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
 
+  imageLoadingOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+
+  imageLoadingText: {
+    fontSize: BODY_FONT_SIZE,
+    fontFamily: Typography.fontFamily.medium,
+    color: '#fff',
+  },
+
   imageGradient: {
     position: 'absolute',
     bottom: 0,

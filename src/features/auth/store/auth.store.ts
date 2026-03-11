@@ -13,6 +13,7 @@ import {
   clearAuthData,
   removeCompanionData,
 } from '@/shared/services/storage/secure';
+import { clearImageCache } from '@/features/companion/services/companionImageCache';
 import { getAuthSession } from '../api/auth.api';
 import { useCompanionStore } from '@/features/companion/store/companion.store';
 
@@ -40,6 +41,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   login: async (user, accessToken) => {
     try {
+      clearImageCache();
       await Promise.all([
         setAuthToken(accessToken),
         setUserData(JSON.stringify(user)),
