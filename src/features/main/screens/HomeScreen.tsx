@@ -539,8 +539,11 @@ export const HomeScreen: React.FC = () => {
     }
   }, [activeTab]);
 
-  // Obtener avatar según configuración
-  const getAvatarImage = () => {
+  // Obtener avatar: prioriza imagen IA (avatarUrl), fallback a placeholders estáticos
+  const getAvatarSource = (): { uri: string } | number => {
+    if (companion?.avatarUrl?.trim()) {
+      return { uri: companion.avatarUrl };
+    }
     const style = (companion?.visualStyle as 'realista' | 'anime') || 'realista';
     const gender = (companion?.gender as 'femenino' | 'masculino' | 'neutro') || 'femenino';
     return AVATAR_IMAGES[style]?.[gender] || AVATAR_IMAGES.realista.femenino;
@@ -1086,7 +1089,7 @@ export const HomeScreen: React.FC = () => {
         entering={ZoomIn.duration(500).springify()}
       >
         <Image
-          source={getAvatarImage()}
+          source={getAvatarSource()}
           style={styles.profileImage}
           resizeMode="cover"
         />
@@ -1247,7 +1250,7 @@ export const HomeScreen: React.FC = () => {
       {/* Imagen grande del companion */}
       <View style={styles.profileImageContainer}>
         <Image
-          source={getAvatarImage()}
+          source={getAvatarSource()}
           style={styles.profileImage}
           resizeMode="cover"
         />
@@ -1365,7 +1368,7 @@ export const HomeScreen: React.FC = () => {
           <Animated.View entering={ZoomIn.delay(200).duration(400).springify()}>
             <Animated.View style={[styles.avatarContainer, avatarAnimatedStyle]}>
               <Image
-                source={getAvatarImage()}
+                source={getAvatarSource()}
                 style={styles.avatar}
                 resizeMode="cover"
               />

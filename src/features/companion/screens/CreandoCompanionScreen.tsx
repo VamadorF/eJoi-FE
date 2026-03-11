@@ -10,10 +10,7 @@ import { Gender } from '@/features/onboarding/types';
 import { CreatingAnimation } from '@/shared/components';
 import { logger } from '@/shared/utils/logger';
 import { useCreateCompanion } from '../hooks/useCreateCompanion';
-import { generateCompanionImage } from '../api/image.api';
-import { generateCompanionImagePrompt } from '@/shared/utils/companionImagePrompt';
-
-const IMAGE_GENERATION_TIMEOUT_MS = 25000;
+import { getOrCreateImagePromise } from '../services/companionImageCache';
 
 type CreandoCompanionScreenRouteProp = RouteProp<
   RootStackParamList,
@@ -30,25 +27,24 @@ export const CreandoCompanionScreen: React.FC = () => {
   const { setCompanion } = useCompanionStore();
   const createCompanionMutation = useCreateCompanion();
   const onboardingData = route.params?.onboardingData;
+  const preGeneratedAvatarUrl = route.params?.preGeneratedAvatarUrl;
 
   const imagePromiseRef = useRef<Promise<string | null> | null>(null);
 
+  // Si no hay avatar pre-generado válido, usar cache (reutiliza promesa de CreateCompanionScreen)
+  // Importante: cuando el usuario pulsa "Crear" antes de que la imagen termine, preGeneratedAvatarUrl
+  // viene como null; debemos tener imagePromiseRef para poder esperarla en handleDone
   useEffect(() => {
     if (!onboardingData) return;
-    const prompt = generateCompanionImagePrompt(onboardingData);
-    imagePromiseRef.current = Promise.race([
-      generateCompanionImage({ prompt }).then((r) => r.imageUrl),
-      new Promise<string | null>((resolve) =>
-        setTimeout(() => resolve(null), IMAGE_GENERATION_TIMEOUT_MS)
-      ),
-    ]).catch(() => null);
-  }, [onboardingData]);
+    if (preGeneratedAvatarUrl?.trim()) return; // Ya tenemos URL válida
+    imagePromiseRef.current = getOrCreateImagePromise(onboardingData);
+  }, [onboardingData, preGeneratedAvatarUrl]);
 
   const handleDone = async () => {
     if (!onboardingData) return;
 
-    let avatarUrl: string | null = null;
-    if (imagePromiseRef.current) {
+    let avatarUrl: string | null = preGeneratedAvatarUrl?.trim() ? preGeneratedAvatarUrl : null;
+    if (!avatarUrl && imagePromiseRef.current) {
       try {
         avatarUrl = await imagePromiseRef.current;
       } catch {

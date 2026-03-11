@@ -71,6 +71,10 @@ export const fromCompanionApiResponse = (raw: RawCompanionResponse): Companion |
     return null;
   }
 
+  // Backend puede devolver avatarUrl (camelCase) o avatar_url (snake_case)
+  const companionRaw = companion as Record<string, unknown>;
+  const avatarUrl = trimOptional(companion.avatarUrl) ?? trimOptional(companionRaw.avatar_url as string);
+
   return {
     ...companion,
     name: companion.name ?? '',
@@ -82,5 +86,6 @@ export const fromCompanionApiResponse = (raw: RawCompanionResponse): Companion |
     conversationDepth: companion.conversationDepth ?? '',
     interests: Array.isArray(companion.interests) ? companion.interests : [],
     boundaries: Array.isArray(companion.boundaries) ? companion.boundaries : [],
+    avatarUrl,
   };
 };

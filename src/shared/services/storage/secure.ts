@@ -10,6 +10,7 @@ const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user_data';
 const COMPANION_KEY = 'companion_data';
+const COMPANION_USER_ID_KEY = 'companion_user_id';
 const HOME_LAST_TAB_KEY = 'home_last_tab';
 
 /**
@@ -136,10 +137,26 @@ export const clearAuthData = async (): Promise<void> => {
 };
 
 /**
- * Almacena los datos del/la compañer@
+ * Almacena los datos del/la compañer@ junto al userId que lo creó.
+ * Permite validar que el companion pertenece al usuario actual al cambiar de cuenta.
  */
-export const setCompanionData = async (companion: string): Promise<void> => {
-  return setItem(COMPANION_KEY, companion);
+export const setCompanionData = async (
+  companion: string,
+  userId?: string
+): Promise<void> => {
+  await setItem(COMPANION_KEY, companion);
+  if (userId) {
+    await setItem(COMPANION_USER_ID_KEY, userId);
+  } else {
+    await removeItem(COMPANION_USER_ID_KEY);
+  }
+};
+
+/**
+ * Obtiene el userId asociado al companion guardado (si existe).
+ */
+export const getCompanionUserId = async (): Promise<string | null> => {
+  return getItem(COMPANION_USER_ID_KEY);
 };
 
 /**
@@ -150,15 +167,19 @@ export const getCompanionData = async (): Promise<string | null> => {
 };
 
 /**
- * Elimina los datos del/la compañer@
+ * Elimina los datos del/la compañer@ y su userId asociado
  */
 export const removeCompanionData = async (): Promise<void> => {
-  return removeItem(COMPANION_KEY);
+  await Promise.all([
+    removeItem(COMPANION_KEY),
+    removeItem(COMPANION_USER_ID_KEY),
+  ]);
 };
 
 /**
- * Limpia TODOS los datos almacenados (auth, user, companion)
- * Usado por sessionManager.logout()
+ * Limpia TODOS los datos almacenados (auth, user, companion, preferencias)
+ * Usado por sessionManager.logout() para evitar que datos de una cuenta
+ * se muestren al iniciar sesión con otra.
  */
 export const clearAllStorage = async (): Promise<void> => {
   await Promise.all([
@@ -166,6 +187,8 @@ export const clearAllStorage = async (): Promise<void> => {
     removeItem(REFRESH_TOKEN_KEY),
     removeItem(USER_KEY),
     removeItem(COMPANION_KEY),
+    removeItem(COMPANION_USER_ID_KEY),
+    removeItem(HOME_LAST_TAB_KEY),
   ]);
 };
 

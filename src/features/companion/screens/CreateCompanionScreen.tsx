@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeIn,
-  FadeInDown,
   FadeInUp,
   SlideInDown,
   ZoomIn,
@@ -19,7 +18,8 @@ import {
 } from '@/shared/components';
 import { styles } from './CreateCompanionScreen.styles';
 import { useGenderedTextWithGender } from '@/shared/hooks/useGenderedText';
-import { generateAboutMePreview, generateGreetingPreview } from '@/shared/utils/companionTextGenerator';
+import { generateAboutMePreview } from '@/shared/utils/companionTextGenerator';
+import { getOrCreateImagePromise } from '../services/companionImageCache';
 
 // Imágenes placeholder según género y estilo
 const PLACEHOLDER_IMAGES = {
@@ -54,16 +54,35 @@ export const CreateCompanionScreen: React.FC = () => {
   const navigation = useNavigation<CreateCompanionScreenNavigationProp>();
   const route = useRoute<CreateCompanionScreenRouteProp>();
   const [isCreating, setIsCreating] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   const onboardingData = route.params?.onboardingData;
+
+  // Iniciar generación de imagen al montar
+  useEffect(() => {
+    if (!onboardingData) return;
+    setIsImageLoading(true);
+    setGeneratedImageUrl(null);
+    getOrCreateImagePromise(onboardingData)
+      .then((url) => {
+        setGeneratedImageUrl(url);
+      })
+      .finally(() => {
+        setIsImageLoading(false);
+      });
+  }, [onboardingData]);
 
   // Hook para textos con género dinámico
   const genderedText = useGenderedTextWithGender(
     (onboardingData?.gender || '') as Gender | ''
   );
 
-  // Obtener imagen placeholder basada en género y estilo visual
-  const getPlaceholderImage = () => {
+  // Obtener fuente de imagen: generada por IA o placeholder estático
+  const getImageSource = (): { uri: string } | number => {
+    if (generatedImageUrl?.trim()) {
+      return { uri: generatedImageUrl };
+    }
     const style = onboardingData?.visualStyle || 'realista';
     const gender = onboardingData?.gender || 'femenino';
     return PLACEHOLDER_IMAGES[style]?.[gender] || PLACEHOLDER_IMAGES.realista.femenino;
@@ -89,6 +108,7 @@ export const CreateCompanionScreen: React.FC = () => {
     setIsCreating(true);
     navigation.navigate('CreandoCompanion', {
       onboardingData,
+      preGeneratedAvatarUrl: generatedImageUrl,
     });
   };
 
@@ -135,10 +155,19 @@ export const CreateCompanionScreen: React.FC = () => {
             entering={FadeIn.delay(200).duration(400)}
           >
             <Image
-              source={getPlaceholderImage()}
+              source={getImageSource()}
               style={styles.companionImage}
               resizeMode="cover"
             />
+            {/* Overlay de carga mientras se genera la imagen */}
+            {isImageLoading && (
+              <Animated.View style={styles.imageLoadingOverlay}>
+                <ActivityIndicator size="large" color="#fff" />
+                <Text style={styles.imageLoadingText}>
+                  Generando imagen de tu {genderedText.companion().toLowerCase()}...
+                </Text>
+              </Animated.View>
+            )}
             {/* Gradiente sobre la imagen */}
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.3)']}
@@ -319,7 +348,7 @@ export const CreateCompanionScreen: React.FC = () => {
           label={isCreating ? 'Creando...' : `Crear ${genderedText.companion()}`}
           onPress={handleCreateCompanion}
           loading={isCreating}
-          disabled={isCreating}
+          disabled={isCreating || isImageLoading}
         />
       </Animated.View>
     </GradientBackground>
