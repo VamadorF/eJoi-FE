@@ -12,14 +12,23 @@ const trimOptional = (value?: string): string | undefined => {
   return normalized ? normalized : undefined;
 };
 
-const normalizeStringArray = (values?: string[]): string[] | undefined => {
-  if (!values) {
-    return undefined;
+const normalizeStringArray = (values?: string[] | string | null): string[] => {
+  if (!values) return [];
+  // Backend occasionally serializes arrays as JSON strings
+  if (typeof values === 'string') {
+    try {
+      const parsed = JSON.parse(values);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => String(item).trim()).filter(Boolean);
+      }
+    } catch {
+      // Not valid JSON — treat as a single comma-separated value
+      return values.split(',').map((s) => s.trim()).filter(Boolean);
+    }
   }
-  const sanitized = values
-    .map((item) => item.trim())
-    .filter(Boolean);
-  return sanitized.length > 0 ? sanitized : undefined;
+  if (!Array.isArray(values)) return [];
+  const sanitized = values.map((item) => String(item).trim()).filter(Boolean);
+  return sanitized;
 };
 
 const normalizeVisualStyle = (value?: string): VisualStyle => (value === 'anime' ? 'anime' : 'realista');
@@ -80,7 +89,7 @@ export const fromCompanionApiResponse = (raw: RawCompanionResponse): Companion |
     tone: companion.tone ?? '',
     interactionStyle: companion.interactionStyle ?? '',
     conversationDepth: companion.conversationDepth ?? '',
-    interests: Array.isArray(companion.interests) ? companion.interests : [],
-    boundaries: Array.isArray(companion.boundaries) ? companion.boundaries : [],
+    interests: normalizeStringArray(companion.interests as string[] | string | null),
+    boundaries: normalizeStringArray(companion.boundaries as string[] | string | null),
   };
 };

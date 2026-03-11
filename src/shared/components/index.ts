@@ -24,4 +24,5 @@ export * from './CreatingAnimation';
 export * from './ReadyHero';
 export * from './CircleSelector';
 export * from './CategoryPill';
+export * from './CompanionCard';
 
