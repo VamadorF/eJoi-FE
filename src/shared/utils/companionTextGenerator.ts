@@ -252,7 +252,7 @@ export function generateChatWelcome(companion: Companion): string {
   const name = companion.name;
 
   const welcomeBase = CHAT_WELCOME_TEMPLATES[persona]?.[gender] || 
-    'Estoy aquí para conversar contigo. ¿En qué puedo ayudarte hoy?';
+    'Tu acompañante ya está listo para conversar contigo. ¿Sobre qué te gustaría hablar hoy?';
 
   return welcomeBase;
 }
