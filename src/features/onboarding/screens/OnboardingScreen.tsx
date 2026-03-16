@@ -1017,7 +1017,7 @@ export const OnboardingScreen: React.FC = () => {
               )}
             </View>
           ) : (
-            <CardSurface variant="glass" padding="lg" textColor={Colors.text.primary}>
+            <CardSurface variant="glass" padding="md" textColor={Colors.text.primary}>
               {stepNode}
               {errorMessage && (
                 <Text style={styles.errorText}>{errorMessage}</Text>

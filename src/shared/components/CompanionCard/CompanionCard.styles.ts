@@ -81,7 +81,7 @@ export const createCompanionCardStyles = (screenWidth: number) => {
 
         imageContainer: {
             width: '100%',
-            aspectRatio: 3 / 4,
+            aspectRatio: layout.isTablet ? 3 / 4 : 4 / 5,
             position: 'relative',
             backgroundColor: Colors.background.light,
             overflow: 'hidden',
@@ -137,8 +137,8 @@ export const createCompanionCardStyles = (screenWidth: number) => {
 
         headerSection: {
             paddingHorizontal: layout.sectionPaddingH,
-            paddingTop: layout.isTablet ? Spacing.lg : Spacing.md,
-            paddingBottom: layout.isTablet ? Spacing.sm : Spacing.xs,
+            paddingTop: layout.isTablet ? Spacing.lg : Spacing.sm,
+            paddingBottom: layout.isTablet ? Spacing.sm : 2,
         },
 
         nameRow: {
@@ -177,10 +177,10 @@ export const createCompanionCardStyles = (screenWidth: number) => {
             alignItems: 'center',
             alignSelf: 'flex-start',
             backgroundColor: '#F4BCD6',
-            paddingHorizontal: layout.isTablet ? 16 : 12,
-            paddingVertical: layout.isTablet ? 8 : 6,
+            paddingHorizontal: layout.isTablet ? 16 : 10,
+            paddingVertical: layout.isTablet ? 8 : 4,
             borderRadius: 20,
-            marginTop: Spacing.sm,
+            marginTop: layout.isTablet ? Spacing.sm : 4,
             gap: 6,
         },
 
@@ -197,15 +197,15 @@ export const createCompanionCardStyles = (screenWidth: number) => {
 
         aboutSection: {
             paddingHorizontal: layout.sectionPaddingH,
-            paddingTop: layout.isTablet ? Spacing.lg : Spacing.md,
-            paddingBottom: layout.sectionPaddingV,
+            paddingTop: layout.isTablet ? Spacing.lg : Spacing.sm,
+            paddingBottom: layout.isTablet ? layout.sectionPaddingV : 4,
         },
 
         sectionHeader: {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: layout.isTablet ? Spacing.md : Spacing.sm,
+            marginBottom: layout.isTablet ? Spacing.md : 4,
         },
 
         sectionTitle: {
@@ -230,26 +230,26 @@ export const createCompanionCardStyles = (screenWidth: number) => {
             fontSize: layout.bodyFontSize,
             fontFamily: Typography.fontFamily.regular,
             color: '#6A6A6A',
-            lineHeight: lineHeight(layout.bodyFontSize, 1.6),
+            lineHeight: lineHeight(layout.bodyFontSize, 1.4),
         },
 
         interestsSection: {
             paddingHorizontal: layout.sectionPaddingH,
-            paddingTop: layout.sectionPaddingV,
-            paddingBottom: layout.isTablet ? Spacing.lg : Spacing.md,
+            paddingTop: layout.isTablet ? layout.sectionPaddingV : 4,
+            paddingBottom: layout.isTablet ? Spacing.lg : Spacing.sm,
         },
 
         interestChipsContainer: {
             flexDirection: 'row',
             flexWrap: 'wrap',
-            gap: layout.isTablet ? 10 : 8,
-            marginTop: Spacing.sm,
+            gap: layout.isTablet ? 10 : 6,
+            marginTop: layout.isTablet ? Spacing.sm : 4,
         },
 
         interestChip: {
             backgroundColor: '#EAB2CB',
-            paddingHorizontal: layout.isTablet ? 16 : 12,
-            paddingVertical: layout.isTablet ? 10 : 7,
+            paddingHorizontal: layout.isTablet ? 16 : 10,
+            paddingVertical: layout.isTablet ? 10 : 5,
             borderRadius: 20,
             borderWidth: 1,
             borderColor: '#D61D6D',
@@ -274,16 +274,16 @@ export const createCompanionCardStyles = (screenWidth: number) => {
 
         boundariesSection: {
             paddingHorizontal: layout.sectionPaddingH,
-            paddingTop: layout.sectionPaddingV,
-            paddingBottom: layout.isTablet ? Spacing.lg : Spacing.md,
+            paddingTop: layout.isTablet ? layout.sectionPaddingV : 4,
+            paddingBottom: layout.isTablet ? Spacing.lg : Spacing.sm,
             borderTopWidth: 1,
             borderTopColor: Colors.border.light,
         },
 
         boundaryTag: {
             backgroundColor: '#F0DFE7',
-            paddingHorizontal: layout.isTablet ? 16 : 12,
-            paddingVertical: layout.isTablet ? 10 : 7,
+            paddingHorizontal: layout.isTablet ? 16 : 10,
+            paddingVertical: layout.isTablet ? 10 : 5,
             borderRadius: 20,
             borderWidth: 1,
             borderColor: '#E3B9CD',
@@ -298,8 +298,8 @@ export const createCompanionCardStyles = (screenWidth: number) => {
 
         moreSection: {
             paddingHorizontal: layout.sectionPaddingH,
-            paddingTop: layout.sectionPaddingV,
-            paddingBottom: layout.isTablet ? Spacing.lg : Spacing.md,
+            paddingTop: layout.isTablet ? layout.sectionPaddingV : 4,
+            paddingBottom: layout.isTablet ? Spacing.lg : Spacing.sm,
             borderTopWidth: 1,
             borderTopColor: Colors.border.light,
         },
@@ -307,20 +307,20 @@ export const createCompanionCardStyles = (screenWidth: number) => {
         moreChipsContainer: {
             flexDirection: 'row',
             flexWrap: 'wrap',
-            gap: layout.isTablet ? 10 : 8,
-            marginTop: Spacing.sm,
+            gap: layout.isTablet ? 10 : 6,
+            marginTop: layout.isTablet ? Spacing.sm : 4,
         },
 
         moreChip: {
             flexDirection: 'row',
             alignItems: 'center',
             backgroundColor: '#ECECEC',
-            paddingHorizontal: layout.isTablet ? 14 : 10,
-            paddingVertical: layout.isTablet ? 10 : 7,
+            paddingHorizontal: layout.isTablet ? 14 : 8,
+            paddingVertical: layout.isTablet ? 10 : 5,
             borderRadius: 20,
             borderWidth: 1,
             borderColor: '#E0E0E0',
-            gap: 6,
+            gap: 4,
         },
 
         moreChipIcon: {
