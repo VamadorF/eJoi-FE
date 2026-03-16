@@ -13,8 +13,9 @@ export const styles = StyleSheet.create({
   },
   contentContainer: {
     flexGrow: 1,
-    padding: Spacing.xl,
-    paddingBottom: Spacing['2xl'],
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.sm,
+    paddingBottom: 90,
   },
   header: {
     marginBottom: Spacing['2xl'],
@@ -65,29 +66,30 @@ export const styles = StyleSheet.create({
     ...Typography.styles.caption,
     fontFamily: Typography.fontFamily.medium,
     color: Colors.text.tertiary,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
     lineHeight: 17, // 12 * 1.4 - valor absoluto en px
   },
   stepTitle: {
     ...Typography.styles.h2,
     fontFamily: Typography.fontFamily.bold,
     color: Colors.text.primary,
-    marginBottom: Spacing.xs,
-    lineHeight: 36, // 30 * 1.2 - valor absoluto en px
+    fontSize: 24,
+    marginBottom: 2,
+    lineHeight: 30,
   },
   stepContext: {
     ...Typography.styles.bodySmall,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.text.secondary,
-    marginBottom: Spacing.sm,
-    lineHeight: 21, // 14 * 1.5 - valor absoluto en px
+    marginBottom: Spacing.xs,
+    lineHeight: 19,
   },
   stepSubtitle: {
     ...Typography.styles.body,
     fontFamily: Typography.fontFamily.regular,
     color: Colors.text.secondary,
-    marginBottom: Spacing.lg,
-    lineHeight: 24, // 16 * 1.5 - valor absoluto en px
+    marginBottom: Spacing.sm,
+    lineHeight: 22,
   },
   optionsContainer: {
     gap: Spacing.sm,

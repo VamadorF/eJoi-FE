@@ -5,15 +5,15 @@ import { Spacing } from '@/shared/theme/spacing';
 
 export const styles = StyleSheet.create({
   button: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 14,
     borderWidth: 2,
     borderColor: Colors.auxiliary.primary,
     backgroundColor: Colors.background.white,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 56,
+    minHeight: 44,
     flexDirection: 'row',
   },
   buttonSelected: {
@@ -82,8 +82,4 @@ export const styles = StyleSheet.create({
   },
 });
 
-const debugOptionSelectedStyle = StyleSheet.flatten(styles.buttonSelected) as Record<string, unknown>;
-// #region agent log
-fetch('http://127.0.0.1:7658/ingest/39857839-993a-4106-aeaf-5c248ccc31b2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eaafaf'},body:JSON.stringify({sessionId:'eaafaf',runId:'shadow-dbg-3',hypothesisId:'H3',location:'OptionButton.styles.ts:moduleInit',message:'option button styles resolved',data:{platform:Platform.OS,hasShadowColor:Object.prototype.hasOwnProperty.call(debugOptionSelectedStyle ?? {},'shadowColor'),hasBoxShadow:Object.prototype.hasOwnProperty.call(debugOptionSelectedStyle ?? {},'boxShadow')},timestamp:Date.now()})}).catch(()=>{});
-// #endregion
 
