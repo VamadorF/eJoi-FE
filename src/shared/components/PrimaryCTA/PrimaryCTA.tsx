@@ -1,5 +1,12 @@
 import React, { useEffect } from 'react';
-import { View, Text, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -14,6 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PrimaryCTAProps } from './PrimaryCTA.types';
 import { styles } from './PrimaryCTA.styles';
 import { Colors } from '@/shared/theme/colors';
+import { Spacing } from '@/shared/theme/spacing';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -26,6 +34,14 @@ export const PrimaryCTA: React.FC<PrimaryCTAProps> = ({
   const isDisabled = disabled || loading;
   const scale = useSharedValue(1);
   const opacity = useSharedValue(isDisabled ? 0.6 : 1);
+  const isNextButton = label.trim().toLowerCase() === 'siguiente';
+  const nextButtonAdjustments = isNextButton
+    ? {
+        marginBottom: Spacing.sm,
+        minHeight: 52,
+        paddingVertical: 10,
+      }
+    : null;
 
   useEffect(() => {
     opacity.value = withTiming(isDisabled ? 0.6 : 1, { duration: 200 });
@@ -70,6 +86,7 @@ export const PrimaryCTA: React.FC<PrimaryCTAProps> = ({
           <AnimatedPressable
             style={[
               styles.button,
+              nextButtonAdjustments,
               isDisabled && styles.buttonDisabled,
               animatedButtonStyle,
             ]}

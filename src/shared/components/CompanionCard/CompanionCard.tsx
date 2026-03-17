@@ -1,5 +1,6 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
+  ActivityIndicator,
   ImageBackground,
   Pressable,
   Text,
@@ -35,6 +36,8 @@ export interface CompanionCardProps {
   onEditPersona?: () => void;
   onEditInterests?: () => void;
   onEditBoundaries?: () => void;
+  isImageLoading?: boolean;
+  imageLoadingText?: string;
 }
 
 interface DetailChip {
@@ -43,40 +46,32 @@ interface DetailChip {
   emoji: string;
 }
 
-const FALLBACK_PERSONALITY_DETAILS: Array<Omit<DetailChip, 'key'>> = [
-  { value: 'Empatica', emoji: '💗' },
-  { value: 'Atenta', emoji: '✨' },
-  { value: 'Reflexiva', emoji: '🧠' },
-];
-
-const getToneIconName = (
-  tone?: string
-): React.ComponentProps<typeof Ionicons>['name'] => {
-  if (!tone) return 'sparkles-outline';
-  const normalized = tone.toLowerCase();
-
-  if (normalized.includes('divert') || normalized.includes('juguet')) return 'happy-outline';
-  if (normalized.includes('calm') || normalized.includes('tranquil')) return 'leaf-outline';
-  if (normalized.includes('rom')) return 'heart-outline';
-  if (normalized.includes('seri') || normalized.includes('prof')) return 'school-outline';
-
-  return 'sparkles-outline';
+const getToneEmoji = (tone?: string) => {
+  const normalized = tone?.toLowerCase() ?? '';
+  if (normalized.includes('calid') || normalized.includes('warm')) return '\u{1F338}';
+  if (normalized.includes('prof')) return '\u{1F4BC}';
+  if (normalized.includes('juguet') || normalized.includes('divert')) return '\u{2728}';
+  if (normalized.includes('rom')) return '\u{1F495}';
+  if (normalized.includes('seri')) return '\u{1F4DA}';
+  if (normalized.includes('amig')) return '\u{1F60A}';
+  if (normalized.includes('mister')) return '\u{1F319}';
+  if (normalized.includes('ener')) return '\u26A1';
+  return '\u{1F4AB}';
 };
 
-const getDefaultEmoji = (value: string) => {
-  const v = value.toLowerCase();
-  if (v.includes('prof') || v.includes('seri')) return '🧠';
-  if (v.includes('calm') || v.includes('tranquil')) return '🌿';
-  if (v.includes('rom')) return '💕';
-  return '✨';
+const getGenderChip = (gender?: string) => {
+  if (gender === 'femenino') return { emoji: '\u2640\uFE0F', value: 'Femenino' };
+  if (gender === 'neutro') return { emoji: '\u26A7\uFE0F', value: 'Neutro' };
+  if (gender === 'masculino') return { emoji: '\u2642\uFE0F', value: 'Masculino' };
+  return null;
 };
 
-const getDetailEmoji = (key: DetailChip['key'], value: string) => {
-  if (key === 'persona') return '🧬';
-  if (key === 'tone') return getDefaultEmoji(value);
-  if (key === 'interactionStyle') return '🗨️';
-  if (key === 'conversationDepth') return '🧠';
-  return '✨';
+const getVisualStyleChip = (visualStyle?: string) => {
+  if (!visualStyle) return null;
+  return {
+    emoji: visualStyle === 'anime' ? '\u{1F3A8}' : '\u{1F4F7}',
+    value: visualStyle === 'anime' ? 'Anime' : 'Realista',
+  };
 };
 
 export const CompanionCard: React.FC<CompanionCardProps> = ({
@@ -100,58 +95,59 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({
   onEditPersona,
   onEditInterests,
   onEditBoundaries,
+  isImageLoading = false,
+  imageLoadingText,
 }) => {
   const { width } = useWindowDimensions();
   const styles = useMemo(() => createCompanionCardStyles(width), [width]);
 
   const details = useMemo<DetailChip[]>(() => {
-    const rawItems: DetailChip[] = [
-      persona?.trim()
-        ? { key: 'persona', value: persona.trim(), emoji: getDetailEmoji('persona', persona) }
-        : null,
-      tone?.trim() ? { key: 'tone', value: tone.trim(), emoji: getDetailEmoji('tone', tone) } : null,
-      interactionStyle?.trim()
-        ? {
-            key: 'interactionStyle',
-            value: interactionStyle.trim(),
-            emoji: getDetailEmoji('interactionStyle', interactionStyle),
-          }
-        : null,
-      conversationDepth?.trim()
-        ? {
-            key: 'conversationDepth',
-            value: conversationDepth.trim(),
-            emoji: getDetailEmoji('conversationDepth', conversationDepth),
-          }
-        : null,
-    ].filter((item): item is DetailChip => Boolean(item));
+    const chips: DetailChip[] = [];
 
-    const seen = new Set<string>();
-    const deduped = rawItems.filter((item) => {
-      const key = item.value.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    const visualStyleChip = getVisualStyleChip(visualStyle);
+    if (visualStyleChip) {
+      chips.push({ key: 'visualStyle', ...visualStyleChip });
+    }
 
-    const topThree = deduped.slice(0, 3);
-    if (topThree.length === 3) return topThree;
+    const genderChip = getGenderChip(gender);
+    if (genderChip) {
+      chips.push({ key: 'gender', ...genderChip });
+    }
 
-    const withFallback = [...topThree];
-    for (const fallback of FALLBACK_PERSONALITY_DETAILS) {
-      if (withFallback.length >= 3) break;
-      if (withFallback.some((item) => item.value.toLowerCase() === fallback.value.toLowerCase())) {
-        continue;
-      }
-      withFallback.push({
-        key: `fallback-${withFallback.length + 1}`,
-        value: fallback.value,
-        emoji: fallback.emoji,
+    if (tone?.trim()) {
+      chips.push({
+        key: 'tone',
+        value: tone.trim(),
+        emoji: getToneEmoji(tone),
       });
     }
 
-    return withFallback.slice(0, 3);
-  }, [persona, tone, interactionStyle, conversationDepth]);
+    if (interactionStyle?.trim()) {
+      chips.push({
+        key: 'interactionStyle',
+        value: interactionStyle.trim(),
+        emoji: '\u{1F4AC}',
+      });
+    }
+
+    if (conversationDepth?.trim()) {
+      chips.push({
+        key: 'conversationDepth',
+        value: conversationDepth.trim(),
+        emoji: '\u{1F9E0}',
+      });
+    }
+
+    if (ethnicity?.trim()) {
+      chips.push({
+        key: 'ethnicity',
+        value: ethnicity.trim(),
+        emoji: '\u{1F30D}',
+      });
+    }
+
+    return chips;
+  }, [visualStyle, gender, tone, interactionStyle, conversationDepth, ethnicity]);
 
   const safeAboutText = aboutText?.trim() || 'Sin descripcion por ahora.';
 
@@ -159,13 +155,25 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({
     <View style={styles.tinderCard}>
       <View style={styles.imageContainer}>
         <ImageBackground source={image} style={styles.companionImage} imageStyle={styles.companionImage}>
+          {isImageLoading && (
+            <View style={styles.imageLoadingOverlay}>
+              <ActivityIndicator size="large" color="#FFFFFF" />
+              <Text style={styles.imageLoadingText}>
+                {imageLoadingText || 'Generando imagen...'}
+              </Text>
+            </View>
+          )}
           <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.5)']}
+            colors={['transparent', 'rgba(0,0,0,0.3)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
             style={styles.imageGradient}
           />
-
+          {mode === 'preview' && onEditImage && (
+            <Pressable style={styles.editImageButton} onPress={onEditImage} hitSlop={8}>
+              <Text style={styles.editImageButtonText}>{'\u270F\uFE0F Editar'}</Text>
+            </Pressable>
+          )}
         </ImageBackground>
       </View>
 
@@ -175,7 +183,6 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({
           <View style={styles.verifiedBadge}>
             <Ionicons name="checkmark" style={styles.verifiedIcon} />
           </View>
-
           {mode === 'preview' && onEditName && (
             <Pressable onPress={onEditName} hitSlop={8}>
               <Text style={styles.editLink}>Editar</Text>
@@ -184,17 +191,14 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({
         </View>
 
         {(persona || tone) && (
-          <View style={styles.personalityBadge}>
-            <Ionicons
-              name={getToneIconName(tone)}
-              size={14}
-              color="#f20a64"
-              style={styles.personalityBadgeIcon}
-            />
-            <Text style={styles.personalityBadgeText}>
-              {[persona, tone].filter(Boolean).join(' - ')}
-            </Text>
-          </View>
+          <Pressable
+            style={styles.personalityBadge}
+            onPress={mode === 'preview' ? onEditPersona : undefined}
+            disabled={mode !== 'preview' || !onEditPersona}
+          >
+            <Text style={styles.personalityBadgeIcon}>{getToneEmoji(tone)}</Text>
+            <Text style={styles.personalityBadgeText}>{persona || 'Personalidad'}</Text>
+          </Pressable>
         )}
       </View>
 
@@ -207,7 +211,6 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({
             </Pressable>
           )}
         </View>
-
         <Text style={styles.aboutText}>{safeAboutText}</Text>
       </View>
 
@@ -220,10 +223,8 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({
             </Pressable>
           )}
         </View>
-
         <View style={styles.interestChipsContainer}>
           {interests.length === 0 && <Text style={styles.emptyText}>Sin intereses seleccionados</Text>}
-
           {interests.map((interest, index) => (
             <View key={`${interest}-${index}`} style={styles.interestChip}>
               <Text style={styles.interestChipText}>{interest}</Text>
@@ -233,8 +234,9 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({
       </View>
 
       <View style={styles.moreSection}>
-        <Text style={styles.sectionTitle}>MAS SOBRE MI</Text>
+        <Text style={styles.sectionTitle}>Mas sobre mi</Text>
         <View style={styles.moreChipsContainer}>
+          {details.length === 0 && <Text style={styles.emptyText}>Sin detalles adicionales</Text>}
           {details.map((detail) => (
             <View key={detail.key} style={styles.moreChip}>
               <Text style={styles.moreChipIcon}>{detail.emoji}</Text>
@@ -246,17 +248,15 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({
 
       <View style={styles.boundariesSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>LIMITES</Text>
+          <Text style={styles.sectionTitle}>Limites</Text>
           {mode === 'preview' && onEditBoundaries && (
             <Pressable onPress={onEditBoundaries} hitSlop={8}>
               <Text style={styles.editLink}>Editar</Text>
             </Pressable>
           )}
         </View>
-
         <View style={styles.interestChipsContainer}>
           {boundaries.length === 0 && <Text style={styles.emptyText}>Sin limites definidos</Text>}
-
           {boundaries.map((boundary, index) => (
             <View key={`${boundary}-${index}`} style={styles.boundaryTag}>
               <Text style={styles.boundaryTagText}>{boundary}</Text>

@@ -8,7 +8,7 @@ import { OnboardingData } from '@/features/onboarding/types';
 import { generateCompanionImage } from '../api/image.api';
 import { generateCompanionImagePrompt } from '@/shared/utils/companionImagePrompt';
 
-const IMAGE_GENERATION_TIMEOUT_MS = 25000;
+const IMAGE_GENERATION_TIMEOUT_MS = 90000;
 
 let cachedPromise: Promise<string | null> | null = null;
 let cacheKey: string | null = null;
@@ -39,7 +39,20 @@ export function getOrCreateImagePromise(onboardingData: OnboardingData): Promise
     new Promise<string | null>((resolve) =>
       setTimeout(() => resolve(null), IMAGE_GENERATION_TIMEOUT_MS)
     ),
-  ]).catch(() => null);
+  ])
+    .then((imageUrl) => {
+      // If generation timed out/failed, clear cache so next screen/attempt can retry.
+      if (!imageUrl && cacheKey === key) {
+        clearImageCache();
+      }
+      return imageUrl;
+    })
+    .catch(() => {
+      if (cacheKey === key) {
+        clearImageCache();
+      }
+      return null;
+    });
   return cachedPromise;
 }
 
