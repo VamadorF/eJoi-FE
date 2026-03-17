@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
+    "start:expo-go": "EXPO_GO=true expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

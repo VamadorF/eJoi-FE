@@ -3,8 +3,10 @@ const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
+const isExpoGo = process.env.EXPO_GO === 'true';
+
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (platform === 'web' && moduleName === 'expo-iap') {
+  if ((platform === 'web' || isExpoGo) && moduleName === 'expo-iap') {
     return {
       filePath: path.resolve(__dirname, 'src/mocks/expo-iap.web.ts'),
       type: 'sourceFile',
