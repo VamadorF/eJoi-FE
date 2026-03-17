@@ -46,6 +46,7 @@
     },
     "scheme": "ejoi",
     "plugins": [
+      "expo-dev-client",
       "./plugins/withBillingLibraryDowngrade",
       "expo-iap",
       [
