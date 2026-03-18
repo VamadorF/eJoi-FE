@@ -45,6 +45,9 @@
       "output": "static"
     },
     "scheme": "ejoi",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "plugins": [
       "./plugins/withBillingLibraryDowngrade",
       "expo-iap",
