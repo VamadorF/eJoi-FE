@@ -58,6 +58,9 @@
         }
       ]
     ],
+    "autolinking": {
+      "exclude": ["expo-iap"]
+    },
     "extra": {
       "eas": {
         "projectId": ""
