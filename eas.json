@@ -57,18 +57,5 @@
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "159050225519-7gqrkndpp9bo5c632soe5rqfoe7p3vm9.apps.googleusercontent.com"
       }
     }
-  },
-  "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "./google-service-account.json",
-        "track": "internal"
-      },
-      "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
-      }
-    }
   }
 }
