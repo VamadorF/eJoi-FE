@@ -49,6 +49,7 @@
       "policy": "appVersion"
     },
     "plugins": [
+      "./plugins/withRemoveExpoIap",
       [
         "expo-build-properties",
         {
