@@ -7,7 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "postinstall": "node scripts/remove-expo-iap.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",
@@ -42,6 +43,11 @@
     "babel-plugin-module-resolver": "^5.0.0",
     "typescript": "^5.3.0",
     "vitest": "^4.0.18"
+  },
+  "expo": {
+    "autolinking": {
+      "exclude": ["expo-iap"]
+    }
   },
   "private": true
 }
