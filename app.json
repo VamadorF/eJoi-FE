@@ -49,8 +49,6 @@
       "policy": "appVersion"
     },
     "plugins": [
-      "./plugins/withBillingLibraryDowngrade",
-      "expo-iap",
       [
         "expo-build-properties",
         {

@@ -24,7 +24,17 @@ export const ENABLE_WEBSOCKET = (process.env.EXPO_PUBLIC_ENABLE_WEBSOCKET || 'fa
 export const MOCK_API = (process.env.EXPO_PUBLIC_MOCK_API || 'false') === 'true';
 
 export const IS_DEVELOPMENT = __DEV__;
+
+/**
+ * IAP_DISABLED: desactiva compras in-app (expo-iap) sin tocar el código de suscripción.
+ * Para reactivar: set EXPO_PUBLIC_IAP_DISABLED=false en eas.json y reinstalar expo-iap.
+ * @see src/mocks/expo-iap.mock.ts para instrucciones completas de re-activación.
+ */
+export const IAP_DISABLED =
+  (process.env.EXPO_PUBLIC_IAP_DISABLED || 'true') === 'true';
+
 export const ENABLE_SUBSCRIPTION_MOCK =
+  IAP_DISABLED ||
   (process.env.EXPO_PUBLIC_ENABLE_SUBSCRIPTION_MOCK || (IS_DEVELOPMENT ? 'true' : 'false')) ===
   'true';
 
