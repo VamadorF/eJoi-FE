@@ -1,12 +1,15 @@
 /**
- * Config plugin: removes expo-iap from the Android native build.
+ * Config plugin: fixes expo-iap compilation with Kotlin 1.9.x
  *
- * expo-iap gets auto-installed as a transitive dependency on EAS build servers
- * and autolinking picks it up despite exclude configs. This plugin surgically
- * removes it at multiple levels to guarantee it never compiles.
+ * expo-iap@3.4.x depends on Billing Library v7/v8 which uses
+ * `Constant` from com.android.billingclient that requires Kotlin 2.0+.
+ * This plugin forces the billing library to v6.2.1 (last Kotlin 1.9 compatible)
+ * AND patches expo-iap's build.gradle to exclude/downgrade the dependency.
  *
- * TEMPORARY: remove this plugin when re-enabling IAP.
- * @see src/mocks/expo-iap.mock.ts for full re-enable instructions.
+ * Also attempts to remove expo-iap from settings.gradle and build.gradle
+ * as a first line of defense.
+ *
+ * TEMPORARY: remove when re-enabling IAP with Kotlin 2.0+.
  */
 const {
   withSettingsGradle,
@@ -17,50 +20,62 @@ const fs = require('fs');
 const path = require('path');
 
 function withRemoveExpoIap(config) {
-  // 1. Modify settings.gradle to exclude expo-iap from autolinking AND project includes
+  // 1. Try to remove expo-iap from settings.gradle + inject exclude
   config = withSettingsGradle(config, (config) => {
     let contents = config.modResults.contents;
 
-    // Remove include(':expo-iap') and project lines
-    const lines = contents.split('\n');
-    const filtered = lines.filter((line) => {
-      if (line.includes('expo-iap')) {
-        console.log('[withRemoveExpoIap] Removed from settings.gradle:', line.trim());
-        return false;
-      }
-      return true;
-    });
-    contents = filtered.join('\n');
+    // Remove include(':expo-iap') lines
+    contents = contents
+      .split('\n')
+      .filter((line) => !line.includes('expo-iap'))
+      .join('\n');
 
     // Inject exclude into useExpoModules() call
-    // Change: useExpoModules()  →  useExpoModules([ exclude: ['expo-iap'] ])
     if (contents.includes('useExpoModules()')) {
       contents = contents.replace(
         'useExpoModules()',
         "useExpoModules([\n  exclude: ['expo-iap']\n])"
       );
-      console.log('[withRemoveExpoIap] Injected exclude into useExpoModules()');
     }
 
     config.modResults.contents = contents;
     return config;
   });
 
-  // 2. Remove expo-iap from app/build.gradle dependencies
+  // 2. Force billing library downgrade in app/build.gradle as safety net
   config = withAppBuildGradle(config, (config) => {
-    const lines = config.modResults.contents.split('\n');
-    const filtered = lines.filter((line) => {
-      if (line.includes('expo-iap')) {
-        console.log('[withRemoveExpoIap] Removed from build.gradle:', line.trim());
-        return false;
-      }
-      return true;
-    });
-    config.modResults.contents = filtered.join('\n');
+    let contents = config.modResults.contents;
+
+    // Remove direct expo-iap dependency lines
+    contents = contents
+      .split('\n')
+      .filter((line) => !line.includes('expo-iap'))
+      .join('\n');
+
+    // Add dependency resolution strategy to force billing library v6.2.1
+    // This ensures if expo-iap DOES compile, it won't hit the Kotlin error
+    const resolutionBlock = `
+    // Force billing library v6.2.1 (Kotlin 1.9.x compatible)
+    configurations.all {
+        resolutionStrategy {
+            force 'com.android.billingclient:billing:6.2.1'
+            force 'com.android.billingclient:billing-ktx:6.2.1'
+        }
+    }`;
+
+    // Insert resolution block inside android { } block
+    if (contents.includes('android {')) {
+      contents = contents.replace(
+        'android {',
+        'android {' + resolutionBlock
+      );
+    }
+
+    config.modResults.contents = contents;
     return config;
   });
 
-  // 3. Post-prebuild: delete expo-iap from node_modules if present
+  // 3. Delete expo-iap from node_modules during prebuild
   config = withDangerousMod(config, [
     'android',
     async (config) => {
