@@ -20,6 +20,7 @@ function getCacheKey(data: OnboardingData): string {
     gender: data.gender,
     persona: data.persona,
     interests: data.interests,
+    ethnicity: data.ethnicity,
   });
 }
 
