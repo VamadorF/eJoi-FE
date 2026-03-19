@@ -30,51 +30,103 @@ const ETHNICITY_TO_DESCRIPTION: Record<string, string> = {
   'Mixta':            'This person is mixed-race with ambiguous ethnic features, warm medium skin tone, and a blend of facial features from multiple ethnicities.',
 };
 
+// ─── Colores de ropa por tono ─────────────────────────────────────────────────
+
+/**
+ * Paleta de colores de ropa según el tono seleccionado.
+ * Evita brown / tan / camel / muddy beige que gpt-image-1 tiende a usar por defecto.
+ */
+const CLOTHING_COLOR_BY_TONE: Record<string, string> = {
+  warm:    'soft pink, muted rose, cream, soft coral, or dusty mauve',
+  cool:    'soft blue, slate blue, cool gray, lavender-gray, or charcoal',
+  neutral: 'gray, off-white, soft navy, muted green, or black',
+  vibrant: 'teal, berry, cobalt, emerald, or a saturated but tasteful color',
+  serious: 'navy, charcoal, deep green, burgundy, or black',
+};
+
 // ─── Estilos visuales ────────────────────────────────────────────────────────
 
 /**
  * Cada estilo tiene un builder que genera la descripción visual.
- * Realista: aspecto candid/natural,
+ * Realista: aspecto candid/natural, diferenciado por género y tono.
  * Anime: prompt diferenciado por género con referencias de estilo específicas.
  */
 const VISUAL_STYLE_CONFIG: Record<string, {
-  buildPrompt: (gender: string, ethnicity: string) => string;
+  buildPrompt: (gender: string, ethnicity: string, toneKey?: string) => string;
   avoidances: string;
 }> = {
   realista: {
-    buildPrompt: (gender: string, ethnicity: string) => {
+    buildPrompt: (gender: string, ethnicity: string, toneKey?: string) => {
+      const clothingColors = CLOTHING_COLOR_BY_TONE[toneKey || 'neutral'] ?? CLOTHING_COLOR_BY_TONE['neutral'];
+
+      // Instrucciones de edad/apariencia según género
+      let ageAppearance: string;
+      if (gender === 'woman') {
+        ageAppearance = [
+          'She is a young adult woman in her early-to-mid 20s.',
+          'Soft natural youthful features — age-appropriate, not childlike and not middle-aged.',
+          'Healthy natural facial fullness with a youthful glow.',
+        ].join(' ');
+      } else if (gender === 'man') {
+        ageAppearance = 'He is a young adult man in his early-to-mid 20s with natural youthful features.';
+      } else {
+        ageAppearance = 'This is a young adult in their early-to-mid 20s with natural youthful features.';
+      }
+
       const parts = [
-        `A candid photograph of a ${gender}.`,
+        `A casual candid photo of a ${gender}, taken with a good smartphone or everyday camera indoors with available light.`,
       ];
       if (ethnicity) {
         parts.push(ethnicity);
       }
       parts.push(
-        'The photo looks like it was taken on a camera with a subtle grain texture.',
-        'This should look like an everyday person, not a fashion model',
-        'The person has an average build with healthy natural body proportions',
-        'Realistic shoulders, arms, neck, and facial fullness',
+        ageAppearance,
+        // Naturalidad humana
+        'The person should have slight natural facial asymmetry and natural unevenness in expression.',
+        'This should feel like a real candid moment — not perfectly posed, not a studio setup.',
+        'Subtle flyaway hairs, minor skin texture variations, and a realistic smile that is not polished or advertisement-like.',
+        // Cuerpo
+        'This should look like an everyday person, not a fashion model.',
+        'The person has a sturdy medium build with realistic natural body mass.',
+        'The upper torso should look substantial and realistic, not narrow, delicate, or slim.',
+        'Solid shoulders, a natural-width neck, and a fuller face — not thin or fragile-looking.',
+        // Piel
         'Natural skin with real texture — visible pores, light imperfections, minimal makeup.',
-        'centered subject, rule of thirds, visually balanced composition.',
-        'Soft diffused natural light, slightly uneven, as if shot indoors near a window.',
-        'If any clothing is visible, it should be a casual top, sweater, or jacket.'
+        // Encuadre
+        'Centered subject, mid-shot portrait showing the head, shoulders, and upper torso.',
+        'Everyday camera feel — not studio-perfect composition, not ad photography.',
+        // Ropa
+        `Modest casual everyday clothing with a higher neckline — such as a crew-neck t-shirt, knit sweater, hoodie, or casual jacket in ${clothingColors}.`,
+        'Avoid deep necklines, scoop necks, or exposed upper chest.',
+        'Do NOT use brown, tan, camel, or muddy beige for the clothing color.',
       );
       return parts.join(' ');
     },
     avoidances: [
-      'Do not add any film strip borders, sprocket holes, film perforations, or vintage film frame edges around the image.',
-      'Avoid overly thin or model-like body proportions.',
+      // Bordes / frames
+      'Do not add any film strip borders, sprocket holes, film perforations, or vintage film frame edges.',
       'The image should have NO decorative borders or frames of any kind.',
-      'Do not make it look like a professional studio headshot or glamour photography.',
-      'Avoid airbrushed or retouched skin, perfect symmetry, heavy makeup, or fashion magazine aesthetics.',
+      // Proporciones corporales
+      'Avoid overly thin, model-like, or fashion-editorial body proportions.',
+      'Do not make the person extremely thin, underweight-looking, or fashion-model slim.',
+      'Avoid unnaturally narrow shoulders, thin neck, tiny waist, hollow cheeks, petite upper torso, or fragile-looking limbs.',
+      'Do not make the upper body look delicate, dainty, or slim — it should look solid and natural.',
+      // Vestuario / escote
+      'Do not show visible collarbones, bare shoulders, décolletage, or exposed upper chest.',
+      'Do not use low necklines, scoop necks, V-necks, wide collars, or deep neck openings.',
+      // Estilo editorial / glamour
+      'Do not make it look like glamour photography, a beauty campaign, a glamour portrait, or a fashion magazine spread.',
+      'Avoid airbrushed or retouched skin, perfect symmetry, heavy makeup, or editorial styling.',
+      'Do not use sharp chiseled jawlines or beauty-standard bone structure.',
+      // Anti-fake / anti-AI beauty
+      'Do not make the face overly symmetrical or the skin too smooth or plastic.',
+      'Do not create AI-beauty facial proportions — avoid uncanny-valley perfection.',
+      'Do not make the expression look advertisement-like or rehearsed.',
+      'Avoid overly perfect teeth, overly polished eyes, and synthetic facial harmony.',
+      // Técnico
       'Do not show hands, arms, or any CGI/3D render look.',
-      'Do not include film strip borders, perforations, or frame numbers.',
-      'Do not show bare shoulders, collarbone, or décolletage',
-      'Avoid unnaturally narrow shoulders, tiny waist, hollow cheeks, or fragile-looking limbs',
-      'Do not make the person extremely thin, underweight-looking, or fashion-model slim', 
-      'Avoid hyperrealism.'   
-
-
+      'Avoid hyperrealism.',
+      'Do not make this look like a studio shoot, an ad, or professional portrait photography.',
     ].join(' '),
   },
 
@@ -101,7 +153,7 @@ const VISUAL_STYLE_CONFIG: Record<string, {
         return [
           ...base,
           'A single full-face close-up anime illustration, one character only.',
-          'Mature facial structure with defined cheekbones, and slight stubble.',
+          'Soft natural jawline, smooth skin.',
           'Realistic iris detail with subtle catchlight and strong brow definition.',
           'Slightly bold outlines on features. Textured hair with natural volume.',
           'Muted warm tones with a grounded color palette.',
@@ -120,6 +172,7 @@ const VISUAL_STYLE_CONFIG: Record<string, {
     avoidances: [
       'Do not use sparkling glitter eyes, shoujo style, chibi, or kawaii aesthetics.',
       'Avoid western comic book, sketch, crosshatching, or graphic novel styles.',
+      'Avoid beards, stubble or facial hair of any kind.',
       'Do not make it photorealistic or 3D rendered.',
       'Do not create a split image, collage, or multiple characters.',
       'Do not add thumbnail images, small preview images, color swatches, or variant panels anywhere in the image — not on the sides, not on the corners, not anywhere',
@@ -133,19 +186,19 @@ const VISUAL_STYLE_CONFIG: Record<string, {
 // ─── Personalidad → rasgos visuales ─────────────────────────────────────────
 
 const PERSONA_TO_VISUAL: Record<string, string> = {
-  friendly:     'with a warm genuine smile, head slightly tilted, looking approachable',
-  professional: 'with a confident posture and direct eye contact, expression calm and composed',
-  playful:      'laughing naturally, head thrown back slightly, a candid joyful moment',
-  calm:         'with a serene expression and soft downward gaze, looking peaceful',
-  energetic:    'with bright wide eyes and an enthusiastic open expression, full of energy',
+  friendly:     'with a warm relaxed smile, approachable, slightly imperfect candid expression',
+  professional: 'with a calm natural expression, composed but not posed, relaxed confidence',
+  playful:      'with a genuine candid laugh, not exaggerated, naturally caught mid-moment',
+  calm:         'with a soft thoughtful expression, natural gaze, quietly at ease',
+  energetic:    'with a lively expression, natural and spontaneous, caught in an unscripted moment',
 };
 
 const TONE_TO_VISUAL: Record<string, string> = {
-  warm:    'Lit with golden hour lighting and warm tones, soft bokeh in the background.',
-  cool:    'Lit with overcast natural light in cool neutral tones, crisp background.',
-  neutral: 'Lit with diffused soft light, neutral background, balanced exposure.',
-  vibrant: 'Lit with bright natural light in a colorful vivid environment.',
-  serious: 'Lit with dramatic side lighting creating a moody atmospheric feel.',
+  warm:    'Soft natural indoor window light with warm neutral tones. Realistic contrast, softly blurred but realistic background. Not golden hour, not glowy — just natural warmth.',
+  cool:    'Overcast natural light with cool neutral tones. Crisp and grounded background, realistic contrast.',
+  neutral: 'Even diffused soft light, neutral tones, balanced exposure. Clean and simple background.',
+  vibrant: 'Bright natural light in a colorful but grounded environment. Vivid tones without looking artificial.',
+  serious: 'Soft directional side light creating gentle shadows. Subdued tones, grounded and natural mood.',
 };
 
 // ─── Intereses → fondo ───────────────────────────────────────────────────────
@@ -211,11 +264,10 @@ function buildContextFromInterests(interests: string[]): string {
   let topWeight = -1;
 
   for (const interest of interests) {
-    const key = interest.toLowerCase();
-    const weight = INTEREST_PRIORITY[key] ?? 1;
+    const weight = INTEREST_PRIORITY[interest] ?? 1;
     if (weight > topWeight) {
       topWeight = weight;
-      topInterest = key;
+      topInterest = interest;
     }
   }
 
@@ -225,12 +277,10 @@ function buildContextFromInterests(interests: string[]): string {
 // ─── Calidad global ───────────────────────────────────────────────────────────
 
 const QUALITY_INSTRUCTIONS = [
-  'Ultra detailed, high quality digital photograph.',
-  'Natural lighting with soft shadows.',
-  'Sharp focus with natural depth of field.',
-  'The composition should be visually balanced.',
-  'Highly detailed textures and realistic materials.',
-  'The overall mood should feel immersive and atmospheric.',
+  'This should look like a real candid photo — natural lighting and minor imperfections.',
+  'Believable everyday camera quality, not overly polished or retouched.',
+  'Natural human proportions, not stylized beauty proportions.',
+  'Realistic but casual — like a photo a friend took, not a professional shoot.',
 ].join(' ');
 
 // ─── Generador principal ─────────────────────────────────────────────────────
@@ -260,8 +310,8 @@ export function generateCompanionImagePrompt(onboardingData: OnboardingData): st
   const sections = [
     // 1. Instrucción de composición
     'Generate a single portrait image with one person only, centered composition.',
-    // 2. Sujeto, estilo y etnia
-    styleConfig.buildPrompt(gender, ethnicityDesc),
+    // 2. Sujeto, estilo, etnia y colores de ropa
+    styleConfig.buildPrompt(gender, ethnicityDesc, toneKey),
     // 3. Expresión derivada de personalidad
     `The person is ${personaVisual}.`,
     // 4. Iluminación derivada del tono
