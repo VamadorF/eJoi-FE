@@ -81,105 +81,67 @@ const VISUAL_STYLE_CONFIG: Record<string, {
       }
       parts.push(
         ageAppearance,
-        // Naturalidad humana
+        // Naturalidad humana — reforzar que es FOTOGRAFÍA real
+        'Shot on a real camera — natural lens distortion, slight depth-of-field blur, and real photographic grain.',
         'The person should have slight natural facial asymmetry and natural unevenness in expression.',
         'This should feel like a real candid moment — not perfectly posed, not a studio setup.',
         'Subtle flyaway hairs, minor skin texture variations, and a realistic smile that is not polished or advertisement-like.',
         // Cuerpo
         'This should look like an everyday person, not a fashion model.',
         'The person has a sturdy medium build with realistic natural body mass.',
-        'The upper torso should look substantial and realistic, not narrow, delicate, or slim.',
         'Solid shoulders, a natural-width neck, and a fuller face — not thin or fragile-looking.',
-        // Piel
-        'Natural skin with real texture — visible pores, light imperfections, minimal makeup.',
+        // Piel 
+        'Real human skin with visible pores, fine lines, subtle blemishes, and uneven skin tone. Minimal makeup.',
+        'The skin must look like real photographed skin, not smooth CGI or digitally painted.',
         // Encuadre
         'Centered subject, mid-shot portrait showing the head, shoulders, and upper torso.',
         'Everyday camera feel — not studio-perfect composition, not ad photography.',
         // Ropa
         `Modest casual everyday clothing with a higher neckline — such as a crew-neck t-shirt, knit sweater, hoodie, or casual jacket in ${clothingColors}.`,
-        'Avoid deep necklines, scoop necks, or exposed upper chest.',
         'Do NOT use brown, tan, camel, or muddy beige for the clothing color.',
       );
       return parts.join(' ');
     },
     avoidances: [
-      // Bordes / frames
-      'Do not add any film strip borders, sprocket holes, film perforations, or vintage film frame edges.',
-      'The image should have NO decorative borders or frames of any kind.',
-      // Proporciones corporales
-      'Avoid overly thin, model-like, or fashion-editorial body proportions.',
-      'Do not make the person extremely thin, underweight-looking, or fashion-model slim.',
-      'Avoid unnaturally narrow shoulders, thin neck, tiny waist, hollow cheeks, petite upper torso, or fragile-looking limbs.',
-      'Do not make the upper body look delicate, dainty, or slim — it should look solid and natural.',
-      // Vestuario / escote
-      'Do not show visible collarbones, bare shoulders, décolletage, or exposed upper chest.',
-      'Do not use low necklines, scoop necks, V-necks, wide collars, or deep neck openings.',
-      // Estilo editorial / glamour
-      'Do not make it look like glamour photography, a beauty campaign, a glamour portrait, or a fashion magazine spread.',
-      'Avoid airbrushed or retouched skin, perfect symmetry, heavy makeup, or editorial styling.',
-      'Do not use sharp chiseled jawlines or beauty-standard bone structure.',
-      // Anti-fake / anti-AI beauty
-      'Do not make the face overly symmetrical or the skin too smooth or plastic.',
-      'Do not create AI-beauty facial proportions — avoid uncanny-valley perfection.',
-      'Do not make the expression look advertisement-like or rehearsed.',
-      'Avoid overly perfect teeth, overly polished eyes, and synthetic facial harmony.',
-      // Técnico
-      'Do not show hands, arms, or any CGI/3D render look.',
-      'Avoid hyperrealism.',
-      'Do not make this look like a studio shoot, an ad, or professional portrait photography.',
+      'No borders, film strips, or decorative frames.',
+      'Avoid fashion-model proportions — no unnaturally thin body, narrow shoulders, or hollow cheeks.',
+      'No exposed collarbones, bare shoulders, or deep necklines.',
+      'No glamour photography, editorial styling, heavy makeup, or airbrushed skin.',
+      'No 3D render, CGI, or digitally painted look — this must read as a real photograph.',
+      'No overly symmetrical face, plastic skin, or uncanny-valley perfection.',
     ].join(' '),
   },
 
   anime: {
     buildPrompt: (gender: string, ethnicity: string) => {
-      const base = [
-        `Anime-style character portrait of a ${gender}.`,
+      const parts = [
+        `Anime portrait of a young ${gender}.`,
         ...(ethnicity ? [ethnicity] : []),
-        'Drawn in the style of modern Japanese animation — clean confident linework, flat cel shading.',
-        'Single character, close-up portrait with a soft bokeh background.',
+        'Modern anime illustration with clean linework and soft cel shading.',
+        'Head-and-shoulders composition.',
       ];
 
       if (gender === 'woman') {
-        return [
-          ...base,
-          'Inspired by modern manhwa art style with expressive eyes that have realistic iris detail and subtle catchlight.',
-          'Soft line weight variation with delicate facial lines.',
+        parts.push(
+          'Manhwa-inspired art style with expressive eyes, subtle catchlight, and delicate facial lines.',
           'Hair with depth shading, multiple highlight layers, and flowing strands.',
-          'Vibrant saturated colors with warm skin tones.',
-        ].join(' ');
+          'Full color illustration — vibrant saturated palette, rich skin tones, colored hair and eyes. Not monochrome, not sketch, not lineart.',
+        );
+      } else if (gender === 'man') {
+        parts.push(
+          'Clearly masculine features, natural proportions, calm gentle expression.',
+          'Textured hair with natural volume, warm natural coloring.',
+        );
+      } else {
+        parts.push(
+          'Androgynous features — a balanced mix of soft and defined facial lines.',
+          'Hair with natural volume and highlights, warm muted tones.',
+        );
       }
 
-      if (gender === 'man') {
-        return [
-          ...base,
-          'A single full-face close-up anime illustration, one character only.',
-          'Soft natural jawline, smooth skin.',
-          'Realistic iris detail with subtle catchlight and strong brow definition.',
-          'Slightly bold outlines on features. Textured hair with natural volume.',
-          'Muted warm tones with a grounded color palette.',
-        ].join(' ');
-      }
-
-      // Neutro
-      return [
-        ...base,
-        'Modern manhwa style with androgynous features — a balanced mix of soft and defined facial lines.',
-        'Realistic iris detail with subtle catchlight.',
-        'Hair with natural volume and highlights.',
-        'Warm muted tones with a soft background.',
-      ].join(' ');
+      return parts.join(' ');
     },
-    avoidances: [
-      'Do not use sparkling glitter eyes, shoujo style, chibi, or kawaii aesthetics.',
-      'Avoid western comic book, sketch, crosshatching, or graphic novel styles.',
-      'Avoid beards, stubble or facial hair of any kind.',
-      'Do not make it photorealistic or 3D rendered.',
-      'Do not create a split image, collage, or multiple characters.',
-      'Do not add thumbnail images, small preview images, color swatches, or variant panels anywhere in the image — not on the sides, not on the corners, not anywhere',
-      'Do not create a character sheet, reference sheet, or key visual with multiple views or poses of the same character',
-      'There must be only ONE image with ONE character. No collage, no panels, no split layout',
-      'No borders, no panels, no inset images, no sidebars, no UI elements of any kind.',
-    ].join(' '),
+    avoidances: 'No duplicate faces, no extra cropped heads, no side panels, no collage. Avoid chibi, shoujo, photorealism, 3D render, and facial hair.',
   },
 };
 
@@ -274,14 +236,21 @@ function buildContextFromInterests(interests: string[]): string {
   return INTEREST_TO_BACKGROUND[topInterest] ?? DEFAULT_BACKGROUND;
 }
 
-// ─── Calidad global ───────────────────────────────────────────────────────────
+// ─── Calidad por estilo ──────────────────────────────────────────────────────
 
-const QUALITY_INSTRUCTIONS = [
-  'This should look like a real candid photo — natural lighting and minor imperfections.',
-  'Believable everyday camera quality, not overly polished or retouched.',
-  'Natural human proportions, not stylized beauty proportions.',
-  'Realistic but casual — like a photo a friend took, not a professional shoot.',
-].join(' ');
+const QUALITY_BY_STYLE: Record<string, string> = {
+  realista: [
+    'This should look like a real candid photo — natural lighting and minor imperfections.',
+    'Believable everyday camera quality, not overly polished or retouched.',
+    'Natural human proportions, not stylized beauty proportions.',
+    'Realistic but casual — like a photo a friend took, not a professional shoot.',
+  ].join(' '),
+  anime: [
+    'Manhwa-inspired character portrait with clean refined linework, soft shading, and polished modern styling.',
+    'Clear focal subject with no extra cropped duplicates or repeated faces.',
+    'One finished image only, with a simple composition and no extra visual elements'
+  ].join(' '),
+};
 
 // ─── Generador principal ─────────────────────────────────────────────────────
 
@@ -309,7 +278,7 @@ export function generateCompanionImagePrompt(onboardingData: OnboardingData): st
 
   const sections = [
     // 1. Instrucción de composición
-    'Generate a single portrait image with one person only, centered composition.',
+    'Generate one finished image only.',
     // 2. Sujeto, estilo, etnia y colores de ropa
     styleConfig.buildPrompt(gender, ethnicityDesc, toneKey),
     // 3. Expresión derivada de personalidad
@@ -318,8 +287,8 @@ export function generateCompanionImagePrompt(onboardingData: OnboardingData): st
     toneVisual,
     // 5. Fondo derivado del interés de mayor peso
     background,
-    // 6. Calidad global
-    QUALITY_INSTRUCTIONS,
+    // 6. Calidad según estilo
+    QUALITY_BY_STYLE[styleKey] ?? QUALITY_BY_STYLE.realista,
     // 7. Instrucciones de qué evitar
     styleConfig.avoidances,
   ];
